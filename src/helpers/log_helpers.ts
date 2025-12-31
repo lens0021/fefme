@@ -17,14 +17,15 @@ export const appLogger = getLogger();
 
 // Log the browser's locale information to the console
 export const logLocaleInfo = (): void => {
+	const env = import.meta.env;
 	const msg = [
 		`navigator.locale="${browserLocale()}"`,
 		`language="${browserLanguage()}"`,
 		`country="${browserCountry()}"`,
-		`process.env.NODE_ENV="${process.env.NODE_ENV}"`,
-		`process.env.FEDIALGO_DEBUG="${process.env.FEDIALGO_DEBUG}"`,
+		`import.meta.env.MODE="${env.MODE}"`,
+		`import.meta.env.VITE_FEDIALGO_DEBUG="${env.VITE_FEDIALGO_DEBUG}"`,
 		`TheAlgorithm.isDebugMode="${TheAlgorithm.isDebugMode}"`,
-		`process.env.FEDIALGO_VERSION="${process.env.FEDIALGO_VERSION}"`,
+		`import.meta.env.VITE_FEDIALGO_VERSION="${env.VITE_FEDIALGO_VERSION}"`,
 	];
 
 	appLogger.log(`${msg.join(", ")}`);

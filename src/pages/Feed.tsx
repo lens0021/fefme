@@ -227,7 +227,7 @@ export default function Feed() {
 							<div className="font-mono rounded-2xl bg-slate-800 text-slate-200 text-sm p-4">
 								<ul>
 									<li>
-										<strong>NODE_ENV:</strong> {process.env.NODE_ENV}
+										<strong>NODE_ENV:</strong> {import.meta.env.MODE}
 									</li>
 									<li>
 										<strong>Debug Mode:</strong>{" "}

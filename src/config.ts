@@ -37,7 +37,8 @@ const REQUIRED_OAUTH_SCOPES = [
 ];
 
 const HOMEPAGE =
-	process.env.FEDIALGO_HOMEPAGE || "https://lens0021.github.io/fefme";
+	import.meta.env.VITE_FEDIALGO_HOMEPAGE ||
+	"https://lens0021.github.io/fefme";
 const HOMEPAGE_URL = (() => {
 	try {
 		return new URL(HOMEPAGE);
@@ -175,6 +176,7 @@ type WeightsConfig = {
 };
 
 interface ConfigType {
+	readonly app: AppConfig;
 	readonly filters: FilterConfig;
 	readonly locale: LocaleConfig;
 	readonly stats: StatsConfig;
@@ -185,11 +187,9 @@ interface ConfigType {
 	readonly weights: WeightsConfig;
 }
 
-interface ReadonlyConfig extends Readonly<ConfigType> {}
-
 // App level config that is not user configurable
-class Config implements ReadonlyConfig {
-	app: AppConfig = {
+const config: Readonly<ConfigType> = {
+	app: {
 		accessTokenRevokedMsg:
 			"Your access token expired. Please log in again to continue using the app.",
 		createAppParams: {
@@ -204,9 +204,9 @@ class Config implements ReadonlyConfig {
 		issuesUrl: ISSUES_URL,
 		repoName: HOMEPAGE_URL ? HOMEPAGE_URL.pathname.split("/").pop() : null,
 		repoUrl: GITHUB_REPO_URL,
-	};
+	},
 
-	filters: FilterConfig = {
+	filters: {
 		boolean: {
 			maxLabelLength: 19, // Maximum length of a filter option label
 			minTootsSlider: {
@@ -331,20 +331,20 @@ class Config implements ReadonlyConfig {
 			},
 			tooltipHoverDelay: 500, // Delay for header tooltips in milliseconds
 		},
-	};
+	},
 
-	locale: LocaleConfig = {
+	locale: {
 		defaultLocale: "en-CA", // Default locale for the application
-	};
+	},
 
-	stats: StatsConfig = {
+	stats: {
 		animationDuration: 500, // Duration of stats animations in milliseconds
 		numPercentiles: 10, // Number of quartiles/quintiles/deciles/etc. to display in stats
-	};
+	},
 
-	theme: ThemeConfig = THEME;
+	theme: THEME,
 
-	timeline: TimelineConfig = {
+	timeline: {
 		autoloadOnFocusAfterMinutes: 5, // Autoload new toots if timeline is this old (and feature is enabled)
 		apiErrorsUserMsgSuffix: "warnings while retrieving Mastodon data",
 		defaultLoadingMsg: "Loading (first time can take up to a minute or so)", // Message when first loading toots
@@ -412,15 +412,15 @@ class Config implements ReadonlyConfig {
 			accountTooltipDelayMS: 100, // Delay for account tooltips in milliseconds
 			defaultTooltipDelayMS: 800, // Default delay for tooltips in milliseconds;
 		},
-	};
+	},
 
-	toots: TootConfig = {
+	toots: {
 		imageHeight: 314, // Default height for images in toots
 		maxPreviewCardLength: 350, // Maximum length of preview card description
 		scoreDigits: 3, // Number of digits to display in the score
-	};
+	},
 
-	trending: TrendingConfig = {
+	trending: {
 		maxLengthForMulticolumn: 55, // Maximum length of a trending object label to use multicolumn layout
 		panels: {
 			[TagTootsCategory.FAVOURITED]: {
@@ -453,13 +453,12 @@ class Config implements ReadonlyConfig {
 				objTypeLabel: "trending toots",
 			},
 		},
-	};
+	},
 
-	weights: WeightsConfig = {
+	weights: {
 		defaultStepSize: 0.02, // Default step size for weight sliders
 		scalingMultiplier: 1.2, // Multiplier for scaling weight sliders responsively
-	};
-}
+	},
+};
 
-const config = new Config();
 export { config };
