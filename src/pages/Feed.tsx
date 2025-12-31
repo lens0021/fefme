@@ -187,12 +187,12 @@ export default function Feed() {
 			setScrollPercentage(percentage);
 
 			if (
-				percentage <= 50 &&
-				numDisplayedToots > config.timeline.defaultNumDisplayedToots * 2
+				percentage <= 10 &&
+				numDisplayedToots > config.timeline.defaultNumDisplayedToots * 3
 			) {
-				const newNumDisplayedToots = Math.floor(numDisplayedToots * 0.7);
+				const newNumDisplayedToots = Math.floor(numDisplayedToots * 0.8);
 				logger.log(
-					`Scroll pctage less than 50%, lowering numDisplayedToots to ${newNumDisplayedToots}`,
+					`Scroll pctage less than 10%, lowering numDisplayedToots to ${newNumDisplayedToots}`,
 				);
 				setNumDisplayedToots(newNumDisplayedToots);
 			}
