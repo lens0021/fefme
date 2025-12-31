@@ -81,7 +81,7 @@ export default function Accordion(props: AccordionProps) {
 			<button
 				type="button"
 				onClick={toggleOpen}
-				className="w-full text-left py-2 hover:bg-[color:var(--color-light-shade)] transition-colors flex justify-between items-center"
+				className="w-full text-left px-3 py-2 hover:bg-[color:var(--color-light-shade)] transition-colors flex justify-between items-center"
 			>
 				<span className="cursor-pointer my-[-5px]">
 					<span
