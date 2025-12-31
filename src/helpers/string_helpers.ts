@@ -5,7 +5,6 @@ import { AgeIn } from "fedialgo";
 import { isEmpty, isNil } from "lodash";
 
 import { config } from "../config";
-import { appLogger } from "./log_helpers";
 
 // Window events: https://developer.mozilla.org/en-US/docs/Web/API/Element/focus_event
 export enum Events {
@@ -29,11 +28,6 @@ const DATE_FORMAT = Intl.DateTimeFormat(browserLocale(), {
 });
 
 // Helpers
-export const alphabetize = (arr: string[]) => arr.sort(compareStr);
-export const compareStr = (a: string, b: string) =>
-	a.toLowerCase().localeCompare(b.toLowerCase());
-export const fileInfo = (file: File) =>
-	`file: "${file.name}", size: ${file.size}, type: ${file.type}`;
 export const nTimes = (n: number) => `${n} time${n === 1 ? "" : "s"}`;
 // Boolean helpers
 export const hasAnyCapitalLetters = (str: string) => /[A-Z]/.test(str);
@@ -129,11 +123,3 @@ export const timestampString = (_timestamp: string): string => {
 };
 
 // Get the Fedialgo version from the environment variable
-export const versionString = () => {
-	try {
-		return process.env.FEDIALGO_VERSION;
-	} catch (e) {
-		appLogger.error(`Error getting version string: ${e}`);
-		return "?.?.?";
-	}
-};

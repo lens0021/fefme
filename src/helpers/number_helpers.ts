@@ -4,7 +4,7 @@ import { config } from "../config";
  */
 import { appLogger } from "./log_helpers";
 
-export const KB = 1024;
+const KB = 1024;
 export const MB = KB * KB;
 
 // Remove scores with a raw score of 0

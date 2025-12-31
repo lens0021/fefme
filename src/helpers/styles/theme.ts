@@ -8,6 +8,12 @@ import tinygradient from "tinygradient";
 
 export type GradientEndpoints = [tinycolor.Instance, tinycolor.Instance];
 
+export enum SwitchType {
+	HIGHLIGHTS_ONLY = "highlightsOnly",
+	INVERT_SELECTION = "invertSelection",
+	SORT_BY_COUNT = "sortByCount",
+}
+
 // Conventional color palette for light/dark modes
 export interface ColorPalette {
 	// Core colors
