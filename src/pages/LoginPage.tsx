@@ -110,42 +110,87 @@ export default function LoginPage() {
 	};
 
 	return (
-		<div className="min-h-screen flex flex-col items-center justify-center flex-1 p-4">
-			<div className="w-full max-w-md">
-				<p className="leading-tight mb-3 text-center text-sm">
-					{FEDIALGO} features a customizable algorithm for sorting your feed.
-					<br />
-					You can choose which factors influence the sorting of your timeline.
-					<br />
-					<span className="text-[#ff00ff] text-sm block mt-2 mb-4">
-						All calculations are done in your browser. None of your data leaves
-						your machine.
-					</span>
-					<br />
-					To get started enter your Mastodon server in the form:{" "}
-					<code className="bg-gray-100 px-1 rounded">
-						{config.app.defaultServer}
-					</code>
-				</p>
-			</div>
+		<div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+			<div className="w-full max-w-lg">
+				<div className="rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] p-8 shadow-xl backdrop-blur-sm">
+					{/* Header */}
+					<div className="mb-8 text-center">
+						<h1 className="mb-3 text-3xl font-bold text-[color:var(--color-fg)]">
+							Welcome to {FEDIALGO}
+						</h1>
+						<p className="text-base text-[color:var(--color-muted-fg)]">
+							Your personalized Fediverse timeline
+						</p>
+					</div>
 
-			<div className="flex flex-col gap-2 mb-1 mt-1">
-				<input
-					id="mastodon_server"
-					onChange={(e) => setServerInputText(e.target.value)}
-					placeholder={serverDomain}
-					type="url"
-					value={serverInputText}
-					className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-				/>
+					{/* Features */}
+					<div className="mb-8 space-y-3">
+						<div className="flex items-start gap-3">
+							<span className="mt-0.5 text-lg">⚙️</span>
+							<div>
+								<h3 className="font-semibold text-[color:var(--color-fg)]">
+									Customizable Algorithm
+								</h3>
+								<p className="text-sm text-[color:var(--color-muted-fg)]">
+									Choose which factors influence the sorting of your timeline
+								</p>
+							</div>
+						</div>
+						<div className="flex items-start gap-3">
+							<span className="mt-0.5 text-lg">🔒</span>
+							<div>
+								<h3 className="font-semibold text-[color:var(--color-fg)]">
+									Privacy First
+								</h3>
+								<p className="text-sm text-[color:var(--color-muted-fg)]">
+									All calculations are done in your browser. Your data never
+									leaves your machine
+								</p>
+							</div>
+						</div>
+					</div>
 
-				<button
-					type="button"
-					onClick={oAuthLogin}
-					className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors text-sm"
-				>
-					Login
-				</button>
+					{/* Login Form */}
+					<div className="space-y-4">
+						<div>
+							<label
+								htmlFor="mastodon_server"
+								className="mb-2 block text-sm font-medium text-[color:var(--color-fg)]"
+							>
+								Mastodon Server
+							</label>
+							<input
+								id="mastodon_server"
+								onChange={(e) => setServerInputText(e.target.value)}
+								placeholder={serverDomain || config.app.defaultServer}
+								type="url"
+								value={serverInputText}
+								onKeyDown={(e) => {
+									if (e.key === "Enter") {
+										oAuthLogin();
+									}
+								}}
+								className="w-full rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] px-4 py-3 text-[color:var(--color-fg)] placeholder-[color:var(--color-muted-fg)] transition-colors focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] focus:ring-opacity-20"
+							/>
+							<p className="mt-2 text-xs text-[color:var(--color-muted-fg)]">
+								Example: {config.app.defaultServer}
+							</p>
+						</div>
+
+						<button
+							type="button"
+							onClick={oAuthLogin}
+							className="w-full rounded-lg bg-[color:var(--color-primary)] px-6 py-3 font-semibold text-white transition-all hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] focus:ring-offset-2"
+						>
+							Connect to Mastodon
+						</button>
+					</div>
+
+					{/* Footer note */}
+					<p className="mt-6 text-center text-xs text-[color:var(--color-muted-fg)]">
+						You'll be redirected to your Mastodon server to authorize access
+					</p>
+				</div>
 			</div>
 		</div>
 	);
