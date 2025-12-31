@@ -4,9 +4,6 @@ import { config } from "../config";
  */
 import { appLogger } from "./log_helpers";
 
-const KB = 1024;
-export const MB = KB * KB;
-
 // Remove scores with a raw score of 0
 export function formatScores(scores: object | number): object | number {
 	if (typeof scores === "number") return formatScore(scores);

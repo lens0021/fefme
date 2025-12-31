@@ -17,7 +17,6 @@ import TheAlgorithm, {
 import type { mastodon } from "masto";
 
 import type { TrendingPanelName } from "./components/TrendingSection";
-import { MB } from "./helpers/number_helpers";
 import { nTimes } from "./helpers/string_helpers";
 import { SwitchType, THEME, type ThemeConfig } from "./helpers/styles";
 import type {
@@ -108,14 +107,6 @@ type LocaleConfig = {
 	readonly defaultLocale: string;
 };
 
-type ReplyConfig = {
-	readonly defaultAcceptedAttachments: Readonly<Record<string, string[]>>;
-	readonly defaultMaxCharacters: number;
-	readonly defaultMaxAttachments: number;
-	readonly defaultMaxImageSize: number;
-	readonly defaultMaxVideoSize: number;
-};
-
 type StatsConfig = {
 	readonly animationDuration: number;
 	readonly numPercentiles: number;
@@ -175,7 +166,6 @@ type WeightsConfig = {
 interface ConfigType {
 	readonly filters: FilterConfig;
 	readonly locale: LocaleConfig;
-	readonly replies: ReplyConfig;
 	readonly stats: StatsConfig;
 	readonly theme: ThemeConfig;
 	readonly timeline: TimelineConfig;
@@ -340,19 +330,6 @@ class Config implements ReadonlyConfig {
 
 	locale: LocaleConfig = {
 		defaultLocale: "en-CA", // Default locale for the application
-	};
-
-	replies: ReplyConfig = {
-		defaultAcceptedAttachments: {
-			// Default in case the user's server doesn't provide this info
-			"audio/*": [".mp3", ".wav"],
-			"image/*": [".jpeg", ".jpg", ".png", ".gif"],
-			"video/*": [".mp4", ".webm"],
-		},
-		defaultMaxCharacters: 500, // Default maximum characters for a reply
-		defaultMaxAttachments: 4, // Default maximum attachments for a reply
-		defaultMaxImageSize: 10 * MB, // Default maximum image size for a reply
-		defaultMaxVideoSize: 40 * MB, // Default maximum video size for a reply
 	};
 
 	stats: StatsConfig = {
