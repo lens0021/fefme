@@ -88,7 +88,7 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 	// State variables
 	const [algorithm, setAlgorithm] = useState<TheAlgorithm>(null);
 	const [isGoToSocialUser, setIsGoToSocialUser] = useState<boolean>(false);
-	const [isLoading, setIsLoading] = useState<boolean>(true); // TODO: this shouldn't start as true...
+	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const [lastLoadDurationSeconds, setLastLoadDurationSeconds] = useState<
 		number | undefined
 	>();
@@ -396,11 +396,19 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 			}
 
 			setAlgorithm(algo);
-			triggerLoadFxn(
-				() => algo.triggerFeedUpdate(),
-				logAndShowError,
-				setLoadState,
-			);
+
+			// Initial load happens in background without blocking UI
+			algo.triggerFeedUpdate()
+				.then(() => {
+					const duration = AgeIn.seconds(new Date()).toFixed(1);
+					logger.log(`Background feed update completed in ${duration}s`);
+					setLastLoadDurationSeconds(Number(duration));
+				})
+				.catch((err) => {
+					if (!err.message.includes(GET_FEED_BUSY_MSG)) {
+						logAndShowError("Background feed update failed", err);
+					}
+				});
 
 			algo
 				.serverInfo()
