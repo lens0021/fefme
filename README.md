@@ -84,7 +84,3 @@ Environment variables are automatically loaded by Vite from `.env` files. There 
 
 * There's tons of info on how the scoring and weighting of posts is being done in your browser's javascript debug console logs if `FEDIALGO_DEBUG` is set.
 * The interesting stuff that actually handles the feed is in the [`Feed.tsx`](src/pages/Feed.tsx) file.
-
-#### Known Issues
-
-* Infinite scroll isn't _really_ infinite (yet). If you scroll far enough you will run out of posts to peruse.
