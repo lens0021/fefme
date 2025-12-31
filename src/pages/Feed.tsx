@@ -29,19 +29,10 @@ import {
 	loadingMsgStyle,
 	stickySwitchContainer,
 	TEXT_CENTER_P2,
+	tooltipZIndex,
 	verticalContainer,
 	waitOrDefaultCursor,
 } from "../helpers/styles";
-import {
-	accountTooltipStyle,
-	bottomRefSpacer,
-	envVarDebugPanel,
-	loadNewTootsText,
-	noTootsMsgStyle,
-	resetLinkStyle,
-	scrollStatusMsg,
-	statusesColStyle,
-} from "./Feed.styles";
 
 const LOAD_BUTTON_SEPARATOR = " ● ";
 const logger = getLogger("Feed");
@@ -162,7 +153,7 @@ export default function Feed() {
 					id={TOOLTIP_ACCOUNT_ANCHOR}
 					opacity={0.95}
 					place="left"
-					style={accountTooltipStyle}
+					style={{ ...tooltipZIndex, width: "500px" }}
 					variant="light"
 				/>
 
@@ -208,7 +199,7 @@ export default function Feed() {
 								<p style={loadingMsgStyle}>
 									{footerMsg} (
 									{
-										<a onClick={reset} style={resetLinkStyle}>
+										<a onClick={reset} className="font-bold underline cursor-pointer text-red-600 text-sm">
 											Reset Feed Data
 										</a>
 									}
@@ -216,7 +207,7 @@ export default function Feed() {
 								</p>
 							)}
 
-							<p style={scrollStatusMsg} className="d-none d-sm-block">
+							<p className="text-base h-auto mt-1.5 text-gray-500 d-none d-sm-block">
 								{TheAlgorithm.isDebugMode ? (
 									`Displaying ${numDisplayedToots} Toots (Scroll: ${scrollPercentage.toFixed(1)}%)`
 								) : (
@@ -228,7 +219,7 @@ export default function Feed() {
 						{algorithm && <ApiErrorsPanel />}
 
 						{TheAlgorithm.isDebugMode && (
-							<div style={envVarDebugPanel}>
+							<div className="font-mono rounded-2xl bg-slate-800 text-slate-200 text-base mt-7 p-5 pl-15">
 								<ul>
 									<li>
 										<strong>NODE_ENV:</strong> {process.env.NODE_ENV}
@@ -258,7 +249,7 @@ export default function Feed() {
 				{/* Feed column */}
 				<div className="w-full">
 					{algorithm && !isLoading && (
-						<div style={loadNewTootsText}>
+						<div className="text-base h-auto mt-2 text-center text-[13px]">
 							<TooltippedLink
 								labelAndTooltip={
 									config.timeline.loadTootsButtonLabels.loadNewToots
@@ -286,7 +277,7 @@ export default function Feed() {
 						</div>
 					)}
 
-					<div style={statusesColStyle}>
+					<div className="rounded h-auto" style={{ backgroundColor: config.theme.feedBackgroundColor }}>
 						{timeline.slice(0, numShownToots).map((toot) => (
 							<StatusComponent
 								isLoadingThread={isLoadingThread}
@@ -305,12 +296,12 @@ export default function Feed() {
 									message={config.timeline.defaultLoadingMsg}
 								/>
 							) : (
-								<div style={noTootsMsgStyle}>
+								<div className="flex flex-1 h-screen items-center justify-center text-xl">
 									<p>{config.timeline.noTootsMsg}</p>
 								</div>
 							))}
 
-						<div ref={bottomRef} style={bottomRefSpacer} />
+						<div ref={bottomRef} className="mt-2.5" />
 					</div>
 				</div>
 			</div>

@@ -4,12 +4,6 @@
 import React, { ChangeEvent, CSSProperties } from "react";
 
 import { config } from "../../config";
-import {
-	monoFont,
-	mildlyRoundedCorners,
-	whiteBackground,
-	centerAlignedFlexRow,
-} from "../../helpers/styles";
 
 interface SliderProps {
 	description?: string;
@@ -49,21 +43,21 @@ export default function Slider(props: SliderProps) {
 	}
 
 	let divs = [
-		<div key={`${label}_label`} style={labelContainer}>
+		<div key={`${label}_label`} className="flex flex-row items-center text-sm justify-between whitespace-nowrap">
 			{!hideValueBox && (
-				<div style={sliderValue} id="innerest_doop">
-					<span style={sliderValueFont}>{value?.toFixed(decimals)}</span>
+				<div className="rounded bg-white self-end border border-black mr-2.5 pl-2 pr-2 pt-0.5" id="innerest_doop">
+					<span className="font-mono text-xs">{value?.toFixed(decimals)}</span>
 				</div>
 			)}
 
 			<span>
-				<span style={sliderFont}>{`${label}` + (hideValueBox ? "" : ":")}</span>
+				<span className="font-bold mr-1">{`${label}` + (hideValueBox ? "" : ":")}</span>
 
 				{description && <span>{description}</span>}
 			</span>
 		</div>,
 
-		<div key={`${label}_slider`} style={sliderContainer}>
+		<div key={`${label}_slider`} className="flex flex-row justify-end">
 			<input
 				type="range"
 				className="custom-slider"
@@ -80,46 +74,9 @@ export default function Slider(props: SliderProps) {
 
 	return (
 		<div className="me-2" key={`${label}_sliderForm`}>
-			<div style={{ ...labelContainer }}>
+			<div className="flex flex-row items-center text-sm justify-between whitespace-nowrap">
 				{hideValueBox ? divs.reverse() : divs}
 			</div>
 		</div>
 	);
 }
-
-const labelContainer: CSSProperties = {
-	...centerAlignedFlexRow,
-	fontSize: 14,
-	justifyContent: "space-between",
-	textWrap: "nowrap",
-};
-
-const sliderContainer: CSSProperties = {
-	display: "flex",
-	flexDirection: "row",
-	justifyContent: "end",
-};
-
-const sliderFont: CSSProperties = {
-	fontWeight: "bold",
-	marginRight: "3px",
-};
-
-const sliderValue: CSSProperties = {
-	...mildlyRoundedCorners,
-	...whiteBackground,
-	alignSelf: "end",
-	border: "1px solid #000",
-	borderColor: "black",
-	borderWidth: 1,
-	marginRight: 10,
-	// paddingBottom: "1px",
-	paddingLeft: 8,
-	paddingRight: 8,
-	paddingTop: 1,
-};
-
-const sliderValueFont: CSSProperties = {
-	...monoFont,
-	fontSize: 12,
-};
