@@ -4670,3 +4670,60 @@ a.status-card .status-card__description,
 a.status-card.compact .status-card__description {
 	color: #71767b;
 }
+
+/* Slider (range input) styling */
+.custom-slider {
+	margin: 0 auto;
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+input[type="range"]::-webkit-slider-track {
+	background: linear-gradient(to right, #e2e8f0 0%, #cbd5e1 100%);
+	height: 6px;
+	border-radius: 3px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+	background: rgb(74, 40, 250, 0.8) !important;
+	height: 15px;
+	width: 12px;
+	-webkit-appearance: none;
+	margin-top: -4.5px;
+}
+
+/* Firefox */
+input[type="range"]::-moz-range-track {
+	background: linear-gradient(to right, #e2e8f0 0%, #cbd5e1 100%);
+	height: 6px;
+	border-radius: 3px;
+}
+
+input[type="range"]::-moz-range-thumb {
+	background: rgb(74, 40, 250, 0.8) !important;
+	height: 15px;
+	width: 12px;
+	border: none;
+}
+
+/* IE/Edge */
+input[type="range"]::-ms-track {
+	background: linear-gradient(to right, #e2e8f0 0%, #cbd5e1 100%);
+	height: 6px;
+	border-radius: 3px;
+}
+
+input[type="range"]::-ms-thumb {
+	background: rgb(74, 40, 250, 0.8) !important;
+	height: 15px;
+	width: 12px;
+}
+
+/* Constrain media gallery width to prevent overflow */
+.layout-single-column .status .media-gallery {
+	max-width: 100%;
+	box-sizing: border-box;
+}
+
+.layout-single-column .media-gallery {
+	max-width: 600px;
+}

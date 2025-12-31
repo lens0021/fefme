@@ -26,10 +26,11 @@ export const bottomRefSpacer: CSSProperties = {
 export const envVarDebugPanel: CSSProperties = {
 	...monoFont,
 	...roundedCorners,
-	color: "white",
+	backgroundColor: "#1e293b",
+	color: "#e2e8f0",
 	fontSize: 16,
 	marginTop: "28px",
-	paddingLeft: "60px",
+	padding: "20px 20px 20px 60px",
 };
 
 export const loadNewTootsText: CSSProperties = {

@@ -72,7 +72,11 @@ export default function BooleanFilterAccordionSection(
 		minTootsState[1](minTootsSliderDefaultValue); // equivalent of setMinToots() if setMinToots was a variable
 	}
 
-	const makeHeaderSwitch = createSwitchFactory(switchState, setSwitchState);
+	const makeHeaderSwitch = createSwitchFactory(
+		switchState,
+		setSwitchState,
+		HeaderSwitch,
+	);
 
 	const headerSwitches = useMemo(() => {
 		let _headerSwitches = [
@@ -115,7 +119,11 @@ export default function BooleanFilterAccordionSection(
 		minTootsState[0],
 	]);
 
-	const makeFooterSwitch = createSwitchFactory(tagSwitchState, setTagSwitchState);
+	const makeFooterSwitch = createSwitchFactory(
+		tagSwitchState,
+		setTagSwitchState,
+		HeaderSwitch,
+	);
 
 	if (filter.propertyName == BooleanFilterName.HASHTAG) {
 		footerSwitches = Object.values(TagTootsCategory).map((k) =>
