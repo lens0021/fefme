@@ -11,11 +11,12 @@ export default function BugReportLink() {
 		<>
 			Report bugs:{" "}
 			<a
-				href={config.app.developerMastodonUrl}
+				href={config.app.issuesUrl}
 				style={bugsLink}
 				target="_blank"
+				rel="noopener noreferrer"
 			>
-				{config.app.developerMastodonUrl.split("/").pop()}
+				GitHub Issues
 			</a>
 		</>
 	);

@@ -58,6 +58,7 @@ type AppConfig = {
 	readonly defaultServer: string;
 	readonly developerMastodonUrl: string;
 	readonly headerIconUrl: string;
+	readonly issuesUrl: string;
 	readonly repoName: string | null;
 	readonly repoUrl: string;
 	readonly showcaseImageUrl: string;
@@ -198,6 +199,9 @@ class Config implements ReadonlyConfig {
 		developerMastodonUrl: "https://universeodon.com/@cryptadamist",
 		headerIconUrl:
 			"https://media.universeodon.com/accounts/avatars/109/363/179/904/598/380/original/eecdc2393e75e8bf.jpg",
+		issuesUrl: HOMEPAGE
+			? `https://${HOMEPAGE.replace(/(\w+)\.github\.io/, `github.com/$1`)}/issues`
+			: "https://github.com/lens0021/fefme/issues",
 		repoName: HOMEPAGE ? HOMEPAGE.split("/").pop() : null,
 		repoUrl: HOMEPAGE
 			? HOMEPAGE.replace(/(\w+)\.github\.io/, `github.com/$1`)
