@@ -17,6 +17,7 @@ import {
 	faHashtag,
 	faLink,
 	faLock,
+	faEye,
 	faPencil,
 	faReply,
 	faRetweet,
@@ -62,6 +63,7 @@ enum InfoIconType {
 	Edited = "Edited",
 	Hashtags = "Hashtags",
 	Mention = "You're Mentioned",
+	Read = "Already Seen",
 	Reply = "Reply",
 	ShowToot = "Show Raw Post JSON",
 	TrendingLink = "Contains Trending Link",
@@ -77,6 +79,7 @@ const INFO_ICONS: Record<InfoIconType, IconInfo> = {
 		color: config.theme.participatedTagColor,
 	},
 	[InfoIconType.Mention]: { icon: faBolt, color: config.theme.light.success },
+	[InfoIconType.Read]: { icon: faEye, color: config.theme.light.info },
 	[InfoIconType.Reply]: { icon: faReply, color: config.theme.light.primary },
 	[InfoIconType.ShowToot]: { icon: faUpRightFromSquare },
 	[InfoIconType.TrendingLink]: {
@@ -303,6 +306,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 							>
 								<span className="inline-flex items-center gap-1">
 									{toot.editedAt && infoIcon(InfoIconType.Edited)}
+									{(toot.numTimesShown || 0) > 0 && infoIcon(InfoIconType.Read)}
 									{toot.inReplyToAccountId && infoIcon(InfoIconType.Reply)}
 									{(toot.trendingRank || 0) > 0 &&
 										infoIcon(InfoIconType.TrendingToot)}
