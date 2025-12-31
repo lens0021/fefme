@@ -1,0 +1,29 @@
+/* Minimal theme variables for light/dark mode. */
+:root,
+[data-theme="light"] {
+	--color-bg: #ffffff;
+	--color-fg: #0f172a;
+	--color-border: #e2e8f0;
+	--color-muted: #f1f5f9;
+	--color-muted-fg: #64748b;
+	--color-primary: #3b82f6;
+	--color-primary-fg: #ffffff;
+	--color-card-bg: #ffffff;
+	--color-dm-bg: #f0f9ff;
+	--color-light-shade: #00000005;
+	--color-success: #10b981;
+}
+
+[data-theme="dark"] {
+	--color-bg: #0f172a;
+	--color-fg: #f1f5f9;
+	--color-border: #334155;
+	--color-muted: #1e293b;
+	--color-muted-fg: #94a3b8;
+	--color-primary: #60a5fa;
+	--color-primary-fg: #0f172a;
+	--color-card-bg: #1e293b;
+	--color-dm-bg: #1e3a8a;
+	--color-light-shade: #ffffff05;
+	--color-success: #34d399;
+}

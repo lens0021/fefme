@@ -8,7 +8,7 @@ windowWithBuffer.Buffer = Buffer;
 import { HashRouter, Route, Routes } from "react-router-dom";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import "./birdUI.css";
+import "./theme.css";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
 import ProtectedRoute from "./components/ProtectedRoute";
