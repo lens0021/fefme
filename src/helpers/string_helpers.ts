@@ -3,6 +3,10 @@
  */
 import { AgeIn } from "../core/index";
 import { isEmpty, isNil } from "lodash";
+import {
+	isEmptyStr as coreIsEmptyStr,
+	ordinalSuffix,
+} from "../core/helpers/string_helpers";
 
 import { config } from "../config";
 
@@ -26,29 +30,12 @@ const DATE_FORMAT = Intl.DateTimeFormat(browserLocale(), {
 export const nTimes = (n: number) => `${n} time${n === 1 ? "" : "s"}`;
 // Boolean helpers
 export const hasAnyCapitalLetters = (str: string) => /[A-Z]/.test(str);
-export const isEmptyStr = (s: string | null | undefined) =>
-	isNil(s) || isEmpty(s?.trim());
+export const isEmptyStr = coreIsEmptyStr;
 
 // "image/png" => ".png"
 export function mimeTypeExtension(mimeType: string): string {
 	const parts = mimeType.split("/");
 	return parts.length > 1 ? `.${parts[1]}` : "";
-}
-
-// 1st, 2nd 3rd, 4th, etc.
-function ordinalSuffix(n: number): string {
-	if (n > 3 && n < 21) return "th";
-
-	switch (n % 10) {
-		case 1:
-			return "st";
-		case 2:
-			return "nd";
-		case 3:
-			return "rd";
-		default:
-			return "th";
-	}
 }
 
 // Remove http:// or https:// from the server URL, Remove everything after slash
