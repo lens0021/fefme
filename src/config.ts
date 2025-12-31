@@ -56,7 +56,6 @@ type CreateAppParams = Parameters<mastodon.rest.v1.AppRepository["create"]>[0];
 
 type AppConfig = {
 	readonly accessTokenRevokedMsg: string;
-	readonly changelogUrl: string;
 	readonly createAppParams: Readonly<Omit<CreateAppParams, "redirectUris">>;
 	readonly defaultServer: string;
 	readonly developerMastodonUrl: string;
@@ -194,7 +193,6 @@ interface ReadonlyConfig extends Readonly<ConfigType> {}
 class Config implements ReadonlyConfig {
 	app: AppConfig = {
 		accessTokenRevokedMsg: `Your access token expired. Please log in again to continue using the app.`,
-		changelogUrl: `https://github.com/lens0021/fefme/releases`,
 		createAppParams: {
 			clientName: `Fefme`,
 			scopes: REQUIRED_OAUTH_SCOPES.join(" "),

@@ -43,34 +43,6 @@ export default function Header(): JSX.Element {
 					)}
 				</Col>
 
-				<Col xs={XS_VALUE} className={`${TEXT_CENTER} p-0`}>
-					<img
-						className={ALIGN_MIDDLE_D_INLINE_BLOCK}
-						src={config.app.headerIconUrl}
-						style={avatarStyle}
-					/>
-
-					<span
-						className={`${ALIGN_MIDDLE} ${TEXT_CENTER_P2}`}
-						style={fedialgoContainer}
-					>
-						<a href={config.app.repoUrl} style={whiteFont} target="_blank">
-							Fefme
-						</a>{" "}
-						<span style={versionParenthesesStyle}>
-							(
-							<a
-								href={config.app.changelogUrl}
-								style={versionStyle}
-								target="_blank"
-							>
-								v{process.env.FEDIALGO_VERSION}
-							</a>
-							)
-						</span>
-					</span>
-				</Col>
-
 				<Col xs={XS_VALUE} className="text-end p-0">
 					{user && (
 						<Button
