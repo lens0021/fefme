@@ -9,8 +9,6 @@ import React, {
 	ReactNode,
 	isValidElement,
 } from "react";
-import Col from "react-bootstrap/Col";
-import Row from "react-bootstrap/Row";
 
 import { Toot, makeChunks, type TrendingWithHistory } from "fedialgo";
 
@@ -95,7 +93,6 @@ export function extractText(children: ReactNode | ReactNode[]): string[] {
 
 // Create a grid of numCols columns. If numCols is not provided either 2 or 3 columns
 // will be created based on the number of 'elements' provided.
-// Bootstrap Row/Col system margin and padding info: https://getbootstrap.com/docs/5.1/utilities/spacing/
 export function gridify(
 	elements: ReactElement[],
 	numCols?: number,
@@ -106,13 +103,13 @@ export function gridify(
 	const columns = makeChunks(elements, { numChunks: numCols });
 
 	return (
-		<Row>
+		<div className="flex gap-4">
 			{columns.map((columnItems, i) => (
-				<Col key={i} style={colStyle || {}}>
+				<div key={i} className="flex-1" style={colStyle || {}}>
 					{columnItems}
-				</Col>
+				</div>
 			))}
-		</Row>
+		</div>
 	);
 }
 

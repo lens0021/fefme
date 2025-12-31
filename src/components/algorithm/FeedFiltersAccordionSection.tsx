@@ -1,5 +1,4 @@
 import React, { CSSProperties } from "react";
-import Accordion from "react-bootstrap/esm/Accordion";
 
 import BooleanFilterAccordionSection from "./BooleanFilterAccordionSection";
 import NumericFilters from "./filters/NumericFilters";
@@ -60,7 +59,7 @@ export default function FeedFiltersAccordionSection() {
 			{HEADER_SWITCH_TOOLTIP}
 			{HIGHLIGHTED_TOOLTIP}
 
-			<Accordion alwaysOpen>
+			<div>
 				<div style={filterSwitchContainer}>
 					{allowMultiSelectCheckbox}
 					{showFilterHighlightsCheckbox}
@@ -70,7 +69,7 @@ export default function FeedFiltersAccordionSection() {
 				{Object.keys(filterPositions)
 					.sort()
 					.map((position) => filterPositions[position])}
-			</Accordion>
+			</div>
 		</TopLevelAccordion>
 	);
 }

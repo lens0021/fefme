@@ -1,7 +1,7 @@
 import React, { CSSProperties } from "react";
 import Accordion from "react-bootstrap/Accordion";
 import Card from "react-bootstrap/Card";
-import { useAccordionButton } from "react-bootstrap";
+import { Spinner, useAccordionButton } from "react-bootstrap";
 
 import { config } from "../config";
 import { useAlgorithm } from "../hooks/useAlgorithm";

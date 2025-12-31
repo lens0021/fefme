@@ -2,8 +2,6 @@
  * Drop down button that starts with a default but updates to take a value.
  */
 import React, { CSSProperties } from "react";
-import Dropdown from "react-bootstrap/Dropdown";
-import DropdownButton from "react-bootstrap/DropdownButton";
 
 interface LabeledDropdownButton {
 	id?: string;
@@ -16,34 +14,34 @@ interface LabeledDropdownButton {
 }
 
 export default function LabeledDropdownButton(props: LabeledDropdownButton) {
-	const { initialLabel, onClick, options, optionStyle, style } = props;
-	let { id, variant } = props;
+	const { initialLabel, onClick, options, style } = props;
+	let { id } = props;
 	id ??= initialLabel.replace(/\s+/g, "-");
-	variant ??= "info";
 
-	const [currentLabel, setCurrentLabel] = React.useState(initialLabel);
+	const [currentValue, setCurrentValue] = React.useState(initialLabel);
 
-	const selectOption = (value: string) => {
-		setCurrentLabel(value);
+	const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+		const value = e.target.value;
+		setCurrentValue(value);
 		onClick(value);
 	};
 
 	return (
-		<DropdownButton
+		<select
 			id={id}
-			title={currentLabel}
+			value={currentValue}
+			onChange={handleChange}
+			className="border border-gray-300 rounded px-3 py-2 bg-white cursor-pointer"
 			style={style || {}}
-			variant={variant}
 		>
+			<option value={initialLabel} disabled>
+				{initialLabel}
+			</option>
 			{options.map((value) => (
-				<Dropdown.Item
-					key={value}
-					onClick={() => selectOption(value)}
-					style={optionStyle || {}}
-				>
+				<option key={value} value={value}>
 					{value}
-				</Dropdown.Item>
+				</option>
 			))}
-		</DropdownButton>
+		</select>
 	);
 }

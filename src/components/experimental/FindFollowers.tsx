@@ -1,7 +1,7 @@
 import React, { CSSProperties, useEffect, useState } from "react";
+import { Accordion, Button, Card, Col, Row } from "react-bootstrap";
 
 import parse from "html-react-parser";
-import { Accordion, Button, Card, Col, Row } from "react-bootstrap";
 import { mastodon } from "masto";
 
 import LoadingSpinner from "../helpers/LoadingSpinner";

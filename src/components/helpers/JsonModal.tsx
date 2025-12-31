@@ -3,7 +3,6 @@
  * React Bootstrap Modal: https://getbootstrap.com/docs/5.0/components/modal/
  */
 import React, { CSSProperties, ReactNode } from "react";
-import { Modal } from "react-bootstrap";
 
 import ReactJsonView from "@microlink/react-json-view";
 
@@ -50,27 +49,47 @@ export default function JsonModal(props: JsonModalProps) {
 	jsonViewProps.style = { ...jsonViewStyle, ...(jsonViewProps.style || {}) };
 	json ??= {};
 
+	if (!show) return null;
+
+	const sizeClass =
+		dialogClassName === "modal-xl"
+			? "max-w-6xl"
+			: dialogClassName === "modal-lg"
+				? "max-w-4xl"
+				: "max-w-2xl";
+
 	return (
-		<Modal
-			dialogClassName={dialogClassName}
-			onHide={() => setShow(false)}
-			show={show}
+		<div
+			className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+			onClick={() => setShow(false)}
 		>
-			<Modal.Header closeButton style={blackFont}>
-				<Modal.Title>{title}</Modal.Title>
-			</Modal.Header>
+			<div
+				className={`bg-white rounded-lg shadow-lg ${sizeClass} w-full mx-4 max-h-[90vh] overflow-y-auto`}
+				onClick={(e) => e.stopPropagation()}
+			>
+				<div className="p-4 border-b flex justify-between items-center" style={blackFont}>
+					<h3 className="text-lg font-semibold">{title}</h3>
+					<button
+						onClick={() => setShow(false)}
+						className="text-2xl leading-none hover:text-gray-600"
+						aria-label="Close"
+					>
+						×
+					</button>
+				</div>
 
-			<Modal.Body>
-				{(subtitle || infoTxt) && (
-					<div style={{ ...blackFont, marginBottom: "5px" }}>
-						{subtitle && <div style={headerFont}>{subtitle}</div>}
-						{infoTxt && <div>{infoTxt}</div>}
-					</div>
-				)}
+				<div className="p-4">
+					{(subtitle || infoTxt) && (
+						<div style={{ ...blackFont, marginBottom: "5px" }}>
+							{subtitle && <div style={headerFont}>{subtitle}</div>}
+							{infoTxt && <div>{infoTxt}</div>}
+						</div>
+					)}
 
-				<ReactJsonView {...jsonViewProps} src={json || {}} />
-			</Modal.Body>
-		</Modal>
+					<ReactJsonView {...jsonViewProps} src={json || {}} />
+				</div>
+			</div>
+		</div>
 	);
 }
 

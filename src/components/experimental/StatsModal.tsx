@@ -3,7 +3,6 @@
  * React Bootstrap Modal: https://getbootstrap.com/docs/5.0/components/modal/
  */
 import React, { CSSProperties } from "react";
-import { Modal } from "react-bootstrap";
 
 import { DataKey } from "recharts/types/util/types";
 import {
@@ -61,17 +60,31 @@ export default function StatsModal(props: ModalProps) {
 		}
 	};
 
-	return (
-		<Modal
-			dialogClassName={dialogClassName || "modal-xl"}
-			onHide={() => setShow(false)}
-			show={show}
-		>
-			<Modal.Header closeButton style={blackFont}>
-				<Modal.Title>{title}</Modal.Title>
-			</Modal.Header>
+	if (!show) return null;
 
-			<Modal.Body>
+	const sizeClass = dialogClassName === "modal-xl" ? "max-w-6xl" : "max-w-2xl";
+
+	return (
+		<div
+			className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+			onClick={() => setShow(false)}
+		>
+			<div
+				className={`bg-white rounded-lg shadow-lg ${sizeClass} w-full mx-4 max-h-[90vh] overflow-y-auto`}
+				onClick={(e) => e.stopPropagation()}
+			>
+				<div className="p-4 border-b flex justify-between items-center" style={blackFont}>
+					<h3 className="text-lg font-semibold">{title}</h3>
+					<button
+						onClick={() => setShow(false)}
+						className="text-2xl leading-none hover:text-gray-600"
+						aria-label="Close"
+					>
+						×
+					</button>
+				</div>
+
+				<div className="p-4">
 				<LabeledDropdownButton
 					initialLabel={"Raw or Weighted"}
 					onClick={(value) => setScoreType(value as keyof ScoreStats)}
@@ -134,8 +147,9 @@ export default function StatsModal(props: ModalProps) {
 						})}
 					</LineChart>
 				</ResponsiveContainer>
-			</Modal.Body>
-		</Modal>
+			</div>
+		</div>
+		</div>
 	);
 }
 

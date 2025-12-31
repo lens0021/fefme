@@ -1,6 +1,6 @@
 import React, { CSSProperties, useEffect, useMemo, useState } from "react";
-
 import Accordion from "react-bootstrap/esm/Accordion";
+
 import {
 	Toot,
 	TrendingType,

@@ -1,12 +1,9 @@
-import React, { CSSProperties, useState } from "react";
-import Button from "react-bootstrap/esm/Button";
-import Form from "react-bootstrap/esm/Form";
+import React, { useState } from "react";
 
 import { createRestAPIClient } from "masto";
 import { FEDIALGO } from "fedialgo";
 import { stringifyQuery } from "ufo";
 
-import { centerAlignedFlexCol, roundedCorners } from "../helpers/style_helpers";
 import { config } from "../config";
 import {
 	getApp,
@@ -112,79 +109,40 @@ export default function LoginPage() {
 	};
 
 	return (
-		<div className="vh-100" style={loginContainer}>
+		<div className="h-screen flex flex-col items-center justify-center flex-1 p-4">
 			<div>
-				<p style={descriptionText}>
+				<p className="leading-tight mb-2.5 mt-3 text-center">
 					{FEDIALGO} features a customizable algorithm for sorting your feed.
 					<br />
 					You can choose which factors influence the sorting of your timeline.
 					<br />
-					<span style={privacyText}>
+					<span className="text-[#ff00ff] text-[17px] block mt-1 mb-5">
 						All calculations are done in your browser. None of your data leaves
 						your machine.
 					</span>
 					<br />
-					<br />
 					To get started enter your Mastodon server in the form:{" "}
-					<code>{config.app.defaultServer}</code>
+					<code className="bg-gray-100 px-1 rounded">{config.app.defaultServer}</code>
 				</p>
 			</div>
 
-			<div style={serverContainer}>
-				<Form.Group className="mb-0">
-					<Form.Control
-						id="mastodon_server"
-						onChange={(e) => setServerInputText(e.target.value)}
-						placeholder={serverDomain}
-						type="url"
-						value={serverInputText}
-					/>
-				</Form.Group>
+			<div className="flex flex-row gap-2 mb-1 mt-1">
+				<input
+					id="mastodon_server"
+					onChange={(e) => setServerInputText(e.target.value)}
+					placeholder={serverDomain}
+					type="url"
+					value={serverInputText}
+					className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+				/>
 
-				<div style={loginButtonStyle}>
-					<Button onClick={oAuthLogin}>Login</Button>
-				</div>
+				<button
+					onClick={oAuthLogin}
+					className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors"
+				>
+					Login
+				</button>
 			</div>
 		</div>
 	);
 }
-
-const descriptionText: CSSProperties = {
-	lineHeight: 1.3,
-	marginBottom: "10px",
-	marginTop: "13px",
-	textAlign: "center",
-};
-
-const loginButtonStyle: CSSProperties = {
-	display: "flex",
-	justifyContent: "center",
-	marginLeft: "10px",
-};
-
-const loginContainer: CSSProperties = {
-	...centerAlignedFlexCol,
-	flex: 1,
-	justifyContent: "center",
-};
-
-const previewImage: CSSProperties = {
-	...roundedCorners,
-	border: "5px solid #DDD",
-	boxShadow: "3px 3px 5px black",
-	maxHeight: "550px",
-};
-
-const privacyText: CSSProperties = {
-	color: "magenta",
-	fontSize: 17,
-	marginTop: "3px",
-	marginBottom: "20px",
-};
-
-const serverContainer: CSSProperties = {
-	display: "flex",
-	flexDirection: "row",
-	marginBottom: "5px",
-	marginTop: "5px",
-};

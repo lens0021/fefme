@@ -1,5 +1,4 @@
 import React, { CSSProperties, useCallback, useState } from "react";
-import CloseButton from "react-bootstrap/CloseButton";
 
 import "react-lazy-load-image-component/src/effects/blur.css"; // For blur effect
 import { GIFV, MediaCategory, Toot } from "fedialgo";
@@ -98,7 +97,13 @@ export default function MultimediaNode(
 			>
 				{HIDDEN_CANVAS}
 				{removeMediaAttachment && (
-					<CloseButton onClick={() => removeMediaAttachment(image.id)} />
+					<button
+						onClick={() => removeMediaAttachment(image.id)}
+						className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full text-black font-bold cursor-pointer border-0"
+						aria-label="Close"
+					>
+						×
+					</button>
 				)}
 
 				<LazyLoadImage

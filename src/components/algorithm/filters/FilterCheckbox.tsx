@@ -2,7 +2,6 @@
  * Component for checkboxes that drive the user's filter settings.
  */
 import React, { CSSProperties } from "react";
-import Form from "react-bootstrap/esm/Form";
 
 import { capitalCase } from "change-case";
 import { Tooltip } from "react-tooltip";
@@ -98,23 +97,26 @@ export default function FilterCheckbox(props: FilterCheckboxProps) {
 			data-tooltip-content={tooltip?.text}
 			key={label}
 		>
-			<Form.Switch
-				checked={isChecked}
-				disabled={disabled}
-				id={label}
-				key={label + "_switch"}
-				label={
-					<>
-						{labelNode}
-						{labelExtra && ` (${labelExtra})`}
-					</>
-				}
-				onChange={(e) => {
-					onChange(e);
-					!skipUpdateFilters && algorithm?.updateFilters(algorithm.filters);
-				}}
+			<label
+				className="flex items-center gap-2 cursor-pointer p-1"
 				style={{ ...style }}
-			/>
+			>
+				<input
+					type="checkbox"
+					checked={isChecked}
+					disabled={disabled}
+					id={label}
+					onChange={(e) => {
+						onChange(e);
+						!skipUpdateFilters && algorithm?.updateFilters(algorithm.filters);
+					}}
+					className="cursor-pointer"
+				/>
+				<span>
+					{labelNode}
+					{labelExtra && ` (${labelExtra})`}
+				</span>
+			</label>
 		</a>
 	);
 }

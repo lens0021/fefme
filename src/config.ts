@@ -2,7 +2,6 @@
  * Configuration variables for the application.
  */
 import { CSSProperties } from "react";
-import { SpinnerProps } from "react-bootstrap/esm/Spinner";
 
 import TheAlgorithm, {
 	FEDIALGO,
@@ -60,7 +59,6 @@ type AppConfig = {
 	readonly defaultServer: string;
 	readonly developerMastodonUrl: string;
 	readonly headerIconUrl: string;
-	readonly loadingSpinnerType: SpinnerProps["animation"];
 	readonly repoName: string | null;
 	readonly repoUrl: string;
 	readonly showcaseImageUrl: string;
@@ -202,7 +200,6 @@ class Config implements ReadonlyConfig {
 		developerMastodonUrl: "https://universeodon.com/@cryptadamist",
 		headerIconUrl:
 			"https://media.universeodon.com/accounts/avatars/109/363/179/904/598/380/original/eecdc2393e75e8bf.jpg",
-		loadingSpinnerType: "grow",
 		repoName: HOMEPAGE ? HOMEPAGE.split("/").pop() : null,
 		repoUrl: HOMEPAGE
 			? HOMEPAGE.replace(/(\w+)\.github\.io/, `github.com/$1`)

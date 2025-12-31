@@ -3,7 +3,6 @@
  * weighting values.
  */
 import React, { CSSProperties, useEffect, useRef, useState } from "react";
-import { Button, Col, Container, Row } from "react-bootstrap";
 
 import TheAlgorithm, { Toot, optionalSuffix } from "fedialgo";
 import { Tooltip } from "react-tooltip";
@@ -12,9 +11,7 @@ import ApiErrorsPanel from "../components/ApiErrorsPanel";
 import BugReportLink from "../components/helpers/BugReportLink";
 import ExperimentalFeatures from "../components/experimental/ExperimentalFeatures";
 import FeedFiltersAccordionSection from "../components/algorithm/FeedFiltersAccordionSection";
-import LoadingSpinner, {
-	fullPageCenteredSpinner,
-} from "../components/helpers/LoadingSpinner";
+import LoadingSpinner from "../components/helpers/LoadingSpinner";
 import persistentCheckbox from "../components/helpers/persistent_checkbox";
 import ReplyModal from "../components/status/ReplyModal";
 import StatusComponent, {
@@ -159,10 +156,10 @@ export default function Feed() {
 	);
 
 	return (
-		<Container fluid style={{ height: "auto" }}>
+		<div style={{ height: "auto" }}>
 			<ReplyModal setShow={setShowNewTootModal} show={showNewTootModal} />
 
-			<Row style={waitOrDefaultCursor(isLoadingThread)}>
+			<div className="flex flex-wrap" style={waitOrDefaultCursor(isLoadingThread)}>
 				{/* Tooltip options: https://react-tooltip.com/docs/options */}
 				<Tooltip
 					border={"solid"}
@@ -177,7 +174,7 @@ export default function Feed() {
 
 				{checkboxTooltip}
 
-				<Col md={6} xs={12}>
+				<div className="w-full md:w-1/2">
 					{/* TODO: maybe the inset-inline-end property could be used to allow panel to scroll to length but still stick? */}
 					<div className="sticky-top left-col-scroll" style={leftColStyle}>
 						<div style={stickySwitchContainer}>
@@ -236,14 +233,13 @@ export default function Feed() {
 							</p>
 						</div>
 
-						<div className="d-grid gap-2" style={newTootButton}>
-							<Button
-								className={TEXT_CENTER_P2}
+						<div style={newTootButton}>
+							<button
+								className="w-full border border-gray-400 text-gray-700 hover:bg-gray-100 px-4 py-2 rounded transition-colors text-center"
 								onClick={() => setShowNewTootModal(true)}
-								variant="outline-secondary"
 							>
 								{`Create New Toot`}
-							</Button>
+							</button>
 						</div>
 
 						{algorithm && <ApiErrorsPanel />}
@@ -274,10 +270,10 @@ export default function Feed() {
 							</div>
 						)}
 					</div>
-				</Col>
+				</div>
 
 				{/* Feed column */}
-				<Col xs={12} md={6}>
+				<div className="w-full md:w-1/2">
 					{algorithm && !isLoading && (
 						<div style={loadNewTootsText}>
 							<TooltippedLink
@@ -333,9 +329,9 @@ export default function Feed() {
 
 						<div ref={bottomRef} style={bottomRefSpacer} />
 					</div>
-				</Col>
-			</Row>
-		</Container>
+				</div>
+			</div>
+		</div>
 	);
 }
 
@@ -372,7 +368,11 @@ const newTootButton: CSSProperties = {
 };
 
 const noTootsMsgStyle: CSSProperties = {
-	...fullPageCenteredSpinner,
+	display: "flex",
+	flex: 1,
+	height: "100vh",
+	alignItems: "center",
+	justifyContent: "center",
 	fontSize: 20,
 };
 

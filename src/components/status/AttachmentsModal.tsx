@@ -1,7 +1,6 @@
 /*
  * Modal that allows for inspection of tooted images etc upon clicking.
  */
-import { Modal } from "react-bootstrap";
 import { useEffect } from "react";
 
 import { MediaCategory, Toot, VIDEO_TYPES } from "fedialgo";
@@ -71,18 +70,32 @@ export default function AttachmentsModal(props: AttachmentsModalProps) {
 		return () => window.removeEventListener("keydown", handleKeyDown);
 	}, [mediaInspectionIdx, toot.imageAttachments]);
 
-	return (
-		<Modal
-			fullscreen={"xxl-down"}
-			onHide={() => setMediaInspectionIdx(-1)}
-			show={shouldShowModal}
-			size={"lg"}
-		>
-			<Modal.Header closeButton>
-				<Modal.Title style={blackFont}>{toot.contentShortened()}</Modal.Title>
-			</Modal.Header>
+	if (!shouldShowModal) return null;
 
-			<Modal.Body>{shouldShowModal && <div>{element}</div>}</Modal.Body>
-		</Modal>
+	return (
+		<div
+			className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90"
+			onClick={() => setMediaInspectionIdx(-1)}
+		>
+			<div
+				className="bg-white rounded-lg shadow-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+				onClick={(e) => e.stopPropagation()}
+			>
+				<div className="p-4 border-b flex justify-between items-center">
+					<h3 className="text-lg font-semibold" style={blackFont}>
+						{toot.contentShortened()}
+					</h3>
+					<button
+						onClick={() => setMediaInspectionIdx(-1)}
+						className="text-2xl leading-none hover:text-gray-600"
+						aria-label="Close"
+					>
+						×
+					</button>
+				</div>
+
+				<div className="p-4">{element}</div>
+			</div>
+		</div>
 	);
 }

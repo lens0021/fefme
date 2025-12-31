@@ -1,7 +1,6 @@
 /*
  * WIP: Component for displaying the trending hashtags in the Fediverse.
  */
-import { Button } from "react-bootstrap";
 import { CSSProperties, useState } from "react";
 
 import { FEDIALGO } from "fedialgo";
@@ -104,22 +103,27 @@ export default function ExperimentalFeatures() {
 		label: keyof typeof BUTTON_TEXT,
 		onClick: () => void,
 		variant?: string,
-	) => (
-		<li key={label} style={buttonListItem}>
-			<Button
-				className={TEXT_CENTER_P2}
-				disabled={isLoading}
-				onClick={onClick}
-				size="sm"
-				style={buttonStyle}
-				variant={variant || "primary"}
-			>
-				{isLoading || isLoadingState ? "Loading..." : label}
-			</Button>
+	) => {
+		const isDanger = variant === "danger";
+		const buttonClass = isDanger
+			? "bg-red-600 hover:bg-red-700 text-white"
+			: "bg-blue-600 hover:bg-blue-700 text-white";
 
-			<div style={buttonDescription}>{BUTTON_TEXT[label]}</div>
-		</li>
-	);
+		return (
+			<li key={label} style={buttonListItem}>
+				<button
+					className={`${buttonClass} px-3 py-1.5 text-sm rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-center`}
+					disabled={isLoading}
+					onClick={onClick}
+					style={buttonStyle}
+				>
+					{isLoading || isLoadingState ? "Loading..." : label}
+				</button>
+
+				<div style={buttonDescription}>{BUTTON_TEXT[label]}</div>
+			</li>
+		);
+	};
 
 	return (
 		<TopLevelAccordion title="Experimental Features">

@@ -1,54 +1,39 @@
 /*
  * Loading spinner.
  */
-import Spinner from "react-bootstrap/esm/Spinner";
-import { CSSProperties } from "react";
+import React from "react";
 
 import { READY_TO_LOAD_MSG } from "fedialgo";
-
-import { centerAlignedFlexRow } from "../../helpers/style_helpers";
-import { config } from "../../config";
 
 interface LoadingSpinnerProps {
 	isFullPage?: boolean;
 	message?: string;
-	style?: CSSProperties;
+	style?: React.CSSProperties;
 }
 
 export default function LoadingSpinner(props: LoadingSpinnerProps) {
 	const { isFullPage, message, style } = props;
-	const spinnerStyle = isFullPage ? fullPageCenteredSpinner : inlineSpinner;
+
+	if (isFullPage) {
+		return (
+			<div
+				className="flex flex-1 h-screen items-center justify-center"
+				style={style}
+			>
+				<div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600" />
+				<div className="ml-3">
+					<p>{`${message || READY_TO_LOAD_MSG}...`}</p>
+				</div>
+			</div>
+		);
+	}
 
 	return (
-		<div style={{ ...spinnerStyle, ...(style || {}) }}>
-			{isFullPage ? (
-				<Spinner animation={config.app.loadingSpinnerType} />
-			) : (
-				<Spinner animation={config.app.loadingSpinnerType} size="sm" />
-			)}
-
-			<div style={{ marginLeft: "12px" }}>
+		<div className="flex h-5 items-center mt-1.5" style={style}>
+			<div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
+			<div className="ml-3">
 				<p>{`${message || READY_TO_LOAD_MSG}...`}</p>
 			</div>
 		</div>
 	);
 }
-
-const centeredSpinner: CSSProperties = {
-	...centerAlignedFlexRow,
-	justifyContent: "center",
-	verticalAlign: "center",
-};
-
-export const fullPageCenteredSpinner: CSSProperties = {
-	...centeredSpinner,
-	flex: 1,
-	height: "100vh",
-};
-
-const inlineSpinner: CSSProperties = {
-	...centeredSpinner,
-	height: "20px",
-	justifyContent: "start",
-	marginTop: "5px",
-};

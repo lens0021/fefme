@@ -1,10 +1,8 @@
 /*
  * Generic omponent to display a set of filter options with a switchbar at the top.
  */
-import React, { CSSProperties, PropsWithChildren } from "react";
+import React, { CSSProperties, PropsWithChildren, useState } from "react";
 
-import Accordion from "react-bootstrap/esm/Accordion";
-import Form from "react-bootstrap/esm/Form";
 import { capitalCase } from "change-case";
 
 import { accordionBody, globalFont } from "../../helpers/style_helpers";
@@ -18,11 +16,15 @@ export interface SubAccordionProps extends PropsWithChildren {
 
 export default function SubAccordion(props: SubAccordionProps) {
 	const { description, isActive, title } = props;
+	const [isOpen, setIsOpen] = useState(false);
 
 	return (
-		<Accordion.Item eventKey={title} key={title}>
-			<Accordion.Header>
-				<Form.Label style={subHeaderLabel}>
+		<div className="border-b border-gray-200" key={title}>
+			<button
+				onClick={() => setIsOpen(!isOpen)}
+				className="w-full text-left py-2 hover:bg-gray-50 transition-colors flex justify-between items-center"
+			>
+				<label style={subHeaderLabel} className="cursor-pointer">
 					<span
 						className={`filterHeader ${isActive ? "filterHeader--active" : ""}`}
 						key={1}
@@ -36,11 +38,12 @@ export default function SubAccordion(props: SubAccordionProps) {
 							{"  "}({description})
 						</span>
 					)}
-				</Form.Label>
-			</Accordion.Header>
+				</label>
+				<span className="text-gray-500 px-2">{isOpen ? "−" : "+"}</span>
+			</button>
 
-			<Accordion.Body style={accordionBodyDiv}>{props.children}</Accordion.Body>
-		</Accordion.Item>
+			{isOpen && <div style={accordionBodyDiv}>{props.children}</div>}
+		</div>
 	);
 }
 

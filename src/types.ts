@@ -1,4 +1,3 @@
-import { ModalProps as BootstrapModalProps } from "react-bootstrap";
 import { useState } from "react";
 
 import type { mastodon } from "masto";
@@ -31,7 +30,7 @@ export type User = {
 };
 
 // New types below here
-export interface ModalProps extends BootstrapModalProps {
+export interface ModalProps {
 	dialogClassName?:
 		| "modal-sm"
 		| "modal-lg"

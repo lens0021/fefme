@@ -1,9 +1,6 @@
 /*
  * A reusable confirmation dialog.
  */
-import Button from "react-bootstrap/Button";
-import Modal from "react-bootstrap/Modal";
-
 import { ConfirmDialog, confirmable, createConfirmation } from "react-confirm";
 
 import { blackFont } from "../../helpers/style_helpers";
@@ -29,34 +26,40 @@ const Confirmation = (props: ConfirmationProps) => {
 		enableEscape = true,
 	} = props;
 
+	if (!show) return null;
+
 	return (
-		<div className="static-modal">
-			<Modal
-				animation={false}
-				backdrop={enableEscape ? true : "static"}
-				keyboard={enableEscape}
-				onHide={() => proceed(false)}
-				show={show}
+		<div
+			className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+			onClick={enableEscape ? () => proceed(false) : undefined}
+		>
+			<div
+				className="bg-white rounded-lg shadow-lg max-w-md w-full mx-4"
 				style={blackFont}
+				onClick={(e) => e.stopPropagation()}
 			>
-				<Modal.Header>
-					<Modal.Title>{title}</Modal.Title>
-				</Modal.Header>
+				<div className="p-4 border-b">
+					<h3 className="text-lg font-semibold">{title}</h3>
+				</div>
 
-				<Modal.Body>{confirmation}</Modal.Body>
+				<div className="p-4">{confirmation}</div>
 
-				<Modal.Footer>
-					<Button onClick={() => proceed(false)}>{cancelLabel}</Button>
+				<div className="p-4 border-t flex gap-2 justify-end">
+					<button
+						onClick={() => proceed(false)}
+						className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition-colors"
+					>
+						{cancelLabel}
+					</button>
 
-					<Button
-						className="button-l"
-						variant="primary"
+					<button
 						onClick={() => proceed(true)}
+						className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
 					>
 						{okLabel}
-					</Button>
-				</Modal.Footer>
-			</Modal>
+					</button>
+				</div>
+			</div>
 		</div>
 	);
 };
