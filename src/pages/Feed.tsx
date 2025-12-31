@@ -6,7 +6,6 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import TheAlgorithm, {
 	READY_TO_LOAD_MSG,
-	BooleanFilterName,
 	type Toot,
 	optionalSuffix,
 	timeString,
@@ -245,7 +244,11 @@ export default function Feed() {
 						{algorithm && <WeightSetter />}
 						{algorithm && <FeedFiltersAccordionSection />}
 						{algorithm && (
-							<Accordion variant="top" title="Display Settings" defaultOpen={false}>
+							<Accordion
+								variant="top"
+								title="Display Settings"
+								defaultOpen={false}
+							>
 								<div className="flex flex-col gap-2 p-3 text-xs">
 									{showLinkPreviewsCheckbox}
 									{hideSensitiveCheckbox}
@@ -269,9 +272,12 @@ export default function Feed() {
 												{dataStats.unseenTotal.toLocaleString()} posts
 											</div>
 											<div>
-												Visible now:{" "}
-												{visibleTimeline.length.toLocaleString()} posts (
-												{Math.min(numShownToots, visibleTimeline.length).toLocaleString()}{" "}
+												Visible now: {visibleTimeline.length.toLocaleString()}{" "}
+												posts (
+												{Math.min(
+													numShownToots,
+													visibleTimeline.length,
+												).toLocaleString()}{" "}
 												displayed)
 											</div>
 											{!isLoading && <div>{footerMsg}</div>}

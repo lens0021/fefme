@@ -23,7 +23,6 @@ export default function Header(): JSX.Element {
 						<span className="text-sm">{user.username}</span>
 					</div>
 				)}
-
 			</div>
 		</div>
 	);

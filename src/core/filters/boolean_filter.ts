@@ -254,16 +254,17 @@ export default class BooleanFilter extends TootFilter {
 	 * @param {string} optionName - The option name.
 	 * @param {BooleanFilterOptionState} state - Desired option state.
 	 */
-	updateOption(
-		optionName: string,
-		state: BooleanFilterOptionState,
-	): void {
-		this.logger.trace(
-			`updateOption(${optionName}, ${state}) invoked`,
-		);
+	updateOption(optionName: string, state: BooleanFilterOptionState): void {
+		this.logger.trace(`updateOption(${optionName}, ${state}) invoked`);
 
-		this.selectedOptions = this.removeAndDeduplicate(this.selectedOptions, optionName);
-		this.excludedOptions = this.removeAndDeduplicate(this.excludedOptions, optionName);
+		this.selectedOptions = this.removeAndDeduplicate(
+			this.selectedOptions,
+			optionName,
+		);
+		this.excludedOptions = this.removeAndDeduplicate(
+			this.excludedOptions,
+			optionName,
+		);
 
 		if (state === "include") {
 			this.selectedOptions.push(optionName);

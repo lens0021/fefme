@@ -398,7 +398,8 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 			setAlgorithm(algo);
 
 			// Initial load happens in background without blocking UI
-			algo.triggerFeedUpdate()
+			algo
+				.triggerFeedUpdate()
 				.then(() => {
 					const duration = AgeIn.seconds(new Date()).toFixed(1);
 					logger.log(`Background feed update completed in ${duration}s`);

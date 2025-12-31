@@ -47,7 +47,9 @@ export default function Slider(props: SliderProps) {
 		>
 			{!hideValueBox && (
 				<div className="rounded bg-[color:var(--color-card-bg)] self-end border border-[color:var(--color-border)] mr-2.5 px-2 pt-0.5 min-w-[3.5rem]">
-					<span className="font-mono text-xs text-right block">{value?.toFixed(decimals)}</span>
+					<span className="font-mono text-xs text-right block">
+						{value?.toFixed(decimals)}
+					</span>
 				</div>
 			)}
 

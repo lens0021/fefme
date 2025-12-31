@@ -3,20 +3,18 @@
  * Things like how much to prefer people you favorite a lot or how much to posts that
  * are trending in the Fedivers.
  */
-import React, { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 
-import TheAlgorithm, {
+import {
 	NonScoreWeightName,
 	ScoreName,
 	type WeightName,
 	type Weights,
 } from "../../core/index";
 
-import { config } from "../../config";
 import { getLogger } from "../../helpers/log_helpers";
 import { useAlgorithm } from "../../hooks/useAlgorithm";
 import Accordion from "../helpers/Accordion";
-import { confirm } from "../helpers/Confirmation";
 import { useError } from "../helpers/ErrorHandler";
 import WeightSlider from "./WeightSlider";
 
@@ -66,28 +64,6 @@ export default function WeightSetter() {
 		},
 		[algorithm, logAndSetError],
 	);
-
-	// Reset to default weights
-	const resetToDefaults = useCallback(async (): Promise<void> => {
-		if (
-			!(await confirm(
-				"Are you sure you want to reset all weights to their default values?",
-			))
-		)
-			return;
-
-		try {
-			logger.log("Resetting weights to defaults");
-			// Clear localStorage
-			localStorage.removeItem(WEIGHTS_STORAGE_KEY);
-			// Reset algorithm to defaults
-			await algorithm.updateUserWeightsToPreset("default");
-			const defaultWeights = await algorithm.getUserWeights();
-			setUserWeights(defaultWeights);
-		} catch (error) {
-			logAndSetError(logger, error);
-		}
-	}, [algorithm, logAndSetError]);
 
 	const makeWeightSlider = (weightName: WeightName) => (
 		<WeightSlider

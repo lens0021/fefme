@@ -179,8 +179,7 @@ export default function BooleanFilterAccordionSection(
 			description={filter.description}
 			footerSwitches={footerSwitches}
 			isActive={
-				filter.selectedOptions.length > 0 ||
-				filter.excludedOptions.length > 0
+				filter.selectedOptions.length > 0 || filter.excludedOptions.length > 0
 			}
 			switchbar={headerSwitches}
 			title={filter.propertyName}

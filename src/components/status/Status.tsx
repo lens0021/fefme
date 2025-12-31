@@ -39,10 +39,7 @@ import useOnScreen from "../../hooks/useOnScreen";
 import { useError } from "../helpers/ErrorHandler";
 import JsonModal from "../helpers/JsonModal";
 import NewTabLink from "../helpers/NewTabLink";
-import ActionButton, {
-	type ButtonAction,
-	TootAction,
-} from "./ActionButton";
+import ActionButton, { type ButtonAction, TootAction } from "./ActionButton";
 import MultimediaNode from "./MultimediaNode";
 import Poll from "./Poll";
 import PreviewCard from "./PreviewCard";
