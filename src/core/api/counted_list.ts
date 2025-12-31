@@ -4,14 +4,14 @@
  */
 import { isFinite, isNil } from "lodash";
 
-import { Logger } from "../helpers/logger";
 import { sortObjsByProps } from "../helpers/collection_helpers";
+import { Logger } from "../helpers/logger";
 import { wordRegex } from "../helpers/string_helpers";
-import {
-	type BooleanFilterOption,
-	type CountedListSource,
-	type NamedTootCount,
-	type StringNumberDict,
+import type {
+	BooleanFilterOption,
+	CountedListSource,
+	NamedTootCount,
+	StringNumberDict,
 } from "../types";
 
 /** Generic version of {@linkcode CountedList}. */

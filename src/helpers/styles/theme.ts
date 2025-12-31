@@ -1,10 +1,10 @@
-import { DEFAULT_FONT_SIZE } from "../../core/index";
 /**
  * Theme configuration and color palettes for light/dark modes
  */
 import type { CSSProperties } from "react";
 import tinycolor from "tinycolor2";
 import tinygradient from "tinygradient";
+import { DEFAULT_FONT_SIZE } from "../../core/index";
 
 export type GradientEndpoints = [tinycolor.Instance, tinycolor.Instance];
 

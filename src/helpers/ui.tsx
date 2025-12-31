@@ -2,10 +2,10 @@
  * UI helpers and tooltip types.
  */
 import type React from "react";
-import { type CSSProperties, type MouseEvent, type ReactElement } from "react";
+import type { CSSProperties, MouseEvent, ReactElement } from "react";
 
-import { type Toot, makeChunks } from "../core/index";
 import type tinycolor from "tinycolor2";
+import { type Toot, makeChunks } from "../core/index";
 
 import { appLogger } from "./log_helpers";
 import type { GradientEndpoints } from "./styles";

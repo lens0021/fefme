@@ -1,13 +1,13 @@
 import { Mutex } from "async-mutex";
 
 import MastoApi, { type ApiParams } from "../api/api";
-import ScorerCache from "../scorer/scorer_cache";
-import { ageString } from "../helpers/time_helpers";
 import { config } from "../config";
-import { lockExecution } from "../helpers/mutex_helpers";
-import { Logger } from "../helpers/logger";
 import { SECONDS_IN_MINUTE } from "../enums";
-import { type ApiObj } from "../types";
+import { Logger } from "../helpers/logger";
+import { lockExecution } from "../helpers/mutex_helpers";
+import { ageString } from "../helpers/time_helpers";
+import ScorerCache from "../scorer/scorer_cache";
+import type { ApiObj } from "../types";
 
 type Poller = (params?: ApiParams) => Promise<ApiObj[]>;
 

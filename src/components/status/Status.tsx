@@ -13,11 +13,11 @@ import {
 	type IconDefinition,
 	faBolt,
 	faCheckCircle,
+	faEye,
 	faFireFlameCurved,
 	faHashtag,
 	faLink,
 	faLock,
-	faEye,
 	faPencil,
 	faReply,
 	faRetweet,
@@ -25,9 +25,9 @@ import {
 	faUpRightFromSquare,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { AgeIn, timeString, type Toot } from "../../core/index";
 import parse from "html-react-parser";
 import { LazyLoadImage } from "react-lazy-load-image-component";
+import { AgeIn, type Toot, timeString } from "../../core/index";
 
 import { config } from "../../config";
 import { executeWithLoadingState } from "../../helpers/async_helpers";
@@ -44,7 +44,6 @@ import MultimediaNode from "./MultimediaNode";
 import Poll from "./Poll";
 import PreviewCard from "./PreviewCard";
 
-export const TOOLTIP_ACCOUNT_ANCHOR = "user-account-anchor";
 const logger = getLogger("StatusComponent");
 
 type IconInfo = {
@@ -357,21 +356,15 @@ export default function StatusComponent(props: StatusComponentProps) {
 							title={toot.account.webfingerURI}
 							className="flex items-center gap-3"
 						>
-							<button
-								type="button"
-								className="p-0 border-0 bg-transparent cursor-pointer"
-								data-tooltip-id={TOOLTIP_ACCOUNT_ANCHOR}
-								data-tooltip-html={toot.account.noteWithAccountInfo(
-									config.theme.accountBioFontSize,
-								)}
+							<NewTabLink
+								href={toot.account.localServerUrl}
+								className="block h-12 w-12 overflow-hidden rounded-full bg-[color:var(--color-muted)]"
 							>
-								<div className="h-12 w-12 overflow-hidden rounded-full bg-[color:var(--color-muted)]">
-									<LazyLoadImage
-										src={toot.account.avatar}
-										alt={`${toot.account.webfingerURI}`}
-									/>
-								</div>
-							</button>
+								<LazyLoadImage
+									src={toot.account.avatar}
+									alt={`${toot.account.webfingerURI}`}
+								/>
+							</NewTabLink>
 
 							<span className="flex flex-col">
 								<bdi>
@@ -474,9 +467,6 @@ export default function StatusComponent(props: StatusComponentProps) {
 
 					{/* Actions (retoot, favorite, show score, etc) that appear in bottom panel of post */}
 					<div className="flex flex-wrap items-center gap-2" ref={statusRef}>
-						{buildActionButton(TootAction.Reply, () =>
-							window.open(toot.realURL, "_blank"),
-						)}
 						{!toot.isDM && buildActionButton(TootAction.Reblog)}
 						{buildActionButton(TootAction.Favourite)}
 						{buildActionButton(TootAction.Bookmark)}

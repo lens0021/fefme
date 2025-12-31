@@ -1,9 +1,9 @@
-import TagList from "../../api/tag_list";
-import TootScorer from "../toot_scorer";
 import type Toot from "../../api/objects/toot";
+import TagList from "../../api/tag_list";
 import { ScoreName } from "../../enums";
 import { sumArray } from "../../helpers/collection_helpers";
-import { type StringNumberDict } from "../../types";
+import type { StringNumberDict } from "../../types";
+import TootScorer from "../toot_scorer";
 
 /**
  * Factory for creating tag-based scorer classes.

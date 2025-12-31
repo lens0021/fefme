@@ -3,9 +3,9 @@
  */
 import { isNil, isNull } from "lodash";
 
-import { ageString, quotedISOFmt } from "./time_helpers";
-import { isDebugMode, isDeepDebug } from "./environment_helpers";
+import type { OptionalString, StringNumberDict } from "../types";
 import { sortKeysByValue, split } from "./collection_helpers";
+import { isDebugMode, isDeepDebug } from "./environment_helpers";
 import {
 	TELEMETRY,
 	arrowed,
@@ -15,7 +15,7 @@ import {
 	optionalSuffix,
 	quoted,
 } from "./string_helpers";
-import { type OptionalString, type StringNumberDict } from "../types";
+import { ageString, quotedISOFmt } from "./time_helpers";
 
 type ErrorArgs = { args: unknown[]; error?: Error };
 type LoggerArg = OptionalString | boolean; // boolean so we can filter out optional args that are falsey

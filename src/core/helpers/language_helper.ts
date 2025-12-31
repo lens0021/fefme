@@ -1,14 +1,14 @@
+import { capitalCase } from "change-case";
 /**
  * @fileoverview Helpers to try to guess the language text is written in.
  * @module language_helper
  */
 import LanguageDetect from "languagedetect";
-import { capitalCase } from "change-case";
 import { detectAll } from "tinyld";
 
-import { isNumberOrNumberString } from "./math_helper";
+import type { StringDict, StringSet } from "../types";
 import { swapKeysAndValues } from "./collection_helpers";
-import { type StringDict, type StringSet } from "../types";
+import { isNumberOrNumberString } from "./math_helper";
 
 // From https://gist.github.com/jrnk/8eb57b065ea0b098d571
 export const LANGUAGE_NAMES: StringDict = {

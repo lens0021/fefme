@@ -3,22 +3,22 @@
  */
 import { isFinite, isNil } from "lodash";
 
-import { byteString } from "./string_helpers";
+import type { OptionalNumber, StringNumberDict } from "../types";
 import { sumArray } from "./collection_helpers";
-import { type OptionalNumber, type StringNumberDict } from "../types";
+import { byteString } from "./string_helpers";
 
 const NUMBER_REGEX = /^[\d.]+$/;
 
 // For use with sizeOf() to try to see internals of object size.
 // There's duplication of byte count here - arrays and objects include the other types
 export class BytesDict {
-	arrays: number = 0;
-	booleans: number = 0;
-	functions: number = 0;
-	keys: number = 0; // keys in objects
-	numbers: number = 0;
-	strings: number = 0;
-	objects: number = 0;
+	arrays = 0;
+	booleans = 0;
+	functions = 0;
+	keys = 0; // keys in objects
+	numbers = 0;
+	strings = 0;
+	objects = 0;
 
 	toDict(): StringNumberDict {
 		return {

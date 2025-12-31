@@ -4,14 +4,13 @@
  */
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
+import { buildNewFilterSettings } from "../core/filters/feed_filters";
 import TheAlgorithm, {
 	READY_TO_LOAD_MSG,
 	type Toot,
 	optionalSuffix,
 	timeString,
 } from "../core/index";
-import { buildNewFilterSettings } from "../core/filters/feed_filters";
-import { Tooltip } from "react-tooltip";
 
 import ApiErrorsPanel from "../components/ApiErrorsPanel";
 import FeedFiltersAccordionSection from "../components/algorithm/FeedFiltersAccordionSection";
@@ -19,9 +18,7 @@ import WeightSetter from "../components/algorithm/WeightSetter";
 import Accordion from "../components/helpers/Accordion";
 import { persistentCheckbox } from "../components/helpers/Checkbox";
 import { confirm } from "../components/helpers/Confirmation";
-import StatusComponent, {
-	TOOLTIP_ACCOUNT_ANCHOR,
-} from "../components/status/Status";
+import StatusComponent from "../components/status/Status";
 import { GuiCheckboxName, config } from "../config";
 import { getLogger } from "../helpers/log_helpers";
 import { booleanIcon } from "../helpers/ui";
@@ -153,15 +150,16 @@ export default function Feed() {
 	// User can manually load using buttons shown in the empty state
 
 	// Show more posts when the user scrolls to bottom of the page
-	// TODO: this triggers twice: once when isbottom changes to true and again because numDisplayedToots
+	// TODO: this triggers twice: once when isBottom changes to true and again because numDisplayedToots
 	//       is increased, triggering a second evaluation of the block
 	useEffect(() => {
 		const showMoreToots = () => {
 			if (numDisplayedToots < visibleTimeline.length) {
-				const msg = `Showing ${numDisplayedToots} posts, adding ${config.timeline.numTootsToLoadOnScroll}`;
-				logger.log(`${msg} more (${visibleTimeline.length} available in feed)`);
+				logger.log(
+					`Showing ${numDisplayedToots} posts, adding ${config.timeline.numTootsToLoadOnScroll} more (${visibleTimeline.length} available in feed)`,
+				);
 				setNumDisplayedToots(
-					numDisplayedToots + config.timeline.numTootsToLoadOnScroll,
+					(prev) => prev + config.timeline.numTootsToLoadOnScroll,
 				);
 			}
 		};
@@ -227,38 +225,24 @@ export default function Feed() {
 	return (
 		<div className="flex flex-col gap-4">
 			<div style={{ cursor: isLoadingThread ? "wait" : "default" }}>
-				{/* Tooltip options: https://react-tooltip.com/docs/options */}
-				<Tooltip
-					border={"solid"}
-					className="z-[2000] max-w-[calc(100vw-2rem)] whitespace-normal break-words"
-					clickable={true}
-					delayShow={config.timeline.tooltips.accountTooltipDelayMS}
-					id={TOOLTIP_ACCOUNT_ANCHOR}
-					opacity={0.95}
-					place="bottom"
-					variant="light"
-				/>
-
 				{checkboxTooltip}
 
 				<div className="flex flex-col gap-4">
 					{/* Controls section */}
 					<div className="flex flex-col gap-3 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] p-3">
-						{algorithm && <WeightSetter />}
-						{algorithm && <FeedFiltersAccordionSection />}
-						{algorithm && (
-							<Accordion
-								variant="top"
-								title="Display Settings"
-								defaultOpen={false}
-							>
-								<div className="flex flex-col gap-2 p-3 text-xs">
-									{showLinkPreviewsCheckbox}
-									{hideSensitiveCheckbox}
-								</div>
-							</Accordion>
-						)}
-						{algorithm && (
+						<WeightSetter />
+						<FeedFiltersAccordionSection />
+						<Accordion
+							variant="top"
+							title="Display Settings"
+							defaultOpen={false}
+						>
+							<div className="flex flex-col gap-2 p-3 text-xs">
+								{showLinkPreviewsCheckbox}
+								{hideSensitiveCheckbox}
+							</div>
+						</Accordion>
+						{algorithm ? (
 							<Accordion variant="top" title="Data Loading & History">
 								<div className="flex flex-col gap-3 p-3 text-xs text-[color:var(--color-muted-fg)]">
 									{dataStats && (
@@ -295,7 +279,9 @@ export default function Feed() {
 
 									{timeline.length === 0 ? (
 										<>
-											<p>No cached posts yet. Load your timeline to get started.</p>
+											<p>
+												No cached posts yet. Load your timeline to get started.
+											</p>
 
 											<div className="flex flex-col gap-3 text-xs">
 												<button
@@ -306,17 +292,17 @@ export default function Feed() {
 													Load posts
 												</button>
 												<span>
-													Fetches your home timeline and trending posts, then scores
-													and sorts them.
+													Fetches your home timeline and trending posts, then
+													scores and sorts them.
 												</span>
 											</div>
 										</>
 									) : (
 										<>
 											<p>
-												Use these tools to pull newer posts, older posts, or more
-												history for scoring. Each action updates the same weighted
-												feed.
+												Use these tools to pull newer posts, older posts, or
+												more history for scoring. Each action updates the same
+												weighted feed.
 											</p>
 
 											<div className="flex flex-col gap-3 text-xs">
@@ -328,8 +314,9 @@ export default function Feed() {
 													Load new posts
 												</button>
 												<span>
-													Fetches posts created after your most recent cached post (
-													{mostRecentCachedTime}), then re-scores the feed.
+													Fetches posts created after your most recent cached
+													post ({mostRecentCachedTime}), then re-scores the
+													feed.
 												</span>
 
 												<button
@@ -364,15 +351,15 @@ export default function Feed() {
 													Load complete user history
 												</button>
 												<span>
-													Fetches all your posts and favourites to refine scoring.
-													This can take a while on large accounts.
+													Fetches all your posts and favourites to refine
+													scoring. This can take a while on large accounts.
 												</span>
 											</div>
 										</>
 									)}
 								</div>
 							</Accordion>
-						)}
+						) : null}
 
 						{thread.length > 0 && (
 							<Accordion
@@ -461,7 +448,7 @@ export default function Feed() {
 							</details>
 						</div>
 
-						{algorithm && <ApiErrorsPanel />}
+						<ApiErrorsPanel />
 
 						{TheAlgorithm.isDebugMode && (
 							<div className="font-mono rounded-2xl bg-slate-800 text-slate-200 text-sm p-4">
@@ -512,24 +499,22 @@ export default function Feed() {
 							) : (
 								<div className="flex min-h-[40vh] flex-col items-center justify-center gap-4">
 									<p className="text-lg">{config.timeline.noTootsMsg}</p>
-									{timeline.length > 0 && (
-										<div className="flex flex-col gap-2 text-sm">
-											<button
-												type="button"
-												onClick={triggerFeedUpdate}
-												className="rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] px-4 py-2 font-semibold text-[color:var(--color-primary)] hover:bg-[color:var(--color-muted)]"
-											>
-												Load new posts
-											</button>
-											<button
-												type="button"
-												onClick={triggerHomeTimelineBackFill}
-												className="rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] px-4 py-2 font-semibold text-[color:var(--color-primary)] hover:bg-[color:var(--color-muted)]"
-											>
-												Load older posts
-											</button>
-										</div>
-									)}
+									<div className="flex flex-col gap-2 text-sm">
+										<button
+											type="button"
+											onClick={triggerFeedUpdate}
+											className="rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] px-4 py-2 font-semibold text-[color:var(--color-primary)] hover:bg-[color:var(--color-muted)]"
+										>
+											Load new posts
+										</button>
+										<button
+											type="button"
+											onClick={triggerHomeTimelineBackFill}
+											className="rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] px-4 py-2 font-semibold text-[color:var(--color-primary)] hover:bg-[color:var(--color-muted)]"
+										>
+											Load older posts
+										</button>
+									</div>
 								</div>
 							))}
 

@@ -1,11 +1,11 @@
-/*
- * String manipulation helpers.
- */
-import { AgeIn } from "../core/index";
 import {
 	isEmptyStr as coreIsEmptyStr,
 	ordinalSuffix,
 } from "../core/helpers/string_helpers";
+/*
+ * String manipulation helpers.
+ */
+import { AgeIn } from "../core/index";
 
 import { config } from "../config";
 

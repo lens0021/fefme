@@ -3,91 +3,30 @@
  */
 import "reflect-metadata"; // Required for class-transformer
 import { Buffer } from "buffer"; // Maybe Required for class-transformer though seems to be required in client?
-import { mastodon } from "masto";
 import { Mutex } from "async-mutex";
+import type { mastodon } from "masto";
 
-import Account from "./api/objects/account";
-import AlreadyShownScorer from "./scorer/toot/already_shown_scorer";
-import AuthorFollowersScorer from "./scorer/toot/author_followers_scorer";
-import BooleanFilter from "./filters/boolean_filter";
-import ChaosScorer from "./scorer/toot/chaos_scorer";
-import DiversityFeedScorer from "./scorer/feed/diversity_feed_scorer";
-import FollowedAccountsScorer from "./scorer/toot/followed_accounts_scorer";
-import FollowedTagsScorer from "./scorer/toot/followed_tags_scorer";
-import FollowersScorer from "./scorer/toot/followers_scorer";
-import FavouritedTagsScorer, {
-	HashtagParticipationScorer,
-} from "./scorer/toot/tag_scorer_factory";
-import InteractionsScorer from "./scorer/toot/interactions_scorer";
-import MastoApi, { FULL_HISTORY_PARAMS } from "./api/api";
-import MastodonServer from "./api/mastodon_server";
-import MentionsFollowedScorer from "./scorer/toot/mentions_followed_scorer";
-import MostFavouritedAccountsScorer from "./scorer/toot/most_favourited_accounts_scorer";
-import MostRepliedAccountsScorer from "./scorer/toot/most_replied_accounts_scorer";
-import MostRetootedAccountsScorer from "./scorer/toot/most_retooted_accounts_scorer";
-import NumericFilter from "./filters/numeric_filter";
-import NumFavouritesScorer, {
-	ImageAttachmentScorer,
-	NumRepliesScorer,
-	NumRetootsScorer,
-	TrendingTootScorer,
-	VideoAttachmentScorer,
-} from "./scorer/toot/property_scorer_factory";
-import RetootsInFeedScorer from "./scorer/toot/retoots_in_feed_scorer";
-import Scorer from "./scorer/scorer";
-import ScorerCache from "./scorer/scorer_cache";
 import Storage from "./Storage";
-import TagList from "./api/tag_list";
-import TagsForFetchingToots from "./api/tags_for_fetching_toots";
-import Toot, { earliestTootedAt, mostRecentTootedAt } from "./api/objects/toot";
-import TrendingLinksScorer from "./scorer/toot/trending_links_scorer";
-import TrendingTagsScorer from "./scorer/toot/trending_tags_scorer";
-import UserData from "./api/user_data";
-import UserDataPoller from "./api/user_data_poller";
-import type FeedScorer from "./scorer/feed_scorer";
-import type TootScorer from "./scorer/toot_scorer";
-import {
-	AgeIn,
-	ageString,
-	sleep,
-	timeString,
-	toISOFormatIfExists,
-} from "./helpers/time_helpers";
-import {
-	buildNewFilterSettings,
-	updateBooleanFilterOptions,
-} from "./filters/feed_filters";
-import {
-	DEFAULT_FONT_SIZE,
-	FEDIALGO,
-	GIFV,
-	VIDEO_TYPES,
-	extractDomain,
-	optionalSuffix,
-} from "./helpers/string_helpers";
+import MastoApi, { FULL_HISTORY_PARAMS } from "./api/api";
+import type { ObjList } from "./api/counted_list";
 import {
 	isAccessTokenRevokedError,
 	throwIfAccessTokenRevoked,
 	throwSanitizedRateLimitError,
 } from "./api/errors";
-import {
-	isDebugMode,
-	isDeepDebug,
-	isLoadTest,
-	isQuickMode,
-} from "./helpers/environment_helpers";
-import { lockExecution } from "./helpers/mutex_helpers";
-import { Logger } from "./helpers/logger";
+import MastodonServer from "./api/mastodon_server";
+import Account from "./api/objects/account";
+import Toot, { earliestTootedAt, mostRecentTootedAt } from "./api/objects/toot";
+import TagList from "./api/tag_list";
+import TagsForFetchingToots from "./api/tags_for_fetching_toots";
+import UserData from "./api/user_data";
+import UserDataPoller from "./api/user_data_poller";
 import { MAX_ENDPOINT_RECORDS_TO_PULL, config } from "./config";
 import {
-	WEIGHT_PRESETS,
-	WeightPresetLabel,
-	isWeightPresetLabel,
-	type WeightPresets,
-} from "./scorer/weight_presets";
-import { type ObjList } from "./api/counted_list";
-import {
+	ALL_ACTIONS,
+	type Action,
 	AlgorithmStorageKey,
+	type ApiCacheKey,
 	BooleanFilterName,
 	CacheKey,
 	FEDERATED_TIMELINE_SOURCE,
@@ -100,12 +39,15 @@ import {
 	TagTootsCategory,
 	TrendingType,
 	TypeFilterName,
-	ALL_ACTIONS,
 	buildCacheKeyDict,
 	isValueInStringEnum,
-	type Action,
-	type ApiCacheKey,
 } from "./enums";
+import BooleanFilter from "./filters/boolean_filter";
+import {
+	buildNewFilterSettings,
+	updateBooleanFilterOptions,
+} from "./filters/feed_filters";
+import NumericFilter from "./filters/numeric_filter";
 import {
 	computeMinMax,
 	makeChunks,
@@ -113,9 +55,67 @@ import {
 	truncateToLength,
 } from "./helpers/collection_helpers";
 import {
-	FILTER_OPTION_DATA_SOURCES,
+	isDebugMode,
+	isDeepDebug,
+	isLoadTest,
+	isQuickMode,
+} from "./helpers/environment_helpers";
+import { Logger } from "./helpers/logger";
+import { lockExecution } from "./helpers/mutex_helpers";
+import {
+	DEFAULT_FONT_SIZE,
+	FEDIALGO,
+	GIFV,
+	VIDEO_TYPES,
+	extractDomain,
+	optionalSuffix,
+} from "./helpers/string_helpers";
+import {
+	AgeIn,
+	ageString,
+	sleep,
+	timeString,
+	toISOFormatIfExists,
+} from "./helpers/time_helpers";
+import DiversityFeedScorer from "./scorer/feed/diversity_feed_scorer";
+import type FeedScorer from "./scorer/feed_scorer";
+import Scorer from "./scorer/scorer";
+import ScorerCache from "./scorer/scorer_cache";
+import AlreadyShownScorer from "./scorer/toot/already_shown_scorer";
+import AuthorFollowersScorer from "./scorer/toot/author_followers_scorer";
+import ChaosScorer from "./scorer/toot/chaos_scorer";
+import FollowedAccountsScorer from "./scorer/toot/followed_accounts_scorer";
+import FollowedTagsScorer from "./scorer/toot/followed_tags_scorer";
+import FollowersScorer from "./scorer/toot/followers_scorer";
+import InteractionsScorer from "./scorer/toot/interactions_scorer";
+import MentionsFollowedScorer from "./scorer/toot/mentions_followed_scorer";
+import MostFavouritedAccountsScorer from "./scorer/toot/most_favourited_accounts_scorer";
+import MostRepliedAccountsScorer from "./scorer/toot/most_replied_accounts_scorer";
+import MostRetootedAccountsScorer from "./scorer/toot/most_retooted_accounts_scorer";
+import NumFavouritesScorer, {
+	ImageAttachmentScorer,
+	NumRepliesScorer,
+	NumRetootsScorer,
+	TrendingTootScorer,
+	VideoAttachmentScorer,
+} from "./scorer/toot/property_scorer_factory";
+import RetootsInFeedScorer from "./scorer/toot/retoots_in_feed_scorer";
+import FavouritedTagsScorer, {
+	HashtagParticipationScorer,
+} from "./scorer/toot/tag_scorer_factory";
+import TrendingLinksScorer from "./scorer/toot/trending_links_scorer";
+import TrendingTagsScorer from "./scorer/toot/trending_tags_scorer";
+import type TootScorer from "./scorer/toot_scorer";
+import {
+	WEIGHT_PRESETS,
+	type WeightPresetLabel,
+	type WeightPresets,
+	isWeightPresetLabel,
+} from "./scorer/weight_presets";
+import {
 	type BooleanFilterOption,
 	type ConcurrencyLockRelease,
+	FILTER_OPTION_DATA_SOURCES,
 	type FeedFilterSettings,
 	type FilterOptionDataSource,
 	type Hashtag,
@@ -125,11 +125,11 @@ import {
 	type ScoreStats,
 	type StringNumberDict,
 	type TagWithUsageCounts,
+	type TootSource,
 	type TrendingData,
 	type TrendingLink,
 	type TrendingObj,
 	type TrendingWithHistory,
-	type TootSource,
 	type WeightInfoDict,
 	type WeightName,
 	type Weights,
@@ -395,7 +395,7 @@ export default class TheAlgorithm {
 	 * Fetch and merge federated timeline toots into the feed.
 	 * @param {number} [limit=40] - Maximum number of toots to fetch.
 	 */
-	async triggerFederatedTimelineMerge(limit: number = 40): Promise<void> {
+	async triggerFederatedTimelineMerge(limit = 40): Promise<void> {
 		const statuses =
 			await MastoApi.instance.getFederatedTimelineStatuses(limit);
 		await this.mergeExternalStatuses(statuses, FEDERATED_TIMELINE_SOURCE);
@@ -543,7 +543,7 @@ export default class TheAlgorithm {
 	 * @param {boolean} [complete=false] - If true, remove user data as well.
 	 * @returns {Promise<void>}
 	 */
-	async reset(complete: boolean = false): Promise<void> {
+	async reset(complete = false): Promise<void> {
 		await this.startAction(LoadAction.RESET);
 
 		try {
@@ -1129,7 +1129,7 @@ export {
 	TagTootsCategory,
 	TrendingType,
 	TypeFilterName,
-	WeightName,
+	type WeightName,
 	// Helpers
 	AgeIn,
 	extractDomain,

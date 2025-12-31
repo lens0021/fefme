@@ -1,26 +1,26 @@
+import type { MutexInterface, SemaphoreInterface } from "async-mutex";
 /*
  * Typescript type definitions. Should only import types and enums.
  */
-import { mastodon } from "masto";
-import { MutexInterface, SemaphoreInterface } from "async-mutex";
+import type { mastodon } from "masto";
 
 import type Account from "./api/objects/account";
-import type BooleanFilter from "./filters/boolean_filter";
-import type NumericFilter from "./filters/numeric_filter";
-import type TagList from "./api/tag_list";
 import type Toot from "./api/objects/toot";
-import { type BooleanFilterArgs } from "./filters/boolean_filter";
-import { type NumericFilterArgs } from "./filters/numeric_filter";
-import { type SerializableToot } from "./api/objects/toot";
+import type { SerializableToot } from "./api/objects/toot";
+import type TagList from "./api/tag_list";
 import {
 	BooleanFilterName,
-	FediverseCacheKey,
-	NonScoreWeightName,
+	type FediverseCacheKey,
+	type NonScoreWeightName,
 	ScoreName,
+	type TOOT_SOURCES,
 	TagTootsCategory,
 	TrendingType,
-	TOOT_SOURCES,
 } from "./enums";
+import type BooleanFilter from "./filters/boolean_filter";
+import type { BooleanFilterArgs } from "./filters/boolean_filter";
+import type NumericFilter from "./filters/numeric_filter";
+import type { NumericFilterArgs } from "./filters/numeric_filter";
 
 // Records
 export type AccountNames = Record<mastodon.v1.Account["acct"], Account>;

@@ -1,32 +1,32 @@
 /**
  * @fileoverview Base class for {@linkcode Toot} scorers.
  */
-import { E_CANCELED, Mutex, MutexInterface } from "async-mutex";
+import { E_CANCELED, Mutex, type MutexInterface } from "async-mutex";
 import { isFinite } from "lodash";
 
-import ScorerCache from "./scorer_cache";
 import Storage from "../Storage";
 import type Toot from "../api/objects/toot";
-import { ageString } from "../helpers/time_helpers";
-import { batchMap, sumArray } from "../helpers/collection_helpers";
 import { config } from "../config";
-import { DEFAULT_WEIGHTS } from "./weight_presets";
-import { Logger } from "../helpers/logger";
 import {
 	NonScoreWeightName,
 	ScoreName,
 	isNonScoreWeightName,
 	isWeightName,
 } from "../enums";
-import {
-	type ScoreType,
-	type StringNumberDict,
-	type TootScore,
-	type TootScores,
-	type WeightInfo,
-	type WeightName,
-	type Weights,
+import { batchMap, sumArray } from "../helpers/collection_helpers";
+import { Logger } from "../helpers/logger";
+import { ageString } from "../helpers/time_helpers";
+import type {
+	ScoreType,
+	StringNumberDict,
+	TootScore,
+	TootScores,
+	WeightInfo,
+	WeightName,
+	Weights,
 } from "../types";
+import ScorerCache from "./scorer_cache";
+import { DEFAULT_WEIGHTS } from "./weight_presets";
 
 // Local constants
 const LOG_PREFIX = "Scorer";
@@ -57,7 +57,7 @@ const scoreLogger = new Logger(LOG_PREFIX, "scoreToots");
 export default abstract class Scorer {
 	abstract description: string;
 
-	isReady: boolean = false; // Set to true when the scorer is ready to score
+	isReady = false; // Set to true when the scorer is ready to score
 	logger: Logger;
 	name: ScoreName;
 	scoreData: StringNumberDict = {}; // Background data used to score a toot

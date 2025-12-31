@@ -3,9 +3,9 @@
  */
 import React, { useCallback, useEffect } from "react";
 
-import { FEDIALGO } from "../core/index";
 import { createRestAPIClient } from "masto";
 import { useSearchParams } from "react-router-dom";
+import { FEDIALGO } from "../core/index";
 
 import { useError } from "../components/helpers/ErrorHandler";
 import { config } from "../config";

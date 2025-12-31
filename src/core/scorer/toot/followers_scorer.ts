@@ -1,8 +1,8 @@
-import Account from "../../api/objects/account";
-import AccountScorer from "./acccount_scorer";
 import MastoApi from "../../api/api";
+import Account from "../../api/objects/account";
 import { ScoreName } from "../../enums";
-import { type StringNumberDict } from "../../types";
+import type { StringNumberDict } from "../../types";
+import AccountScorer from "./acccount_scorer";
 
 /**
  * One point for accounts that follow the Fedialgo user.

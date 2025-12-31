@@ -1,6 +1,6 @@
-import TootScorer from "../toot_scorer";
 import type Toot from "../../api/objects/toot";
 import { ScoreName } from "../../enums";
+import TootScorer from "../toot_scorer";
 
 /**
  * Score how many times a {@linkcode Toot} has been retooted by other accounts in the feed.

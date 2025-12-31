@@ -1,20 +1,20 @@
-/*
- * Helper class for fetching toots for a list of tags, e.g. trending or particiapted tags.
- */
-import MastoApi from "./api";
-import MastodonServer from "./mastodon_server";
-import TagList from "./tag_list";
-import type Toot from "./objects/toot";
-import { config, type TagTootsConfig } from "../config";
-import { Logger } from "../helpers/logger";
+import { type TagTootsConfig, config } from "../config";
+import { TagTootsCategory } from "../enums";
 import {
 	resolvePromiseDict,
 	truncateToLength,
 	zipPromiseCalls,
 } from "../helpers/collection_helpers";
+import { Logger } from "../helpers/logger";
+import type { TagWithUsageCounts } from "../types";
+/*
+ * Helper class for fetching toots for a list of tags, e.g. trending or particiapted tags.
+ */
+import MastoApi from "./api";
+import MastodonServer from "./mastodon_server";
 import { tagInfoStr } from "./objects/tag";
-import { TagTootsCategory } from "../enums";
-import { type TagWithUsageCounts } from "../types";
+import type Toot from "./objects/toot";
+import TagList from "./tag_list";
 
 type TagTootsBuildConfig = {
 	buildTagList: () => Promise<TagList>;

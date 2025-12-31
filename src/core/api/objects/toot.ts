@@ -4,38 +4,18 @@
  * Includes methods for scoring, filtering, deduplication, and property repair.
  */
 import { capitalCase } from "change-case";
-import { isEmpty, isFinite } from "lodash";
-import { mastodon } from "masto";
 import { Type } from "class-transformer";
+import { isEmpty, isFinite } from "lodash";
+import type { mastodon } from "masto";
 
-import Account from "./account";
-import MastoApi from "../api";
-import MastodonServer from "../mastodon_server";
-import Scorer from "../../scorer/scorer";
-import UserData from "../user_data";
-import {
-	AgeIn,
-	ageString,
-	timelineCutoffAt,
-	toISOFormat,
-} from "../../helpers/time_helpers";
 import { config } from "../../config";
-import { FILTERABLE_SCORES } from "../../filters/numeric_filter";
-import {
-	FOREIGN_SCRIPTS,
-	LANGUAGE_NAMES,
-	detectForeignScriptLanguage,
-	detectLanguage,
-} from "../../helpers/language_helper";
-import { isProduction } from "../../helpers/environment_helpers";
-import { isValidForSubstringSearch, repairTag } from "./tag";
 import {
 	LoadAction,
 	MediaCategory,
-	ScoreName,
+	type ScoreName,
 	TypeFilterName,
 } from "../../enums";
-import { Logger } from "../../helpers/logger";
+import { FILTERABLE_SCORES } from "../../filters/numeric_filter";
 import {
 	asOptionalArray,
 	batchMap,
@@ -47,6 +27,14 @@ import {
 	uniquify,
 	uniquifyByProp,
 } from "../../helpers/collection_helpers";
+import { isProduction } from "../../helpers/environment_helpers";
+import {
+	FOREIGN_SCRIPTS,
+	LANGUAGE_NAMES,
+	detectForeignScriptLanguage,
+	detectLanguage,
+} from "../../helpers/language_helper";
+import { Logger } from "../../helpers/logger";
 import {
 	DEFAULT_FONT_SIZE,
 	MEDIA_TYPES,
@@ -68,18 +56,30 @@ import {
 	wordRegex,
 } from "../../helpers/string_helpers";
 import {
-	type AccountLike,
-	type FeedFilterSettings,
-	type KeysOfValueType,
-	type Hashtag,
-	type ScoreType,
-	type TagWithUsageCounts,
-	type TootLike,
-	type TootNumberProp,
-	type TootScore,
-	type TootSource,
-	type TrendingLink,
+	AgeIn,
+	ageString,
+	timelineCutoffAt,
+	toISOFormat,
+} from "../../helpers/time_helpers";
+import Scorer from "../../scorer/scorer";
+import type {
+	AccountLike,
+	FeedFilterSettings,
+	Hashtag,
+	KeysOfValueType,
+	ScoreType,
+	TagWithUsageCounts,
+	TootLike,
+	TootNumberProp,
+	TootScore,
+	TootSource,
+	TrendingLink,
 } from "../../types";
+import MastoApi from "../api";
+import MastodonServer from "../mastodon_server";
+import UserData from "../user_data";
+import Account from "./account";
+import { isValidForSubstringSearch, repairTag } from "./tag";
 
 enum TootCacheKey {
 	CONTENT_STRIPPED = "contentStripped",

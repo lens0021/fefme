@@ -4,12 +4,12 @@
  */
 import { type ReactElement, useMemo, useState } from "react";
 
+import { Tooltip } from "react-tooltip";
 import {
 	type BooleanFilter,
 	BooleanFilterName,
 	TagTootsCategory,
 } from "../../core/index";
-import { Tooltip } from "react-tooltip";
 
 import { config } from "../../config";
 import { getLogger } from "../../helpers/log_helpers";
@@ -17,8 +17,8 @@ import {
 	computeMinTootsDefaultValue,
 	computeMinTootsMaxValue,
 } from "../../helpers/min_toots";
-import { createSwitchFactory } from "../../helpers/ui";
 import { SwitchType } from "../../helpers/styles";
+import { createSwitchFactory } from "../../helpers/ui";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
 import Accordion from "../helpers/Accordion";
 import FilterCheckboxGrid from "./filters/FilterCheckboxGrid";

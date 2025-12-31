@@ -2,30 +2,30 @@
  * @fileoverview Methods for dealing with data about the user currently using
  * fedialgo - background data for the scorers and so on.
  */
-import { mastodon } from "masto";
+import type { mastodon } from "masto";
 
-import Account from "./objects/account";
+import Storage from "../Storage";
+import { config } from "../config";
+import { BooleanFilterName, ScoreName, TagTootsCategory } from "../enums";
+import { keyById, resolvePromiseDict } from "../helpers/collection_helpers";
+import { languageName } from "../helpers/language_helper";
+import { Logger } from "../helpers/logger";
+import { WaitTime } from "../helpers/time_helpers";
+import type {
+	AccountNames,
+	BooleanFilterOption,
+	StringNumberDict,
+	TagWithUsageCounts,
+} from "../types";
 import MastoApi from "./api";
 import CountedList, {
 	BooleanFilterOptionList,
 	type ObjList,
 } from "./counted_list";
-import Storage from "../Storage";
-import TagList from "./tag_list";
-import Toot, { mostRecentTootedAt } from "./objects/toot";
-import { BooleanFilterName, ScoreName, TagTootsCategory } from "../enums";
+import Account from "./objects/account";
 import { buildMutedRegex, extractMutedKeywords } from "./objects/filter";
-import { config } from "../config";
-import { keyById, resolvePromiseDict } from "../helpers/collection_helpers";
-import { languageName } from "../helpers/language_helper";
-import { Logger } from "../helpers/logger";
-import { WaitTime } from "../helpers/time_helpers";
-import {
-	type AccountNames,
-	type BooleanFilterOption,
-	type StringNumberDict,
-	type TagWithUsageCounts,
-} from "../types";
+import Toot, { mostRecentTootedAt } from "./objects/toot";
+import TagList from "./tag_list";
 
 const logger = new Logger("UserData");
 
@@ -71,7 +71,7 @@ export default class UserData {
 	favouritedTags = new TagList([], TagTootsCategory.FAVOURITED);
 	followedAccounts: StringNumberDict = {};
 	followedTags = new TagList([], ScoreName.FOLLOWED_TAGS);
-	isRetooter: boolean = false;
+	isRetooter = false;
 	languagesPostedIn: ObjList = new CountedList([], BooleanFilterName.LANGUAGE);
 	mutedAccounts: AccountNames = {};
 	mutedKeywordsRegex!: RegExp; // Cached regex for muted keywords, built from server-side filters

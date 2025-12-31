@@ -3,14 +3,14 @@
  * @module string_helpers
  */
 
-import escape from "regexp.escape";
 import md5 from "blueimp-md5";
 import { decode } from "html-entities";
 import { isEmpty, isNil } from "lodash";
-import { mastodon } from "masto";
+import type { mastodon } from "masto";
+import escape from "regexp.escape";
 
 import { MediaCategory } from "../enums";
-import { type OptionalString } from "../types";
+import type { OptionalString } from "../types";
 
 // Number constants
 export const DEFAULT_FONT_SIZE = 15;

@@ -1,6 +1,6 @@
-import TootScorer from "../toot_scorer";
 import type Toot from "../../api/objects/toot";
 import { ScoreName } from "../../enums";
+import TootScorer from "../toot_scorer";
 
 /**
  * Populate the {@linkcode Toot.followedTags} property on {@linkcode Toot} object and return

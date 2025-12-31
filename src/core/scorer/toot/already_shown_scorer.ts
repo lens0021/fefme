@@ -1,10 +1,10 @@
+import type Toot from "../../api/objects/toot";
+import { ScoreName } from "../../enums";
+import { sumArray } from "../../helpers/collection_helpers";
 /**
  * @memberof module:toot_scorers
  */
 import TootScorer from "../toot_scorer";
-import type Toot from "../../api/objects/toot";
-import { ScoreName } from "../../enums";
-import { sumArray } from "../../helpers/collection_helpers";
 
 /**
  * Score based on the {@linkcode numTimesShown}, which is managed by the client app.

@@ -3,10 +3,10 @@
  * @module toot_scorers
  */
 
-import Scorer from "./scorer";
+import type { ScoreName } from "../enums";
 import { ageString } from "../helpers/time_helpers";
-import { ScoreName } from "../enums";
-import { type StringNumberDict } from "../types";
+import type { StringNumberDict } from "../types";
+import Scorer from "./scorer";
 
 /**
  * Base class for a {@linkcode Scorer} that can score a {@linkcode Toot} based solely on the properties of

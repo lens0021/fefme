@@ -3,7 +3,7 @@
  * Things like how much to prefer people you favorite a lot or how much to posts that
  * are trending in the Fedivers.
  */
-import { useState, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import {
 	NonScoreWeightName,
@@ -28,6 +28,7 @@ export default function WeightSetter() {
 
 	// Load weights from localStorage or use defaults
 	const initWeights = useCallback(async () => {
+		if (!algorithm) return;
 		try {
 			const savedWeights = localStorage.getItem(WEIGHTS_STORAGE_KEY);
 			if (savedWeights) {
@@ -52,6 +53,7 @@ export default function WeightSetter() {
 	// Update the user weightings and save to localStorage
 	const updateWeights = useCallback(
 		async (newWeights: Weights): Promise<void> => {
+			if (!algorithm) return;
 			try {
 				logger.log("updateWeights() called with:", newWeights);
 				setUserWeights(newWeights);
@@ -64,6 +66,9 @@ export default function WeightSetter() {
 		},
 		[algorithm, logAndSetError],
 	);
+
+	// Don't render if algorithm is not loaded yet
+	if (!algorithm) return null;
 
 	const makeWeightSlider = (weightName: WeightName) => (
 		<WeightSlider

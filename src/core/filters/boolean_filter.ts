@@ -5,18 +5,18 @@
  */
 import { isNil } from "lodash";
 
-import TootFilter, { type FilterArgs } from "./toot_filter";
+import { BooleanFilterOptionList } from "../api/counted_list";
+import { buildTag } from "../api/objects/tag";
 import type Toot from "../api/objects/toot";
+import { config } from "../config";
 import {
 	BooleanFilterName,
 	TypeFilterName,
 	isValueInStringEnum,
 } from "../enums";
-import { BooleanFilterOptionList } from "../api/counted_list";
-import { buildTag } from "../api/objects/tag";
 import { compareStr, isEmptyStr } from "../helpers/string_helpers";
-import { config } from "../config";
-import { type BooleanFilterOption } from "../types";
+import type { BooleanFilterOption } from "../types";
+import TootFilter, { type FilterArgs } from "./toot_filter";
 
 type TootMatcher = (toot: Toot, selectedOptions: string[]) => boolean;
 type TypeFilter = (toot: Toot) => boolean;
@@ -209,8 +209,8 @@ export default class BooleanFilter extends TootFilter {
 	 * @returns {BooleanFilterOptionList}
 	 */
 	optionsSortedByName(
-		minToots: number = 0,
-		includeFollowed: boolean = false,
+		minToots = 0,
+		includeFollowed = false,
 	): BooleanFilterOptionList {
 		const options = this.options.objs.toSorted((a, b) =>
 			compareStr(a.displayName || a.name, b.displayName || b.name),
@@ -227,8 +227,8 @@ export default class BooleanFilter extends TootFilter {
 	 * @returns {BooleanFilterOptionList}
 	 */
 	optionsSortedByValue(
-		minToots: number = 0,
-		includeFollowed: boolean = false,
+		minToots = 0,
+		includeFollowed = false,
 	): BooleanFilterOptionList {
 		const sortedObjs = this.optionListWithMinToots(
 			this.options.topObjs(),
@@ -305,8 +305,8 @@ export default class BooleanFilter extends TootFilter {
 	 */
 	private optionListWithMinToots(
 		options: BooleanFilterOption[],
-		minToots: number = 0,
-		includeFollowed: boolean = false,
+		minToots = 0,
+		includeFollowed = false,
 	): BooleanFilterOptionList {
 		const newOptions = options.filter((o) => {
 			const numToots = o.numToots || 0;

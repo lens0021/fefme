@@ -3,9 +3,9 @@
  * @module api_errors
  */
 
-import { apiLogger } from "./api";
 import { config } from "../config";
-import { type Logger } from "../helpers/logger";
+import type { Logger } from "../helpers/logger";
+import { apiLogger } from "./api";
 
 type UnknownError = Error | unknown;
 

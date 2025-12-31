@@ -1,9 +1,9 @@
 import MastoApi from "../../api/api";
-import TootScorer from "../toot_scorer";
 import type Toot from "../../api/objects/toot";
-import { countValues, sumArray } from "../../helpers/collection_helpers";
 import { ScoreName } from "../../enums";
-import { type StringNumberDict } from "../../types";
+import { countValues, sumArray } from "../../helpers/collection_helpers";
+import type { StringNumberDict } from "../../types";
+import TootScorer from "../toot_scorer";
 
 /**
  * Score how many times the user has replied to the creator of the {@linkcode Toot}.

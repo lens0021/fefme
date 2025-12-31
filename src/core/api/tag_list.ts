@@ -1,20 +1,20 @@
+import { config } from "../config";
+import { TagTootsCategory } from "../enums";
+import { Logger } from "../helpers/logger";
+import type {
+	CountedListSource,
+	Hashtag,
+	NamedTootCount,
+	TagWithUsageCounts,
+} from "../types";
 /*
  * CountedList subclass for TagWithUsageCounts objects.
  */
 import MastoApi from "./api";
 import CountedList from "./counted_list";
-import UserData from "./user_data";
-import type Toot from "./objects/toot";
-import { config } from "../config";
-import { Logger } from "../helpers/logger";
 import { repairTag } from "./objects/tag";
-import { TagTootsCategory } from "../enums";
-import {
-	type CountedListSource,
-	type Hashtag,
-	type NamedTootCount,
-	type TagWithUsageCounts,
-} from "../types";
+import type Toot from "./objects/toot";
+import UserData from "./user_data";
 
 const logger = new Logger("TagList");
 

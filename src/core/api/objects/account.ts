@@ -1,13 +1,11 @@
+import { Type } from "class-transformer";
 /**
  * @fileoverview Class and helper methods for dealing with Mastodon's
  * {@linkcode https://docs.joinmastodon.org/entities/Account/ Account} objects.
  */
 import { encode } from "html-entities";
-import { mastodon } from "masto";
-import { Type } from "class-transformer";
+import type { mastodon } from "masto";
 
-import MastoApi from "../api";
-import MastodonServer from "../mastodon_server";
 import { config } from "../../config";
 import { keyByProperty } from "../../helpers/collection_helpers";
 import { Logger } from "../../helpers/logger";
@@ -17,13 +15,15 @@ import {
 	extractDomain,
 	replaceEmojiShortcodesWithImgTags,
 } from "../../helpers/string_helpers";
-import {
-	type AccountLike,
-	type AccountNames,
-	type BooleanFilterOption,
-	type InstanceResponse,
-	type StringNumberDict,
+import type {
+	AccountLike,
+	AccountNames,
+	BooleanFilterOption,
+	InstanceResponse,
+	StringNumberDict,
 } from "../../types";
+import MastoApi from "../api";
+import MastodonServer from "../mastodon_server";
 
 type AccountCount = Record<string, { account: Account; count: number }>;
 

@@ -1,3 +1,19 @@
+import {
+	type ApiCacheKey,
+	CacheKey,
+	DAYS_SHORT,
+	DAY_NAMES,
+	FediverseCacheKey,
+	LoadAction,
+	LogAction,
+	MINUTES_IN_DAY,
+	MINUTES_IN_HOUR,
+	MONTHS,
+	MONTHS_SHORT,
+	NonScoreWeightName,
+	SECONDS_IN_HOUR,
+	TagTootsCategory,
+} from "./enums";
 /**
  * @fileoverview Centralized location for non-user configurable settings.
  */
@@ -8,23 +24,7 @@ import {
 } from "./helpers/environment_helpers";
 import { optionalSuffix, suffixedInt } from "./helpers/string_helpers";
 import { timeString } from "./helpers/time_helpers";
-import { type NonScoreWeightInfoDict, type Optional } from "./types";
-import {
-	CacheKey,
-	FediverseCacheKey,
-	LoadAction,
-	LogAction,
-	NonScoreWeightName,
-	TagTootsCategory,
-	DAY_NAMES,
-	DAYS_SHORT,
-	MONTHS,
-	MONTHS_SHORT,
-	MINUTES_IN_DAY,
-	MINUTES_IN_HOUR,
-	SECONDS_IN_HOUR,
-	type ApiCacheKey,
-} from "./enums";
+import type { NonScoreWeightInfoDict, Optional } from "./types";
 
 // Number of notifications, replies, etc. to pull in initial load. KEY BOTTLENECK on RecentUserToots
 export const MIN_RECORDS_FOR_FEATURE_SCORING = 320;

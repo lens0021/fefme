@@ -1,8 +1,8 @@
-import type { StringNumberDict, WeightName } from "../../core/index";
 /*
  * Slider that sets a weight for the algorithm.
  */
 import isFiniteNumber from "lodash/isFinite";
+import type { StringNumberDict, WeightName } from "../../core/index";
 
 import { config } from "../../config";
 import { useAlgorithm } from "../../hooks/useAlgorithm";

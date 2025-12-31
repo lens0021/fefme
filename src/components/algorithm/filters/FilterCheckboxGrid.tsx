@@ -5,6 +5,7 @@
  */
 import { useMemo } from "react";
 
+import { isEmpty, isFinite as isFiniteNumber } from "lodash";
 import {
 	type BooleanFilter,
 	BooleanFilterName,
@@ -15,12 +16,11 @@ import {
 	TagTootsCategory,
 	TypeFilterName,
 } from "../../../core/index";
-import { isEmpty, isFinite as isFiniteNumber } from "lodash";
 
 import { config } from "../../../config";
 import { getLogger } from "../../../helpers/log_helpers";
-import { followUri, gridify } from "../../../helpers/ui";
 import { buildGradient } from "../../../helpers/styles";
+import { followUri, gridify } from "../../../helpers/ui";
 import type {
 	CheckboxGradientTooltipConfig,
 	CheckboxTooltipConfig,

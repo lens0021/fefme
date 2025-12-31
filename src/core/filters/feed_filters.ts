@@ -1,3 +1,31 @@
+import Storage from "../Storage";
+import MastoApi from "../api/api";
+import { BooleanFilterOptionList } from "../api/counted_list";
+import type Account from "../api/objects/account";
+import { buildTag, isValidForSubstringSearch } from "../api/objects/tag";
+import type Toot from "../api/objects/toot";
+import type TagList from "../api/tag_list";
+import TagsForFetchingToots from "../api/tags_for_fetching_toots";
+import { config } from "../config";
+import { BooleanFilterName, ScoreName, type TagTootsCategory } from "../enums";
+import {
+	incrementCount,
+	sortedDictString,
+	sumValues,
+} from "../helpers/collection_helpers";
+import { languageName } from "../helpers/language_helper";
+import { Logger } from "../helpers/logger";
+import { suppressedHashtags } from "../helpers/suppressed_hashtags";
+import { WaitTime, ageString } from "../helpers/time_helpers";
+import type {
+	BooleanFilterOption,
+	BooleanFilters,
+	FeedFilterSettings,
+	NumericFilters,
+	StringNumberDict,
+	TagWithUsageCounts,
+	TootNumberProp,
+} from "../types";
 /**
  * @fileoverview Helpers for building and serializing a complete set of {@linkcode FeedFilterSettings}.
  */
@@ -5,38 +33,10 @@ import BooleanFilter, {
 	TYPE_FILTERS,
 	type BooleanFilterArgs,
 } from "./boolean_filter";
-import MastoApi from "../api/api";
 import NumericFilter, {
 	FILTERABLE_SCORES,
 	type NumericFilterArgs,
 } from "./numeric_filter";
-import Storage from "../Storage";
-import TagsForFetchingToots from "../api/tags_for_fetching_toots";
-import type Account from "../api/objects/account";
-import type TagList from "../api/tag_list";
-import type Toot from "../api/objects/toot";
-import { ageString, WaitTime } from "../helpers/time_helpers";
-import { BooleanFilterName, ScoreName, TagTootsCategory } from "../enums";
-import { BooleanFilterOptionList } from "../api/counted_list";
-import { config } from "../config";
-import {
-	incrementCount,
-	sortedDictString,
-	sumValues,
-} from "../helpers/collection_helpers";
-import { buildTag, isValidForSubstringSearch } from "../api/objects/tag";
-import { languageName } from "../helpers/language_helper";
-import { Logger } from "../helpers/logger";
-import { suppressedHashtags } from "../helpers/suppressed_hashtags";
-import {
-	type BooleanFilterOption,
-	type BooleanFilters,
-	type FeedFilterSettings,
-	type NumericFilters,
-	type StringNumberDict,
-	type TagWithUsageCounts,
-	type TootNumberProp,
-} from "../types";
 
 type FilterOptions = Record<BooleanFilterName, BooleanFilterOptionList>;
 
@@ -148,7 +148,7 @@ export function repairFilterSettings(filters: FeedFilterSettings): boolean {
 export async function updateBooleanFilterOptions(
 	filters: FeedFilterSettings,
 	toots: Toot[],
-	scanForTags: boolean = false,
+	scanForTags = false,
 ): Promise<void> {
 	populateMissingFilters(filters); // Ensure all filters are instantiated
 	const timer = new WaitTime();
@@ -255,7 +255,9 @@ export async function updateBooleanFilterOptions(
 
 	// Always ensure "seen" option is available, even if there are no seen toots yet
 	if (!optionLists[BooleanFilterName.TYPE].getObj("seen")) {
-		optionLists[BooleanFilterName.TYPE].addObjs([{ name: "seen", numToots: 0 }]);
+		optionLists[BooleanFilterName.TYPE].addObjs([
+			{ name: "seen", numToots: 0 },
+		]);
 	}
 
 	// Build the options for all the boolean filters based on the counts

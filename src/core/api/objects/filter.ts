@@ -3,7 +3,7 @@
  * @module server_side_filters
  */
 
-import { mastodon } from "masto";
+import type { mastodon } from "masto";
 
 import { wordsRegex } from "../../helpers/string_helpers";
 
@@ -31,8 +31,7 @@ export function extractMutedKeywords(
 	serverSideFilters: mastodon.v2.Filter[],
 ): string[] {
 	let keywords = serverSideFilters
-		.map((f) => f.keywords.map((k) => k.keyword))
-		.flat()
+		.flatMap((f) => f.keywords.map((k) => k.keyword))
 		.flat()
 		.flat();
 	keywords = keywords.map((k) => k.toLowerCase().replace(/^#/, ""));

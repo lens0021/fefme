@@ -12,14 +12,14 @@ import React, {
 	useState,
 } from "react";
 
+import { createRestAPIClient, type mastodon } from "masto";
+import { useError } from "../components/helpers/ErrorHandler";
 import TheAlgorithm, {
 	GET_FEED_BUSY_MSG,
 	AgeIn,
 	type Toot,
 	isAccessTokenRevokedError,
 } from "../core/index";
-import { createRestAPIClient, type mastodon } from "masto";
-import { useError } from "../components/helpers/ErrorHandler";
 
 import { persistentCheckbox } from "../components/helpers/Checkbox";
 import { GuiCheckboxName, config } from "../config";
@@ -329,6 +329,9 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 
 		// Check that we have valid user credentials and load timeline posts, otherwise force a logout.
 		const constructFeed = async (): Promise<void> => {
+			// Show loading state during initialization
+			setIsLoading(true);
+
 			logger.log(
 				`constructFeed() called with user ID ${user?.id} (feed has ${timeline.length} posts)`,
 			);
@@ -351,6 +354,7 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 					logAndShowError("Failed to verifyCredentials(), logging out...", err);
 				}
 
+				setIsLoading(false);
 				logout(true);
 				return;
 			}
@@ -396,6 +400,9 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 			}
 
 			setAlgorithm(algo);
+
+			// Initialization complete, stop showing loading indicator
+			setIsLoading(false);
 
 			// Only trigger initial feed update if we have no cached posts
 			// Otherwise, user can manually refresh when ready

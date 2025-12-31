@@ -1,9 +1,9 @@
+import type Toot from "../../api/objects/toot";
+import { ScoreName } from "../../enums";
 /**
  * @memberof module:toot_scorers
  */
 import TootScorer from "../toot_scorer";
-import type Toot from "../../api/objects/toot";
-import { ScoreName } from "../../enums";
 
 /**
  * Score a {@linkcode Toot} based on how many followers the author has.

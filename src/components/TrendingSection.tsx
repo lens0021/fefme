@@ -2,6 +2,7 @@ import type React from "react";
 import { useMemo, useState } from "react";
 
 import { capitalCase } from "change-case";
+import { Tooltip } from "react-tooltip";
 import {
 	type TagList,
 	type TagTootsCategory,
@@ -10,7 +11,6 @@ import {
 	type TrendingType,
 	optionalSuffix,
 } from "../core/index";
-import { Tooltip } from "react-tooltip";
 
 import { config } from "../config";
 import { getLogger } from "../helpers/log_helpers";

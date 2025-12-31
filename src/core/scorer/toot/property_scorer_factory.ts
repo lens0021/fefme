@@ -1,6 +1,6 @@
-import TootScorer from "../toot_scorer";
 import type Toot from "../../api/objects/toot";
 import { ScoreName } from "../../enums";
+import TootScorer from "../toot_scorer";
 
 /**
  * Factory for creating simple property accessor scorer classes.

@@ -1,8 +1,8 @@
-import { MediaCategory } from "../core/index";
 /*
  * Functions for dealing with Mastodon API and data structures.
  */
 import type { mastodon } from "masto";
+import { MediaCategory } from "../core/index";
 
 import { appLogger } from "./log_helpers";
 import { mimeTypeExtension } from "./string_helpers";

@@ -1,9 +1,9 @@
+import type Toot from "../../api/objects/toot";
+import { ScoreName } from "../../enums";
 /**
  * @memberof module:toot_scorers
  */
 import TootScorer from "../toot_scorer";
-import type Toot from "../../api/objects/toot";
-import { ScoreName } from "../../enums";
 
 /**
  * Random number generator to mix up the feed.

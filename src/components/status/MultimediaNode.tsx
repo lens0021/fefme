@@ -2,9 +2,9 @@ import type React from "react";
 import { useCallback, useMemo, useState } from "react";
 
 import "react-lazy-load-image-component/src/effects/blur.css"; // For blur effect
-import { GIFV, MediaCategory, type Toot } from "../../core/index";
 import type { mastodon } from "masto";
 import { LazyLoadImage } from "react-lazy-load-image-component";
+import { GIFV, MediaCategory, type Toot } from "../../core/index";
 
 import { config } from "../../config";
 import { getLogger } from "../../helpers/log_helpers";

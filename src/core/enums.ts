@@ -3,7 +3,7 @@
  * @module enums
  */
 
-import { type Optional } from "./types";
+import type { Optional } from "./types";
 
 /**
  * Actions that {@linkcode TheAlgorithm} can take.

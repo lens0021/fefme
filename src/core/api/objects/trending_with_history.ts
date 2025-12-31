@@ -20,19 +20,19 @@
  *       ]
  *   }
  */
-import { mastodon } from "masto";
+import type { mastodon } from "masto";
 
-import type Toot from "./toot";
-import { average, groupBy } from "../../helpers/collection_helpers";
 import { config } from "../../config";
-import { repairTag } from "./tag";
+import { average, groupBy } from "../../helpers/collection_helpers";
 import { wordRegex } from "../../helpers/string_helpers";
-import {
-	type Hashtag,
-	type TagWithUsageCounts,
-	type TrendingLink,
-	type TrendingWithHistory,
+import type {
+	Hashtag,
+	TagWithUsageCounts,
+	TrendingLink,
+	TrendingWithHistory,
 } from "../../types";
+import { repairTag } from "./tag";
+import type Toot from "./toot";
 
 /**
  * Decorate a Mastodon {@linkcode https://docs.joinmastodon.org/entities/PreviewCard/#trends-link TrendLink}
@@ -135,11 +135,11 @@ function decorateHistoryScores<T extends TrendingWithHistory>(obj: T): T {
 		config.trending.daysToCountTrendingData,
 	);
 	obj.numToots = recentHistory.reduce(
-		(total, h) => total + parseInt(h.uses),
+		(total, h) => total + Number.parseInt(h.uses),
 		0,
 	);
 	obj.numAccounts = recentHistory.reduce(
-		(total, h) => total + parseInt(h.accounts),
+		(total, h) => total + Number.parseInt(h.accounts),
 		0,
 	);
 	return obj;

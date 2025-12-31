@@ -4,10 +4,10 @@
  */
 import { Mutex } from "async-mutex";
 
+import { ageString } from "../helpers/time_helpers";
 import type FeedScorer from "./feed_scorer";
 import type Scorer from "./scorer";
 import type TootScorer from "./toot_scorer";
-import { ageString } from "../helpers/time_helpers";
 
 const SCORERS_MUTEX = new Mutex();
 

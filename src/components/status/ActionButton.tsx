@@ -14,7 +14,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { capitalCase } from "change-case";
-import { type Toot } from "../../core/index";
+import type { Toot } from "../../core/index";
 
 import { getLogger } from "../../helpers/log_helpers";
 import { NETWORK_ERROR, scoreString } from "../../helpers/string_helpers";
@@ -80,9 +80,9 @@ export default function ActionButton(props: ActionButtonProps) {
 	const { logAndSetFormattedError } = useError();
 
 	const actionInfo = ACTION_INFO[action];
-	let label = actionInfo.label || capitalCase(action);
+	const label = actionInfo.label || capitalCase(action);
 	let buttonText: string;
-	let icon = actionInfo.icon;
+	const icon = actionInfo.icon;
 
 	if (actionInfo.countName && toot[actionInfo.countName] > 0) {
 		buttonText = toot[actionInfo.countName]?.toLocaleString();

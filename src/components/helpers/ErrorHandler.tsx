@@ -6,9 +6,9 @@ import {
 	useState,
 } from "react";
 
-import { Logger } from "../../core/index";
 import { isString } from "lodash";
 import { ErrorBoundary } from "react-error-boundary";
+import { Logger } from "../../core/index";
 
 import { config } from "../../config";
 import { getLogger } from "../../helpers/log_helpers";

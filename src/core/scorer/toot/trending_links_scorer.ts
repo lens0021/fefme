@@ -1,9 +1,9 @@
 import MastodonServer from "../../api/mastodon_server";
-import TootScorer from "../toot_scorer";
 import type Toot from "../../api/objects/toot";
 import { ScoreName } from "../../enums";
 import { sumArray } from "../../helpers/collection_helpers";
-import { type StringNumberDict } from "../../types";
+import type { StringNumberDict } from "../../types";
+import TootScorer from "../toot_scorer";
 
 /**
  * Score {@linkcode Toot}s based on the {@linkcode numAccounts} of any trending links they contain.

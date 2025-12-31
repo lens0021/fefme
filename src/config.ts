@@ -4,6 +4,7 @@
 import type { CSSProperties } from "react";
 
 import { capitalCase } from "change-case";
+import type { mastodon } from "masto";
 import TheAlgorithm, {
 	FEDIALGO,
 	BooleanFilterName,
@@ -14,7 +15,6 @@ import TheAlgorithm, {
 	optionalSuffix,
 	type FilterOptionDataSource,
 } from "./core/index";
-import type { mastodon } from "masto";
 
 import type { TrendingPanelName } from "./components/TrendingSection";
 import { nTimes } from "./helpers/string_helpers";

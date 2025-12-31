@@ -1,8 +1,8 @@
-import TootScorer from "../toot_scorer";
 import type Toot from "../../api/objects/toot";
 import { config } from "../../config";
 import { ScoreName } from "../../enums";
 import { sumArray } from "../../helpers/collection_helpers";
+import TootScorer from "../toot_scorer";
 
 /**
  * Scores with the number of accounts that have posted a {@linkcode Toot} with the trending tag

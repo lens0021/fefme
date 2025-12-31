@@ -1,17 +1,19 @@
+import { Mutex } from "async-mutex";
 /*
  * Class for interacting with the public non-authenticated API of a Mastodon server.
  */
 import axios from "axios";
 import { camelCase } from "change-case";
-import { mastodon } from "masto";
-import { Mutex } from "async-mutex";
+import type { mastodon } from "masto";
 
-import MastoApi from "./api";
 import Storage from "../Storage";
-import TagList from "./tag_list";
-import Toot from "./objects/toot";
-import { ageString } from "../helpers/time_helpers";
 import { config } from "../config";
+import {
+	FediverseCacheKey,
+	TagTootsCategory,
+	TrendingType,
+	simpleCacheKeyDict,
+} from "../enums";
 import {
 	countValues,
 	shuffle,
@@ -19,30 +21,28 @@ import {
 	transformKeys,
 	zipPromiseCalls,
 } from "../helpers/collection_helpers";
-import {
-	FediverseCacheKey,
-	TagTootsCategory,
-	TrendingType,
-	simpleCacheKeyDict,
-} from "../enums";
-import { lockExecution } from "../helpers/mutex_helpers";
 import { Logger } from "../helpers/logger";
+import { lockExecution } from "../helpers/mutex_helpers";
 import { optionalSuffix } from "../helpers/string_helpers";
+import { ageString } from "../helpers/time_helpers";
+import type {
+	InstanceResponse,
+	MastodonInstance,
+	MastodonInstances,
+	TagWithUsageCounts,
+	TrendingData,
+	TrendingLink,
+	TrendingObj,
+} from "../types";
+import MastoApi from "./api";
+import Toot from "./objects/toot";
 import {
 	decorateLinkHistory,
 	decorateTagHistory,
 	setTrendingRankToAvg,
 	uniquifyTrendingObjs,
 } from "./objects/trending_with_history";
-import {
-	type InstanceResponse,
-	type MastodonInstance,
-	type MastodonInstances,
-	type TagWithUsageCounts,
-	type TrendingData,
-	type TrendingLink,
-	type TrendingObj,
-} from "../types";
+import TagList from "./tag_list";
 
 type InstanceDict = Record<string, MastodonInstance>;
 

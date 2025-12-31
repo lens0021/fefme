@@ -1,7 +1,7 @@
 import type Toot from "../api/objects/toot";
+import type { StringNumberDict, TagWithUsageCounts } from "../types";
 import { sumValues } from "./collection_helpers";
-import { type Logger } from "./logger";
-import { type StringNumberDict, type TagWithUsageCounts } from "../types";
+import type { Logger } from "./logger";
 
 type TagTootUris = Record<string, Set<string>>;
 type TagLanguageCounts = Record<string, StringNumberDict>;

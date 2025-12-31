@@ -7,8 +7,8 @@ import { isNil } from "lodash";
 
 import { config } from "../config";
 import { DAY_NAMES, SECONDS_IN_DAY } from "../enums";
+import type { Optional, OptionalString } from "../types";
 import { NULL, quoted } from "./string_helpers";
-import { type Optional, type OptionalString } from "../types";
 
 type DateArg = Date | OptionalString | number;
 
@@ -216,9 +216,9 @@ export function toISOFormatIfExists(
 
 /** Helper class for telemetry. */
 export class WaitTime {
-	avgMsPerRequest: number = 0;
-	milliseconds: number = 0;
-	numRequests: number = 0;
+	avgMsPerRequest = 0;
+	milliseconds = 0;
+	numRequests = 0;
 	startedAt: Date = new Date();
 
 	ageInSeconds(): number {

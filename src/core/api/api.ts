@@ -1,33 +1,21 @@
+import { Mutex, Semaphore } from "async-mutex";
 /*
  * Singleton class to wrap authenticated mastodon API calls to the user's home server.
  */
 import { isNil } from "lodash";
-import { mastodon } from "masto";
-import { Mutex, Semaphore } from "async-mutex";
+import type { mastodon } from "masto";
 
-import Account from "./objects/account";
 import Storage from "../Storage";
-import Toot, {
-	earliestTootedAt,
-	mostRecentTootedAt,
-	sortByCreatedAt,
-} from "./objects/toot";
-import UserData from "./user_data";
-import { config, MIN_RECORDS_FOR_FEATURE_SCORING } from "../config";
-import { extractDomain } from "../helpers/string_helpers";
-import { lockExecution } from "../helpers/mutex_helpers";
-import { Logger } from "../helpers/logger";
-import { repairTag } from "./objects/tag";
-import { isAccessTokenRevokedError, throwIfAccessTokenRevoked } from "./errors";
+import { MIN_RECORDS_FOR_FEATURE_SCORING, config } from "../config";
 import {
+	type ApiCacheKey,
 	CacheKey,
-	TrendingType,
 	STORAGE_KEYS_WITH_ACCOUNTS,
 	STORAGE_KEYS_WITH_TOOTS,
+	TrendingType,
 	UNIQUE_ID_PROPERTIES,
 	isTagTootsCategory,
 	simpleCacheKeyDict,
-	type ApiCacheKey,
 } from "../enums";
 import {
 	findMinMaxId,
@@ -37,6 +25,9 @@ import {
 	truncateToLength,
 	uniquifyApiObjs,
 } from "../helpers/collection_helpers";
+import { Logger } from "../helpers/logger";
+import { lockExecution } from "../helpers/mutex_helpers";
+import { extractDomain } from "../helpers/string_helpers";
 import {
 	WaitTime,
 	ageString,
@@ -46,18 +37,27 @@ import {
 	subtractSeconds,
 	timelineCutoffAt,
 } from "../helpers/time_helpers";
-import {
-	type AccountLike,
-	type ApiObj,
-	type ApiObjWithID,
-	type CacheTimestamp,
-	type ConcurrencyLockRelease,
-	type Hashtag,
-	type MinMaxID,
-	type Optional,
-	type TootLike,
-	type WithCreatedAt,
+import type {
+	AccountLike,
+	ApiObj,
+	ApiObjWithID,
+	CacheTimestamp,
+	ConcurrencyLockRelease,
+	Hashtag,
+	MinMaxID,
+	Optional,
+	TootLike,
+	WithCreatedAt,
 } from "../types";
+import { isAccessTokenRevokedError, throwIfAccessTokenRevoked } from "./errors";
+import Account from "./objects/account";
+import { repairTag } from "./objects/tag";
+import Toot, {
+	earliestTootedAt,
+	mostRecentTootedAt,
+	sortByCreatedAt,
+} from "./objects/toot";
+import UserData from "./user_data";
 
 /** Paginated data retrieval method from masto.js. */
 type ApiFetcher<T> = (
@@ -560,7 +560,7 @@ export default class MastoApi {
 	 * @returns {Promise<mastodon.v1.Status[]>} Array of raw Mastodon statuses.
 	 */
 	async getFederatedTimelineStatuses(
-		limit: number = 40,
+		limit = 40,
 	): Promise<mastodon.v1.Status[]> {
 		return await this.api.v1.timelines.public.list({ local: false, limit });
 	}

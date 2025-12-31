@@ -1,55 +1,55 @@
+import { instanceToPlain, plainToInstance } from "class-transformer";
 /*
  * Use localForage to store and retrieve data from the browser's IndexedDB storage.
  */
 import localForage from "localforage";
-import { instanceToPlain, plainToInstance } from "class-transformer";
 import { isFinite } from "lodash";
-import { mastodon } from "masto";
+import type { mastodon } from "masto";
 
-import Account from "./api/objects/account";
 import MastoApi from "./api/api";
-import TagList from "./api/tag_list";
+import Account from "./api/objects/account";
 import Toot, { mostRecentTootedAt } from "./api/objects/toot";
+import TagList from "./api/tag_list";
 import UserData from "./api/user_data";
-import { AgeIn } from "./helpers/time_helpers";
+import { config } from "./config";
+import {
+	AlgorithmStorageKey,
+	type ApiCacheKey,
+	CacheKey,
+	FediverseCacheKey,
+	STORAGE_KEYS_WITH_ACCOUNTS,
+	STORAGE_KEYS_WITH_TOOTS,
+	type StorageKey,
+	TagTootsCategory,
+	TrendingType,
+	isApiCacheKey,
+} from "./enums";
 import {
 	buildFiltersFromArgs,
 	repairFilterSettings,
 } from "./filters/feed_filters";
-import { BytesDict, sizeOf, sizeFromTextEncoder } from "./helpers/math_helper";
 import { checkUniqueRows, zipPromiseCalls } from "./helpers/collection_helpers";
-import { config } from "./config";
-import { DEFAULT_WEIGHTS } from "./scorer/weight_presets";
-import { FEDIALGO, byteString, toLocaleInt } from "./helpers/string_helpers";
 import { isDebugMode, isDeepDebug } from "./helpers/environment_helpers";
 import { Logger } from "./helpers/logger";
-import {
-	AlgorithmStorageKey,
-	CacheKey,
-	FediverseCacheKey,
-	TagTootsCategory,
-	TrendingType,
-	STORAGE_KEYS_WITH_ACCOUNTS,
-	STORAGE_KEYS_WITH_TOOTS,
-	isApiCacheKey,
-	type ApiCacheKey,
-	type StorageKey,
-} from "./enums";
-import {
-	type ApiObj,
-	type CacheableApiObj,
-	type CacheTimestamp,
-	type FeedFilterSettings,
-	type FeedFilterSettingsSerialized,
-	type MastodonInstances,
-	type StorableObj,
-	type StorableWithTimestamp,
-	type StringNumberDict,
-	type TagWithUsageCounts,
-	type TrendingLink,
-	type TrendingData,
-	type WeightName,
-	type Weights,
+import { BytesDict, sizeFromTextEncoder, sizeOf } from "./helpers/math_helper";
+import { FEDIALGO, byteString, toLocaleInt } from "./helpers/string_helpers";
+import { AgeIn } from "./helpers/time_helpers";
+import { DEFAULT_WEIGHTS } from "./scorer/weight_presets";
+import type {
+	ApiObj,
+	CacheTimestamp,
+	CacheableApiObj,
+	FeedFilterSettings,
+	FeedFilterSettingsSerialized,
+	MastodonInstances,
+	StorableObj,
+	StorableWithTimestamp,
+	StringNumberDict,
+	TagWithUsageCounts,
+	TrendingData,
+	TrendingLink,
+	WeightName,
+	Weights,
 } from "./types";
 
 // Configure localForage to use WebSQL as the driver

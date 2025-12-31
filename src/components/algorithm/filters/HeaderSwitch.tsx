@@ -4,8 +4,8 @@
  */
 import type { ChangeEvent } from "react";
 
-import { TagTootsCategory } from "../../../core/index";
 import { Tooltip } from "react-tooltip";
+import { TagTootsCategory } from "../../../core/index";
 
 import { config } from "../../../config";
 import { getLogger } from "../../../helpers/log_helpers";

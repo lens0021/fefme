@@ -1,9 +1,9 @@
-import Account from "../../api/objects/account";
 import MastoApi from "../../api/api";
-import TootScorer from "../toot_scorer";
+import Account from "../../api/objects/account";
 import type Toot from "../../api/objects/toot";
 import { ScoreName } from "../../enums";
-import { type StringNumberDict } from "../../types";
+import type { StringNumberDict } from "../../types";
+import TootScorer from "../toot_scorer";
 
 /**
  * One point if you follow the author (followed retoots are picked up by the {@linkcode RetootsInFeedScorer}).

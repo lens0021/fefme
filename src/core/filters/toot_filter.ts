@@ -2,9 +2,9 @@
  * @fileoverview Abstract class for filtering {@linkcode Toot} objects in or out of the timeline feed.
  */
 import type Toot from "../api/objects/toot";
-import { Logger } from "../helpers/logger";
 import { split } from "../helpers/collection_helpers";
-import { type FilterProperty } from "../types";
+import { Logger } from "../helpers/logger";
+import type { FilterProperty } from "../types";
 
 export interface FilterArgs {
 	description?: string;

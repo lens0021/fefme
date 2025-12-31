@@ -5,28 +5,28 @@
 
 import { chunk, isFinite, isNil } from "lodash";
 
-import { compareStr, hashObject } from "./string_helpers";
-import { config } from "../config";
 import { isAccessTokenRevokedError } from "../api/errors";
-import { isNumberOrNumberString } from "./math_helper";
-import { Logger } from "./logger";
-import { sleep } from "./time_helpers";
-import { UNIQUE_ID_PROPERTIES, type ApiCacheKey } from "../enums";
-import {
-	type ApiObj,
-	type ApiObjWithID,
-	type CountKey,
-	type MinMax,
-	type MinMaxID,
-	type Optional,
-	type OptionalNumber,
-	type OptionalString,
-	type PromiseDict,
-	type StringDict,
-	type StringNumberDict,
-	type Weights,
-	type WithCreatedAt,
+import { config } from "../config";
+import { type ApiCacheKey, UNIQUE_ID_PROPERTIES } from "../enums";
+import type {
+	ApiObj,
+	ApiObjWithID,
+	CountKey,
+	MinMax,
+	MinMaxID,
+	Optional,
+	OptionalNumber,
+	OptionalString,
+	PromiseDict,
+	StringDict,
+	StringNumberDict,
+	Weights,
+	WithCreatedAt,
 } from "../types";
+import { Logger } from "./logger";
+import { isNumberOrNumberString } from "./math_helper";
+import { compareStr, hashObject } from "./string_helpers";
+import { sleep } from "./time_helpers";
 
 // Unfortunately these types, returned by Promise.allSettled(), are not exported anywhere so we're manually recreating...
 interface PromiseFulfilledResult<T> {
@@ -52,7 +52,7 @@ const BATCH_MAP = "batchMap()";
  */
 export function addDicts(...dicts: StringNumberDict[]): StringNumberDict {
 	const sumDict: StringNumberDict = {};
-	const keys = new Set(dicts.map((dict) => Object.keys(dict)).flat());
+	const keys = new Set(dicts.flatMap((dict) => Object.keys(dict)));
 
 	keys.forEach((k) => {
 		sumDict[k] = sumArray(dicts.map((d) => d[k] || 0));
@@ -94,7 +94,7 @@ export function asOptionalArray<T>(value: T | undefined | null): [T] | [] {
  */
 export function average(values: number[]): number {
 	values = values.filter(isFinite);
-	if (values.length == 0) return NaN;
+	if (values.length == 0) return Number.NaN;
 	return values.reduce((a, b) => a + b, 0) / values.length;
 }
 
@@ -267,7 +267,7 @@ export function findMinMaxId(array: ApiObjWithID[]): MinMaxID | null {
 		b = b.toString();
 
 		if (isNumberArray) {
-			return parseFloat(a) - parseFloat(b);
+			return Number.parseFloat(a) - Number.parseFloat(b);
 		} else {
 			return a > b ? 1 : -1;
 		}
@@ -337,7 +337,7 @@ export function groupBy<T>(
 export function incrementCount(
 	counts: StringNumberDict,
 	k?: CountKey | null,
-	increment: number = 1,
+	increment = 1,
 ): StringNumberDict {
 	k = k ?? "unknown";
 	counts[k] = (counts[k] || 0) + increment;
@@ -365,7 +365,7 @@ function isRecord(obj: unknown): obj is Record<string, unknown> {
 export function decrementCount(
 	counts: StringNumberDict,
 	k?: CountKey | null,
-	increment: number = 1,
+	increment = 1,
 ): StringNumberDict {
 	return incrementCount(counts, k, -1 * increment);
 }

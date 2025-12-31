@@ -1,12 +1,12 @@
 /*
  * Logging related methods.
  */
-import { Mutex, Semaphore } from "async-mutex";
+import type { Mutex, Semaphore } from "async-mutex";
 
-import { AgeIn, ageString } from "./time_helpers";
 import { config } from "../config";
+import type { ConcurrencyLockRelease } from "../types";
 import { Logger } from "./logger";
-import { type ConcurrencyLockRelease } from "../types";
+import { AgeIn, ageString } from "./time_helpers";
 
 /**
  * Lock a Semaphore or Mutex and log the time it took to acquire the lock

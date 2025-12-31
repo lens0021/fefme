@@ -3,13 +3,13 @@
  */
 
 import CountedList from "../../api/counted_list";
-import FeedScorer from "../feed_scorer";
 import type Toot from "../../api/objects/toot";
-import { config } from "../../config";
-import { incrementCount } from "../../helpers/collection_helpers";
-import { ScoreName } from "../../enums";
 import { sortByCreatedAt } from "../../api/objects/toot";
-import { type NamedTootCount, type StringNumberDict } from "../../types";
+import { config } from "../../config";
+import { ScoreName } from "../../enums";
+import { incrementCount } from "../../helpers/collection_helpers";
+import type { NamedTootCount, StringNumberDict } from "../../types";
+import FeedScorer from "../feed_scorer";
 
 interface PenalizedObj extends NamedTootCount {
 	numSeen?: number; // How many of this object have been seen during the scoring process

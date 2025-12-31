@@ -1,9 +1,9 @@
-import Account from "../../api/objects/account";
-import TootScorer from "../toot_scorer";
 import MastoApi from "../../api/api";
+import Account from "../../api/objects/account";
 import type Toot from "../../api/objects/toot";
 import { ScoreName } from "../../enums";
-import { type StringNumberDict } from "../../types";
+import type { StringNumberDict } from "../../types";
+import TootScorer from "../toot_scorer";
 
 /**
  * Score how many accounts that the user follows are mentioned in the toot.

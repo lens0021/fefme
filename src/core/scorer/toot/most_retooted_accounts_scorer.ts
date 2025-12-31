@@ -1,9 +1,9 @@
-import Account from "../../api/objects/account";
-import AccountScorer from "./acccount_scorer";
 import MastoApi from "../../api/api";
+import Account from "../../api/objects/account";
 import Toot from "../../api/objects/toot";
 import { ScoreName } from "../../enums";
-import { type StringNumberDict } from "../../types";
+import type { StringNumberDict } from "../../types";
+import AccountScorer from "./acccount_scorer";
 
 /**
  * Score a {@linkcode Toot} based on how many times the user has retooted the author and retooter
