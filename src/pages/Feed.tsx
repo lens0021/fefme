@@ -10,6 +10,7 @@ import TheAlgorithm, {
 	type Toot,
 	optionalSuffix,
 } from "../core/index";
+import { buildNewFilterSettings } from "../core/filters/feed_filters";
 import { Tooltip } from "react-tooltip";
 
 import ApiErrorsPanel from "../components/ApiErrorsPanel";
@@ -25,6 +26,7 @@ import { GuiCheckboxName, config } from "../config";
 import { getLogger } from "../helpers/log_helpers";
 import { booleanIcon } from "../helpers/ui";
 import { useAlgorithm } from "../hooks/useAlgorithm";
+import { useAuthContext } from "../hooks/useAuth";
 import useOnScreen from "../hooks/useOnScreen";
 
 const logger = getLogger("Feed");
@@ -44,7 +46,9 @@ export default function Feed() {
 		triggerHomeTimelineBackFill,
 		triggerMoarData,
 		triggerPullAllUserData,
+		setSelfTypeFilterMode,
 	} = useAlgorithm();
+	const { logout, setApp } = useAuthContext();
 
 	// State variables
 	const [isLoadingThread, setIsLoadingThread] = useState(false);
@@ -89,6 +93,33 @@ export default function Feed() {
 			return;
 		setNumDisplayedToots(config.timeline.defaultNumDisplayedToots);
 		resetAlgorithm();
+	};
+	const resetToDefaults = async () => {
+		if (
+			!(await confirm(
+				"Reset weights and filters to defaults? Your cached posts will stay.",
+			))
+		)
+			return;
+		localStorage.removeItem("fefme_user_weights");
+		localStorage.removeItem("type-filter-self");
+		await algorithm?.updateUserWeightsToPreset("default");
+		algorithm?.updateFilters(buildNewFilterSettings());
+		setSelfTypeFilterMode?.("none");
+	};
+	const handleLogout = () => {
+		logout();
+	};
+	const deleteAllData = async () => {
+		if (
+			!(await confirm(
+				"Delete all data and log out? You will need to reauthenticate.",
+			))
+		)
+			return;
+		setApp(null);
+		await algorithm?.reset(true);
+		logout();
 	};
 
 	// Show more posts when the user scrolls to bottom of the page
@@ -303,17 +334,53 @@ export default function Feed() {
 									<p>{footerMsg}</p>
 									<details className="mt-1 rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-muted)] p-2 text-xs text-[color:var(--color-muted-fg)]">
 										<summary className="cursor-pointer font-semibold">
-											Reset feed data
+											Account & data reset
 										</summary>
-										<div className="mt-2 flex items-center justify-between gap-2">
-											<span>Clears cached timeline data and reloads.</span>
-											<button
-												type="button"
-												onClick={reset}
-												className="rounded-md border border-red-300 px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
-											>
-												Reset
-											</button>
+										<div className="mt-2 flex flex-col gap-3 text-xs">
+											<div className="flex flex-col gap-1">
+												<span>Reset cached posts and reload the feed.</span>
+												<button
+													type="button"
+													onClick={reset}
+													className="rounded-md border border-red-300 px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
+												>
+													Reset feed data
+												</button>
+											</div>
+											<div className="flex flex-col gap-1">
+												<span>
+													Reset all feed weights and filters to their defaults.
+												</span>
+												<button
+													type="button"
+													onClick={resetToDefaults}
+													className="rounded-md border border-[color:var(--color-border)] px-2 py-1 text-xs font-semibold text-[color:var(--color-primary)]"
+												>
+													Reset to defaults
+												</button>
+											</div>
+											<div className="flex flex-col gap-1">
+												<span>Sign out of this session.</span>
+												<button
+													type="button"
+													onClick={handleLogout}
+													className="rounded-md border border-[color:var(--color-border)] px-2 py-1 text-xs font-semibold text-[color:var(--color-primary)]"
+												>
+													Log out
+												</button>
+											</div>
+											<div className="flex flex-col gap-1">
+												<span>
+													Delete all local data, clear the app, and log out.
+												</span>
+												<button
+													type="button"
+													onClick={deleteAllData}
+													className="rounded-md border border-red-300 px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
+												>
+													Delete all data & log out
+												</button>
+											</div>
 										</div>
 									</details>
 								</>
