@@ -45,7 +45,7 @@ export default function Slider(props: SliderProps) {
 	const divs = [
 		<div
 			key={`${label}_label`}
-			className="flex flex-row items-center text-sm justify-between whitespace-nowrap"
+			className="flex flex-wrap items-center gap-2 text-sm"
 		>
 			{!hideValueBox && (
 				<div
@@ -63,7 +63,7 @@ export default function Slider(props: SliderProps) {
 			</span>
 		</div>,
 
-		<div key={`${label}_slider`} className="flex flex-row justify-end">
+		<div key={`${label}_slider`} className="flex w-full justify-end">
 			<input
 				type="range"
 				className="custom-slider"
@@ -80,7 +80,7 @@ export default function Slider(props: SliderProps) {
 
 	return (
 		<div className="me-2" key={`${label}_sliderForm`}>
-			<div className="flex flex-row items-center text-sm justify-between whitespace-nowrap">
+			<div className="flex flex-col gap-1 text-sm sm:flex-row sm:items-center sm:justify-between">
 				{hideValueBox ? divs.reverse() : divs}
 			</div>
 		</div>
