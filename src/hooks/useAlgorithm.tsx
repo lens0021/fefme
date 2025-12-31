@@ -173,8 +173,14 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 			for (const [name, state] of Object.entries(saved.boolean)) {
 				const filter = algo.filters.booleanFilters[name];
 				if (!filter) continue;
-				const selectedOptions = state.selectedOptions ?? [];
-				const excludedOptions = state.excludedOptions ?? [];
+				const normalizeTypeOption = (option: string) =>
+					name === "type" && option === "unseen" ? "seen" : option;
+				const selectedOptions = (state.selectedOptions ?? []).map(
+					normalizeTypeOption,
+				);
+				const excludedOptions = (state.excludedOptions ?? []).map(
+					normalizeTypeOption,
+				);
 				if (
 					state.invertSelection &&
 					!excludedOptions.length &&

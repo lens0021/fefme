@@ -181,12 +181,12 @@ export enum TypeFilterName {
 	PRIVATE = "private",
 	REPLIES = "replies",
 	RETOOTS = "retoots",
+	SEEN = "seen",
 	SENSITIVE = "sensitive",
 	SPOILERED = "spoilered",
 	TRENDING_LINKS = "trending links",
 	TRENDING_TAGS = "trending hashtags",
 	TRENDING_TOOTS = "trending toots",
-	UNSEEN = "unseen",
 	VIDEOS = "videos",
 }
 

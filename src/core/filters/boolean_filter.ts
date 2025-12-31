@@ -44,6 +44,7 @@ export const TYPE_FILTERS: Record<TypeFilterName, TypeFilter> = {
 	[TypeFilterName.PRIVATE]: (toot) => toot.realToot.isPrivate,
 	[TypeFilterName.REPLIES]: (toot) => !!toot.realToot.inReplyToId,
 	[TypeFilterName.RETOOTS]: (toot) => !!toot.reblog,
+	[TypeFilterName.SEEN]: (toot) => (toot.numTimesShown ?? 0) > 0,
 	[TypeFilterName.SENSITIVE]: (toot) => toot.realToot.sensitive,
 	[TypeFilterName.SPOILERED]: (toot) => !isEmptyStr(toot.realToot.spoilerText),
 	[TypeFilterName.TRENDING_LINKS]: (toot) =>
@@ -51,7 +52,6 @@ export const TYPE_FILTERS: Record<TypeFilterName, TypeFilter> = {
 	[TypeFilterName.TRENDING_TAGS]: (toot) =>
 		!!toot.realToot.trendingTags?.length,
 	[TypeFilterName.TRENDING_TOOTS]: (toot) => !!toot.realToot.trendingRank,
-	[TypeFilterName.UNSEEN]: (toot) => !(toot.numTimesShown ?? 0),
 	[TypeFilterName.VIDEOS]: (toot) => !!toot.realToot.videoAttachments?.length,
 } as const;
 
