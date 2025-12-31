@@ -17,7 +17,6 @@ import FollowedAccountsScorer from "./scorer/toot/followed_accounts_scorer";
 import FollowedTagsScorer from "./scorer/toot/followed_tags_scorer";
 import FollowersScorer from "./scorer/toot/followers_scorer";
 import HashtagParticipationScorer from "./scorer/toot/hashtag_participation_scorer";
-import ImageAttachmentScorer from "./scorer/toot/image_attachment_scorer";
 import InteractionsScorer from "./scorer/toot/interactions_scorer";
 import MastoApi, { FULL_HISTORY_PARAMS } from "./api/api";
 import MastodonServer from "./api/mastodon_server";
@@ -26,9 +25,13 @@ import MostFavouritedAccountsScorer from "./scorer/toot/most_favourited_accounts
 import MostRepliedAccountsScorer from "./scorer/toot/most_replied_accounts_scorer";
 import MostRetootedAccountsScorer from "./scorer/toot/most_retooted_accounts_scorer";
 import NumericFilter from "./filters/numeric_filter";
-import NumFavouritesScorer from "./scorer/toot/num_favourites_scorer";
-import NumRepliesScorer from "./scorer/toot/num_replies_scorer";
-import NumRetootsScorer from "./scorer/toot/num_retoots_scorer";
+import NumFavouritesScorer, {
+	ImageAttachmentScorer,
+	NumRepliesScorer,
+	NumRetootsScorer,
+	TrendingTootScorer,
+	VideoAttachmentScorer,
+} from "./scorer/toot/property_scorer_factory";
 import RetootsInFeedScorer from "./scorer/toot/retoots_in_feed_scorer";
 import Scorer from "./scorer/scorer";
 import ScorerCache from "./scorer/scorer_cache";
@@ -38,10 +41,8 @@ import TagsForFetchingToots from "./api/tags_for_fetching_toots";
 import Toot, { earliestTootedAt, mostRecentTootedAt } from "./api/objects/toot";
 import TrendingLinksScorer from "./scorer/toot/trending_links_scorer";
 import TrendingTagsScorer from "./scorer/toot/trending_tags_scorer";
-import TrendingTootScorer from "./scorer/toot/trending_toots_scorer";
 import UserData from "./api/user_data";
 import UserDataPoller from "./api/user_data_poller";
-import VideoAttachmentScorer from "./scorer/toot/video_attachment_scorer";
 import type FeedScorer from "./scorer/feed_scorer";
 import type TootScorer from "./scorer/toot_scorer";
 import {
