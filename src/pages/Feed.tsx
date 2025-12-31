@@ -214,13 +214,16 @@ export default function Feed() {
 				<div className="flex flex-col gap-4">
 					{/* Controls section */}
 					<div className="flex flex-col gap-3 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] p-3">
-						<div className="flex flex-col gap-2 text-xs">
-							{showLinkPreviewsCheckbox}
-							{hideSensitiveCheckbox}
-						</div>
-
 						{algorithm && <WeightSetter />}
 						{algorithm && <FeedFiltersAccordionSection />}
+						{algorithm && (
+							<Accordion variant="top" title="Display Settings" defaultOpen={false}>
+								<div className="flex flex-col gap-2 p-3 text-xs">
+									{showLinkPreviewsCheckbox}
+									{hideSensitiveCheckbox}
+								</div>
+							</Accordion>
+						)}
 						{algorithm && (
 							<Accordion variant="top" title="Data Loading & History">
 								<div className="flex flex-col gap-3 p-3 text-xs text-[color:var(--color-muted-fg)]">
