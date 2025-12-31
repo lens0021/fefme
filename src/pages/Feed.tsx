@@ -133,26 +133,26 @@ export default function Feed() {
 	);
 
 	return (
-		<div className="h-auto">
+		<div className="flex flex-col gap-4">
 			<div style={{ cursor: isLoadingThread ? "wait" : "default" }}>
 				{/* Tooltip options: https://react-tooltip.com/docs/options */}
 				<Tooltip
 					border={"solid"}
-					className="z-[2000] w-[500px]"
+					className="z-[2000] max-w-xs"
 					clickable={true}
 					delayShow={config.timeline.tooltips.accountTooltipDelayMS}
 					id={TOOLTIP_ACCOUNT_ANCHOR}
 					opacity={0.95}
-					place="left"
+					place="bottom"
 					variant="light"
 				/>
 
 				{checkboxTooltip}
 
-				<div className="w-full">
+				<div className="flex flex-col gap-4">
 					{/* Controls section */}
-					<div>
-						<div className="flex justify-between h-auto px-[2px]">
+					<div className="flex flex-col gap-2">
+						<div className="flex flex-col gap-2 text-sm">
 							{showLinkPreviewsCheckbox}
 							{hideSensitiveCheckbox}
 							{shouldAutoUpdateCheckbox}
@@ -180,25 +180,20 @@ export default function Feed() {
 							</Accordion>
 						)}
 
-						<div className="flex justify-between h-auto px-[2px]">
+						<div className="flex flex-col gap-1 text-sm text-gray-500">
 							{isLoading ? (
-								<div
-									className="flex h-5 items-center mt-1.5"
-									style={{ fontSize: 16, height: "auto", marginTop: "6px" }}
-								>
+								<div className="flex items-center gap-3">
 									<div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
-									<div className="ml-3">
-										<p>{`${algorithm?.loadingStatus || READY_TO_LOAD_MSG}...`}</p>
-									</div>
+									<p>{`${algorithm?.loadingStatus || READY_TO_LOAD_MSG}...`}</p>
 								</div>
 							) : (
-								<p className="text-base h-auto mt-1.5">
+								<p>
 									{footerMsg} (
 									{
 										<button
 											type="button"
 											onClick={reset}
-											className="font-bold underline cursor-pointer text-red-600 text-sm"
+											className="font-semibold underline text-red-600"
 										>
 											Reset Feed Data
 										</button>
@@ -207,7 +202,7 @@ export default function Feed() {
 								</p>
 							)}
 
-							<p className="text-base h-auto mt-1.5 text-gray-500 d-none d-sm-block">
+							<p>
 								{TheAlgorithm.isDebugMode ? (
 									`Displaying ${numDisplayedToots} Toots (Scroll: ${scrollPercentage.toFixed(1)}%)`
 								) : (
@@ -215,7 +210,7 @@ export default function Feed() {
 										Report bugs:{" "}
 										<a
 											href={config.app.issuesUrl}
-											className="text-gray-300 no-underline"
+											className="text-gray-400 no-underline"
 											target="_blank"
 											rel="noopener noreferrer"
 										>
@@ -229,7 +224,7 @@ export default function Feed() {
 						{algorithm && <ApiErrorsPanel />}
 
 						{TheAlgorithm.isDebugMode && (
-							<div className="font-mono rounded-2xl bg-slate-800 text-slate-200 text-base mt-7 p-5 pl-15">
+							<div className="font-mono rounded-2xl bg-slate-800 text-slate-200 text-sm p-4">
 								<ul>
 									<li>
 										<strong>NODE_ENV:</strong> {process.env.NODE_ENV}
@@ -254,119 +249,121 @@ export default function Feed() {
 							</div>
 						)}
 					</div>
-				</div>
 
-				{/* Feed column */}
-				<div className="w-full">
-					{algorithm && !isLoading && (
-						<div className="text-base h-auto mt-2 text-center text-[13px]">
-							<Tooltip
-								border={"solid"}
-								className="text-base z-[2000]"
-								delayShow={config.timeline.tooltips.defaultTooltipDelayMS}
-								id={LOAD_BUTTON_TOOLTIP_ANCHOR}
-								opacity={0.95}
-								place="bottom"
-								variant="light"
-							/>
+					{/* Feed column */}
+					<div className="flex flex-col gap-3">
+						{algorithm && !isLoading && (
+							<div className="text-center text-xs">
+								<Tooltip
+									border={"solid"}
+									className="text-xs z-[2000] max-w-xs"
+									delayShow={config.timeline.tooltips.defaultTooltipDelayMS}
+									id={LOAD_BUTTON_TOOLTIP_ANCHOR}
+									opacity={0.95}
+									place="bottom"
+									variant="light"
+								/>
 
-							<button
-								type="button"
-								data-tooltip-content={
-									config.timeline.loadTootsButtonLabels.loadNewToots.tooltipText
-								}
-								data-tooltip-id={LOAD_BUTTON_TOOLTIP_ANCHOR}
-								className="cursor-pointer underline"
-								onClick={triggerFeedUpdate}
-							>
-								<span
-									style={
-										config.timeline.loadTootsButtonLabels.loadNewToots
-											.labelStyle
-									}
-								>
-									{config.timeline.loadTootsButtonLabels.loadNewToots.label}
-								</span>
-							</button>
+								<div className="flex flex-wrap items-center justify-center gap-2">
+									<button
+										type="button"
+										data-tooltip-content={
+											config.timeline.loadTootsButtonLabels.loadNewToots
+												.tooltipText
+										}
+										data-tooltip-id={LOAD_BUTTON_TOOLTIP_ANCHOR}
+										className="cursor-pointer underline"
+										onClick={triggerFeedUpdate}
+									>
+										<span
+											style={
+												config.timeline.loadTootsButtonLabels.loadNewToots
+													.labelStyle
+											}
+										>
+											{config.timeline.loadTootsButtonLabels.loadNewToots.label}
+										</span>
+									</button>
 
-							{LOAD_BUTTON_SEPARATOR}
+									<span>{LOAD_BUTTON_SEPARATOR}</span>
 
-							<button
-								type="button"
-								data-tooltip-content={
-									config.timeline.loadTootsButtonLabels.loadOldToots.tooltipText
-								}
-								data-tooltip-id={LOAD_BUTTON_TOOLTIP_ANCHOR}
-								className="cursor-pointer underline"
-								onClick={triggerHomeTimelineBackFill}
-							>
-								<span
-									style={
-										config.timeline.loadTootsButtonLabels.loadOldToots
-											.labelStyle
-									}
-								>
-									{config.timeline.loadTootsButtonLabels.loadOldToots.label}
-								</span>
-							</button>
+									<button
+										type="button"
+										data-tooltip-content={
+											config.timeline.loadTootsButtonLabels.loadOldToots
+												.tooltipText
+										}
+										data-tooltip-id={LOAD_BUTTON_TOOLTIP_ANCHOR}
+										className="cursor-pointer underline"
+										onClick={triggerHomeTimelineBackFill}
+									>
+										<span
+											style={
+												config.timeline.loadTootsButtonLabels.loadOldToots
+													.labelStyle
+											}
+										>
+											{config.timeline.loadTootsButtonLabels.loadOldToots.label}
+										</span>
+									</button>
 
-							{LOAD_BUTTON_SEPARATOR}
+									<span>{LOAD_BUTTON_SEPARATOR}</span>
 
-							<button
-								type="button"
-								data-tooltip-content={
-									config.timeline.loadTootsButtonLabels.loadUserDataForAlgorithm
-										.tooltipText
-								}
-								data-tooltip-id={LOAD_BUTTON_TOOLTIP_ANCHOR}
-								className="cursor-pointer underline"
-								onClick={triggerMoarData}
-							>
-								<span
-									style={
-										config.timeline.loadTootsButtonLabels
-											.loadUserDataForAlgorithm.labelStyle
-									}
-								>
-									{
-										config.timeline.loadTootsButtonLabels
-											.loadUserDataForAlgorithm.label
-									}
-								</span>
-							</button>
-						</div>
-					)}
-
-					<div
-						className="rounded h-auto"
-						style={{ backgroundColor: config.theme.feedBackgroundColor }}
-					>
-						{timeline.slice(0, numShownToots).map((toot) => (
-							<StatusComponent
-								isLoadingThread={isLoadingThread}
-								key={toot.uri}
-								setThread={setThread}
-								setIsLoadingThread={setIsLoadingThread}
-								showLinkPreviews={showLinkPreviews}
-								status={toot}
-							/>
-						))}
-
-						{timeline.length === 0 &&
-							(isLoading ? (
-								<div className="flex flex-1 h-screen items-center justify-center">
-									<div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600" />
-									<div className="ml-3">
-										<p>{`${config.timeline.defaultLoadingMsg}...`}</p>
-									</div>
+									<button
+										type="button"
+										data-tooltip-content={
+											config.timeline.loadTootsButtonLabels
+												.loadUserDataForAlgorithm.tooltipText
+										}
+										data-tooltip-id={LOAD_BUTTON_TOOLTIP_ANCHOR}
+										className="cursor-pointer underline"
+										onClick={triggerMoarData}
+									>
+										<span
+											style={
+												config.timeline.loadTootsButtonLabels
+													.loadUserDataForAlgorithm.labelStyle
+											}
+										>
+											{
+												config.timeline.loadTootsButtonLabels
+													.loadUserDataForAlgorithm.label
+											}
+										</span>
+									</button>
 								</div>
-							) : (
-								<div className="flex flex-1 h-screen items-center justify-center text-xl">
-									<p>{config.timeline.noTootsMsg}</p>
-								</div>
+							</div>
+						)}
+
+						<div
+							className="rounded"
+							style={{ backgroundColor: config.theme.feedBackgroundColor }}
+						>
+							{timeline.slice(0, numShownToots).map((toot) => (
+								<StatusComponent
+									isLoadingThread={isLoadingThread}
+									key={toot.uri}
+									setThread={setThread}
+									setIsLoadingThread={setIsLoadingThread}
+									showLinkPreviews={showLinkPreviews}
+									status={toot}
+								/>
 							))}
 
-						<div ref={bottomRef} className="mt-2.5" />
+							{timeline.length === 0 &&
+								(isLoading ? (
+									<div className="flex min-h-[40vh] items-center justify-center gap-3">
+										<div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600" />
+										<p>{`${config.timeline.defaultLoadingMsg}...`}</p>
+									</div>
+								) : (
+									<div className="flex min-h-[40vh] items-center justify-center text-lg">
+										<p>{config.timeline.noTootsMsg}</p>
+									</div>
+								))}
+
+							<div ref={bottomRef} className="mt-2.5" />
+						</div>
 					</div>
 				</div>
 			</div>

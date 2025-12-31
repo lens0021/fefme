@@ -57,13 +57,13 @@ export default function ErrorHandler(props: PropsWithChildren) {
 
 		return (
 			<div
-				className="bg-black text-white p-[100px]"
+				className="bg-black text-white p-6"
 				style={{ fontSize: config.theme.errorFontSize }}
 			>
 				<h1>Something went wrong!</h1>
 
 				<p
-					className="bg-black text-red-500 w-full m-[50px]"
+					className="bg-black text-red-500 w-full mt-6"
 					style={{ fontSize: config.theme.errorFontSize + 1 }}
 				>
 					Error: {error.message}
@@ -83,7 +83,7 @@ export default function ErrorHandler(props: PropsWithChildren) {
 					</>
 				</p>
 
-				<div className="mt-[50px]">
+				<div className="mt-6">
 					<button
 						type="button"
 						className="text-white text-base px-5 py-2.5 rounded-md border-0 cursor-pointer transition-colors"

@@ -124,24 +124,19 @@ export default function TrendingSection(props: TrendingProps) {
 		};
 
 		return (
-			<div
-				key={`footer-${title}`}
-				className="flex justify-around w-full mb-[5px]"
-			>
-				<div className="w-[40%]">
-					{"("}
-					<button
-						type="button"
-						onClick={toggleShown}
-						className="font-bold underline cursor-pointer font-mono text-[#1b5b61]"
-						style={{ fontSize: config.theme.trendingObjFontSize - 1 }}
-					>
-						{numShown === panelCfg.initialNumShown
-							? `show all ${trendingObjs.length} ${objTypeLabel}`
-							: `show fewer ${objTypeLabel}`}
-					</button>
-					{")"}
-				</div>
+			<div key={`footer-${title}`} className="flex justify-center w-full">
+				{"("}
+				<button
+					type="button"
+					onClick={toggleShown}
+					className="font-bold underline cursor-pointer font-mono text-[#1b5b61]"
+					style={{ fontSize: config.theme.trendingObjFontSize - 1 }}
+				>
+					{numShown === panelCfg.initialNumShown
+						? `show all ${trendingObjs.length} ${objTypeLabel}`
+						: `show fewer ${objTypeLabel}`}
+				</button>
+				{")"}
 			</div>
 		);
 	}, [
@@ -198,18 +193,7 @@ export default function TrendingSection(props: TrendingProps) {
 		logger.trace(
 			`Rebuilding trendingItemList, longest label="${longestLabel}" (len=${maxLength}, isSingleCol=${isSingleCol})`,
 		);
-		let containerClassName: string;
-
-		if (panelCfg.hasCustomStyle) {
-			containerClassName =
-				"rounded-[20px] bg-[#d3d3d3] pl-[22px] pr-[20px] pt-[20px] pb-[13px]";
-		} else if (isSingleCol) {
-			containerClassName =
-				"rounded-[20px] bg-[#d3d3d3] pl-[40px] pr-[20px] pt-[20px] pb-[13px]";
-		} else {
-			containerClassName =
-				"rounded-[20px] bg-[#d3d3d3] pl-[25px] pr-[20px] pt-[20px] pb-[13px]";
-		}
+		const containerClassName = "rounded-2xl bg-[#d3d3d3] p-4";
 
 		const elements = objs.map((obj) => (
 			<li key={linkUrl(obj)} className="mb-[4px]">
@@ -245,17 +229,14 @@ export default function TrendingSection(props: TrendingProps) {
 			<div className={containerClassName}>
 				{panelCfg.description && (
 					<p
-						className="text-black font-[Tahoma,Geneva,sans-serif] mt-[3px] mb-[18px]"
+						className="text-black font-[Tahoma,Geneva,sans-serif] mt-1 mb-4"
 						style={{ fontSize: config.theme.trendingObjFontSize }}
 					>
 						{panelCfg.description}
 					</p>
 				)}
 
-				<ol
-					className="list-decimal pb-[10px] pl-[25px]"
-					style={{ fontSize: config.theme.trendingObjFontSize }}
-				>
+				<ol className="list-decimal pl-5" style={{ fontSize: config.theme.trendingObjFontSize }}>
 					{isSingleCol
 						? elements
 						: gridify(elements, 2, { marginLeft: "1px", marginRight: "1px" })}
@@ -284,7 +265,7 @@ export default function TrendingSection(props: TrendingProps) {
 		const pluralizedPanelTitle = title.toLowerCase();
 
 		return (
-			<div key={`${panelType}-minTootsSlider`} className="w-[23%]">
+			<div key={`${panelType}-minTootsSlider`} className="w-full">
 				<Tooltip
 					className="font-normal z-[2000]"
 					delayShow={config.filters.boolean.minTootsSlider.tooltipHoverDelay}
@@ -298,29 +279,19 @@ export default function TrendingSection(props: TrendingProps) {
 					data-tooltip-id={tooltipAnchor}
 					data-tooltip-content={`Hide ${pluralizedPanelTitle} with less than ${minTootsState[0]} toots`}
 				>
-					<div className="me-2">
-						<div className="flex flex-row items-center text-sm justify-between whitespace-nowrap">
-							<div className="flex flex-row justify-end">
-								<input
-									type="range"
-									className="custom-slider"
-									min={1}
-									max={minTootsMaxValue}
-									onChange={(e) =>
-										minTootsState[1](Number.parseInt(e.target.value, 10))
-									}
-									step={1}
-									style={{ width: "80%" }}
-									value={minTootsState[0]}
-								/>
-							</div>
-
-							<div className="flex flex-row items-center text-sm justify-between whitespace-nowrap">
-								<span>
-									<span className="font-bold mr-1">Minimum</span>
-								</span>
-							</div>
-						</div>
+					<div className="flex items-center gap-3 text-sm">
+						<input
+							type="range"
+							className="custom-slider w-full"
+							min={1}
+							max={minTootsMaxValue}
+							onChange={(e) =>
+								minTootsState[1](Number.parseInt(e.target.value, 10))
+							}
+							step={1}
+							value={minTootsState[0]}
+						/>
+						<span className="font-bold">Minimum</span>
 					</div>
 				</button>
 			</div>

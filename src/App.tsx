@@ -62,33 +62,35 @@ export default function App(): React.ReactElement {
 	return (
 		<HashRouter>
 			<div
-				className="w-full min-h-screen px-4 flex flex-col items-center"
+				className="w-full min-h-screen px-3 flex flex-col items-center"
 				style={{ backgroundColor: "var(--color-bg)", color: "var(--color-fg)" }}
 			>
-				<ErrorHandler>
-					<AuthProvider>
-						<Header />
+				<div className="w-full max-w-2xl flex flex-col gap-4">
+					<ErrorHandler>
+						<AuthProvider>
+							<Header />
 
-						<Routes>
-							<Route
-								path="/"
-								element={
-									<ProtectedRoute>
-										<AlgorithmProvider>
-											<Feed />
-										</AlgorithmProvider>
-									</ProtectedRoute>
-								}
-							/>
+							<Routes>
+								<Route
+									path="/"
+									element={
+										<ProtectedRoute>
+											<AlgorithmProvider>
+												<Feed />
+											</AlgorithmProvider>
+										</ProtectedRoute>
+									}
+								/>
 
-							<Route path="/callback" element={<CallbackPage />} />
-							<Route path="/login" element={<LoginPage />} />
-							<Route path="*" element={<NotFoundPage />} />
-						</Routes>
+								<Route path="/callback" element={<CallbackPage />} />
+								<Route path="/login" element={<LoginPage />} />
+								<Route path="*" element={<NotFoundPage />} />
+							</Routes>
 
-						<Footer />
-					</AuthProvider>
-				</ErrorHandler>
+							<Footer />
+						</AuthProvider>
+					</ErrorHandler>
+				</div>
 			</div>
 		</HashRouter>
 	);

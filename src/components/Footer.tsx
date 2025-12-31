@@ -5,8 +5,8 @@ import { config } from "../config";
 /** The footer that appears on the login screen. */
 export default function Footer(): JSX.Element {
 	return (
-		<footer className="bg-gray-900 text-white mt-12 p-4">
-			<div className="max-w-7xl mx-auto flex gap-6">
+		<footer className="bg-gray-900 text-white mt-10 p-4 rounded">
+			<div className="flex flex-col gap-3 text-sm">
 				<a
 					href={config.app.repoUrl}
 					className="flex items-center gap-2 hover:text-gray-300 transition-colors"

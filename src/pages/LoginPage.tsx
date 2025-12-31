@@ -110,14 +110,14 @@ export default function LoginPage() {
 	};
 
 	return (
-		<div className="h-screen flex flex-col items-center justify-center flex-1 p-4">
-			<div>
-				<p className="leading-tight mb-2.5 mt-3 text-center">
+		<div className="min-h-screen flex flex-col items-center justify-center flex-1 p-4">
+			<div className="w-full max-w-md">
+				<p className="leading-tight mb-3 text-center text-sm">
 					{FEDIALGO} features a customizable algorithm for sorting your feed.
 					<br />
 					You can choose which factors influence the sorting of your timeline.
 					<br />
-					<span className="text-[#ff00ff] text-[17px] block mt-1 mb-5">
+					<span className="text-[#ff00ff] text-sm block mt-2 mb-4">
 						All calculations are done in your browser. None of your data leaves
 						your machine.
 					</span>
@@ -129,20 +129,20 @@ export default function LoginPage() {
 				</p>
 			</div>
 
-			<div className="flex flex-row gap-2 mb-1 mt-1">
+			<div className="flex flex-col gap-2 mb-1 mt-1">
 				<input
 					id="mastodon_server"
 					onChange={(e) => setServerInputText(e.target.value)}
 					placeholder={serverDomain}
 					type="url"
 					value={serverInputText}
-					className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+					className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
 				/>
 
 				<button
 					type="button"
 					onClick={oAuthLogin}
-					className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors"
+					className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors text-sm"
 				>
 					Login
 				</button>
