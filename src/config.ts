@@ -38,6 +38,18 @@ const REQUIRED_OAUTH_SCOPES = [
 
 const HOMEPAGE =
 	process.env.FEDIALGO_HOMEPAGE || "https://lens0021.github.io/fefme";
+const HOMEPAGE_URL = (() => {
+	try {
+		return new URL(HOMEPAGE);
+	} catch {
+		return null;
+	}
+})();
+const GITHUB_REPO_URL =
+	HOMEPAGE_URL && HOMEPAGE_URL.hostname.endsWith(".github.io")
+		? `https://github.com/${HOMEPAGE_URL.hostname.replace(".github.io", "")}${HOMEPAGE_URL.pathname.replace(/\/$/, "")}`
+		: HOMEPAGE;
+const ISSUES_URL = `${GITHUB_REPO_URL.replace(/\/$/, "")}/issues`;
 
 export enum GuiCheckboxName {
 	allowMultiSelect = "allowMultiSelect",
@@ -189,13 +201,9 @@ class Config implements ReadonlyConfig {
 		developerMastodonUrl: "https://universeodon.com/@cryptadamist",
 		headerIconUrl:
 			"https://media.universeodon.com/accounts/avatars/109/363/179/904/598/380/original/eecdc2393e75e8bf.jpg",
-		issuesUrl: HOMEPAGE
-			? `https://${HOMEPAGE.replace(/(\w+)\.github\.io/, "github.com/$1")}/issues`
-			: "https://github.com/lens0021/fefme/issues",
-		repoName: HOMEPAGE ? HOMEPAGE.split("/").pop() : null,
-		repoUrl: HOMEPAGE
-			? HOMEPAGE.replace(/(\w+)\.github\.io/, "github.com/$1")
-			: HOMEPAGE,
+		issuesUrl: ISSUES_URL,
+		repoName: HOMEPAGE_URL ? HOMEPAGE_URL.pathname.split("/").pop() : null,
+		repoUrl: GITHUB_REPO_URL,
 	};
 
 	filters: FilterConfig = {
