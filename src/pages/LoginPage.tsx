@@ -110,8 +110,8 @@ export default function LoginPage() {
 	};
 
 	return (
-		<div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-			<div className="w-full max-w-lg">
+		<div className="fixed inset-0 flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 overflow-auto">
+			<div className="w-full max-w-lg my-auto">
 				<div className="rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] p-8 shadow-xl backdrop-blur-sm">
 					{/* Header */}
 					<div className="mb-8 text-center">
