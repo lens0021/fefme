@@ -686,15 +686,33 @@ export default class TheAlgorithm {
 		feedTotal: number;
 		homeFeedTotal: number;
 		unseenTotal: number;
+		oldestCachedTime: Date | null;
+		mostRecentCachedTime: Date | null;
 	} {
 		const unseenTotal = this.feed.reduce(
 			(sum, toot) => sum + ((toot.numTimesShown ?? 0) > 0 ? 0 : 1),
 			0,
 		);
+
+		let oldestCachedTime: Date | null = null;
+		let mostRecentCachedTime: Date | null = null;
+
+		if (this.feed.length > 0) {
+			const dates = this.feed.map((toot) => new Date(toot.createdAt));
+			mostRecentCachedTime = dates.reduce((latest, current) =>
+				current > latest ? current : latest,
+			);
+			oldestCachedTime = dates.reduce((earliest, current) =>
+				current < earliest ? current : earliest,
+			);
+		}
+
 		return {
 			feedTotal: this.feed.length,
 			homeFeedTotal: this.homeFeed.length,
 			unseenTotal,
+			oldestCachedTime,
+			mostRecentCachedTime,
 		};
 	}
 

@@ -80,24 +80,6 @@ export default function Feed() {
 		});
 	}, [currentUserWebfinger, selfTypeFilterMode, timeline]);
 
-	// Calculate timestamps for most recent and oldest cached posts
-	const { mostRecentCachedTime, oldestCachedTime } = useMemo(() => {
-		if (!timeline || timeline.length === 0) {
-			return { mostRecentCachedTime: "N/A", oldestCachedTime: "N/A" };
-		}
-		const dates = timeline.map((toot) => new Date(toot.createdAt));
-		const mostRecent = dates.reduce((latest, current) =>
-			current > latest ? current : latest,
-		);
-		const oldest = dates.reduce((earliest, current) =>
-			current < earliest ? current : earliest,
-		);
-		return {
-			mostRecentCachedTime: timeString(mostRecent),
-			oldestCachedTime: timeString(oldest),
-		};
-	}, [timeline]);
-
 	// Reset all state except for the user and server
 	const reset = async () => {
 		if (
@@ -222,6 +204,16 @@ export default function Feed() {
 		return algorithm.getDataStats();
 	}, [algorithm, lastLoadDurationSeconds, numDisplayedToots, timeline.length]);
 
+	const { mostRecentCachedTime, oldestCachedTime } = useMemo(() => {
+		if (!dataStats || !dataStats.oldestCachedTime || !dataStats.mostRecentCachedTime) {
+			return { mostRecentCachedTime: "N/A", oldestCachedTime: "N/A" };
+		}
+		return {
+			mostRecentCachedTime: timeString(dataStats.mostRecentCachedTime),
+			oldestCachedTime: timeString(dataStats.oldestCachedTime),
+		};
+	}, [dataStats]);
+
 	return (
 		<div className="flex flex-col gap-4">
 			<div style={{ cursor: isLoadingThread ? "wait" : "default" }}>
@@ -242,124 +234,121 @@ export default function Feed() {
 								{hideSensitiveCheckbox}
 							</div>
 						</Accordion>
-						{algorithm ? (
-							<Accordion variant="top" title="Data Loading & History">
-								<div className="flex flex-col gap-3 p-3 text-xs text-[color:var(--color-muted-fg)]">
-									{dataStats && (
-										<div className="rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] p-2 text-[11px] text-[color:var(--color-fg)]">
-											<div>
-												Feed cache: {dataStats.feedTotal.toLocaleString()} posts
-											</div>
-											<div>
-												Home timeline cache:{" "}
-												{dataStats.homeFeedTotal.toLocaleString()} posts
-											</div>
-											<div>
-												Unseen in cache:{" "}
-												{dataStats.unseenTotal.toLocaleString()} posts
-											</div>
-											<div>
-												Visible now: {visibleTimeline.length.toLocaleString()}{" "}
-												posts (
-												{Math.min(
-													numShownToots,
-													visibleTimeline.length,
-												).toLocaleString()}{" "}
-												displayed)
-											</div>
-											{!isLoading && <div>{footerMsg}</div>}
-											{TheAlgorithm.isDebugMode && (
-												<div>
-													Displaying {numDisplayedToots} Posts (Scroll:{" "}
-													{scrollPercentage.toFixed(1)}%)
-												</div>
-											)}
+						<Accordion variant="top" title="Data Loading & History">
+							<div className="flex flex-col gap-3 p-3 text-xs text-[color:var(--color-muted-fg)]">
+								{dataStats && (
+									<div className="rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] p-2 text-[11px] text-[color:var(--color-fg)]">
+										<div>
+											Feed cache: {dataStats.feedTotal.toLocaleString()} posts
 										</div>
-									)}
-
-									{timeline.length === 0 ? (
-										<>
-											<p>
-												No cached posts yet. Load your timeline to get started.
-											</p>
-
-											<div className="flex flex-col gap-3 text-xs">
-												<button
-													type="button"
-													onClick={triggerFeedUpdate}
-													className="rounded-md border border-[color:var(--color-border)] px-2 py-1 text-left font-semibold text-[color:var(--color-primary)]"
-												>
-													Load posts
-												</button>
-												<span>
-													Fetches your home timeline and trending posts, then
-													scores and sorts them.
-												</span>
+										<div>
+											Home timeline cache:{" "}
+											{dataStats.homeFeedTotal.toLocaleString()} posts
+										</div>
+										<div>
+											Unseen in cache: {dataStats.unseenTotal.toLocaleString()}{" "}
+											posts
+										</div>
+										<div>
+											Visible now: {visibleTimeline.length.toLocaleString()}{" "}
+											posts (
+											{Math.min(
+												numShownToots,
+												visibleTimeline.length,
+											).toLocaleString()}{" "}
+											displayed)
+										</div>
+										{!isLoading && <div>{footerMsg}</div>}
+										{TheAlgorithm.isDebugMode && (
+											<div>
+												Displaying {numDisplayedToots} Posts (Scroll:{" "}
+												{scrollPercentage.toFixed(1)}%)
 											</div>
-										</>
-									) : (
-										<>
-											<p>
-												Use these tools to pull newer posts, older posts, or
-												more history for scoring. Each action updates the same
-												weighted feed.
-											</p>
+										)}
+									</div>
+								)}
 
-											<div className="flex flex-col gap-3 text-xs">
-												<button
-													type="button"
-													onClick={triggerFeedUpdate}
-													className="rounded-md border border-[color:var(--color-border)] px-2 py-1 text-left font-semibold text-[color:var(--color-primary)]"
-												>
-													Load new posts
-												</button>
-												<span>
-													Fetches posts created after your most recent cached
-													post ({mostRecentCachedTime}), then re-scores the
-													feed.
-												</span>
+								{timeline.length === 0 ? (
+									<>
+										<p>
+											No cached posts yet. Load your timeline to get started.
+										</p>
 
-												<button
-													type="button"
-													onClick={triggerHomeTimelineBackFill}
-													className="rounded-md border border-[color:var(--color-border)] px-2 py-1 text-left font-semibold text-[color:var(--color-primary)]"
-												>
-													Load older posts
-												</button>
-												<span>
-													Backfills older home-timeline posts starting from your
-													current oldest cached post ({oldestCachedTime}).
-												</span>
+										<div className="flex flex-col gap-3 text-xs">
+											<button
+												type="button"
+												onClick={triggerFeedUpdate}
+												className="rounded-md border border-[color:var(--color-border)] px-2 py-1 text-left font-semibold text-[color:var(--color-primary)]"
+											>
+												Load posts
+											</button>
+											<span>
+												Fetches your home timeline and trending posts, then
+												scores and sorts them.
+											</span>
+										</div>
+									</>
+								) : (
+									<>
+										<p>
+											Use these tools to pull newer posts, older posts, or more
+											history for scoring. Each action updates the same weighted
+											feed.
+										</p>
 
-												<button
-													type="button"
-													onClick={triggerMoarData}
-													className="rounded-md border border-[color:var(--color-border)] px-2 py-1 text-left font-semibold text-[color:var(--color-primary)]"
-												>
-													Load more algorithm data
-												</button>
-												<span>
-													Pulls extra user data (recent posts, favourites,
-													notifications) to improve scoring accuracy.
-												</span>
+										<div className="flex flex-col gap-3 text-xs">
+											<button
+												type="button"
+												onClick={triggerFeedUpdate}
+												className="rounded-md border border-[color:var(--color-border)] px-2 py-1 text-left font-semibold text-[color:var(--color-primary)]"
+											>
+												Load new posts
+											</button>
+											<span>
+												Fetches posts created after your most recent cached post
+												({mostRecentCachedTime}), then re-scores the feed.
+											</span>
 
-												<button
-													type="button"
-													onClick={triggerPullAllUserData}
-													className="rounded-md border border-[color:var(--color-border)] px-2 py-1 text-left font-semibold text-[color:var(--color-primary)]"
-												>
-													Load complete user history
-												</button>
-												<span>
-													Fetches all your posts and favourites to refine
-													scoring. This can take a while on large accounts.
-												</span>
-											</div>
-										</>
-									)}
-								</div>
-							</Accordion>
-						) : null}
+											<button
+												type="button"
+												onClick={triggerHomeTimelineBackFill}
+												className="rounded-md border border-[color:var(--color-border)] px-2 py-1 text-left font-semibold text-[color:var(--color-primary)]"
+											>
+												Load older posts
+											</button>
+											<span>
+												Backfills older home-timeline posts starting from your
+												current oldest cached post ({oldestCachedTime}).
+											</span>
+
+											<button
+												type="button"
+												onClick={triggerMoarData}
+												className="rounded-md border border-[color:var(--color-border)] px-2 py-1 text-left font-semibold text-[color:var(--color-primary)]"
+											>
+												Load more algorithm data
+											</button>
+											<span>
+												Pulls extra user data (recent posts, favourites,
+												notifications) to improve scoring accuracy.
+											</span>
+
+											<button
+												type="button"
+												onClick={triggerPullAllUserData}
+												className="rounded-md border border-[color:var(--color-border)] px-2 py-1 text-left font-semibold text-[color:var(--color-primary)]"
+											>
+												Load complete user history
+											</button>
+											<span>
+												Fetches all your posts and favourites to refine scoring.
+												This can take a while on large accounts.
+											</span>
+										</div>
+									</>
+								)}
+							</div>
+						</Accordion>
 
 						{thread.length > 0 && (
 							<Accordion
