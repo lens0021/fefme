@@ -1,13 +1,8 @@
-import React, { CSSProperties } from "react";
-import Accordion from "react-bootstrap/Accordion";
-import Card from "react-bootstrap/Card";
-import { Spinner, useAccordionButton } from "react-bootstrap";
+import React, { CSSProperties, useState } from "react";
 
 import { config } from "../config";
 import { useAlgorithm } from "../hooks/useAlgorithm";
 import { verticalContainer } from "../helpers/style_helpers";
-
-const ACCORDION_ITEM_KEY = "0";
 
 /**
  * The footer that appears on the login screen when API errors and warnings were encountered
@@ -15,23 +10,28 @@ const ACCORDION_ITEM_KEY = "0";
  */
 export default function ApiErrorsPanel(): JSX.Element {
 	const { algorithm } = useAlgorithm();
+	const [isExpanded, setIsExpanded] = useState(false);
 
 	if (!algorithm?.apiErrorMsgs || algorithm.apiErrorMsgs.length === 0) {
 		return null;
 	}
 
 	return (
-		<Accordion style={accordionStyle}>
-			<Card style={accordionStyle}>
-				<Card.Header>
-					<CustomToggle eventKey={ACCORDION_ITEM_KEY}>
+		<div style={accordionStyle}>
+			<div style={accordionStyle}>
+				<div style={headerStyle}>
+					<button
+						type="button"
+						style={buttonStyle}
+						onClick={() => setIsExpanded(!isExpanded)}
+					>
 						{algorithm.apiErrorMsgs.length}{" "}
 						{config.timeline.apiErrorsUserMsgSuffix} (click to inspect)
-					</CustomToggle>
-				</Card.Header>
+					</button>
+				</div>
 
-				<Accordion.Collapse eventKey={ACCORDION_ITEM_KEY}>
-					<Card.Body className="error-accordion-header">
+				{isExpanded && (
+					<div style={bodyStyle}>
 						<ul style={errorList}>
 							{algorithm.apiErrorMsgs.map((msg, i) => (
 								<li key={`${msg}_${i}`} style={errorItem}>
@@ -39,25 +39,10 @@ export default function ApiErrorsPanel(): JSX.Element {
 								</li>
 							))}
 						</ul>
-					</Card.Body>
-				</Accordion.Collapse>
-			</Card>
-		</Accordion>
-	);
-}
-
-/**
- * Custom toggle for the accordion header. For some reason it doesn't work to directly inline the useAccordionButton.
- */
-function CustomToggle({ children, eventKey }) {
-	const decoratedOnClick = useAccordionButton(eventKey, () =>
-		console.debug("expand eventKey:", eventKey),
-	);
-
-	return (
-		<button type="button" style={buttonStyle} onClick={decoratedOnClick}>
-			{children}
-		</button>
+					</div>
+				)}
+			</div>
+		</div>
 	);
 }
 
@@ -70,6 +55,17 @@ const accordionStyle: CSSProperties = {
 	...verticalContainer,
 	fontFamily: "Tahoma, Geneva, sans-serif",
 	marginBottom: verticalContainer.marginTop,
+	borderRadius: "4px",
+	overflow: "hidden",
+};
+
+const headerStyle: CSSProperties = {
+	...accordionHeaderStyle,
+};
+
+const bodyStyle: CSSProperties = {
+	...accordionHeaderStyle,
+	padding: "12px",
 };
 
 const buttonStyle: CSSProperties = {
@@ -77,6 +73,9 @@ const buttonStyle: CSSProperties = {
 	borderWidth: "0px",
 	color: "#a4a477ff",
 	width: "100%",
+	padding: "12px",
+	cursor: "pointer",
+	textAlign: "left",
 };
 
 const errorItem: CSSProperties = {

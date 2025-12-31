@@ -61,7 +61,7 @@ export default function App(): React.ReactElement {
 
 	return (
 		<HashRouter>
-			<div className="container-fluid min-vh-100" style={containerStyle}>
+			<div className="w-full min-h-screen px-4" style={containerStyle}>
 				<ErrorHandler>
 					<AuthProvider>
 						<Header />

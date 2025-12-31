@@ -2,7 +2,6 @@
  * Generic omponent to display a set of filter options with a switchbar at the top.
  */
 import React, { CSSProperties, ReactElement } from "react";
-import Form from "react-bootstrap/esm/Form";
 
 import SubAccordion, { SubAccordionProps } from "../helpers/SubAccordion";
 import {
@@ -40,9 +39,9 @@ export default function FilterAccordionSection(
 			</div>
 
 			<div style={filterSwitchContainer} key={"filter_accordionBody"}>
-				<Form.Group className="mb-1">
-					<Form.Group className="mb-1">{props.children}</Form.Group>
-				</Form.Group>
+				<div style={formGroupStyle}>
+					<div style={formGroupStyle}>{props.children}</div>
+				</div>
 			</div>
 
 			{footerSwitches && (
@@ -75,4 +74,8 @@ const footerContainer: CSSProperties = {
 	justifyContent: "space-around",
 	marginBottom: "-10px",
 	marginTop: "7px",
+};
+
+const formGroupStyle: CSSProperties = {
+	marginBottom: "0.25rem", // Equivalent to Bootstrap's mb-1
 };

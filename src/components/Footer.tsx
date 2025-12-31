@@ -6,7 +6,7 @@ import { config } from "../config";
 export default function Footer(): JSX.Element {
 	return (
 		<footer className="bg-gray-900 text-white mt-12 p-4">
-			<div className="container mx-auto flex gap-6">
+			<div className="max-w-7xl mx-auto flex gap-6">
 				<a
 					href={config.app.repoUrl}
 					className="flex items-center gap-2 hover:text-gray-300 transition-colors"

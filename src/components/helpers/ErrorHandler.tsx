@@ -6,7 +6,6 @@ import {
 	useContext,
 	useState,
 } from "react";
-import { Modal } from "react-bootstrap";
 
 import { ErrorBoundary } from "react-error-boundary";
 import { isString } from "lodash";
@@ -79,7 +78,7 @@ export default function ErrorHandler(props: PropsWithChildren) {
 
 				<div style={tryAgainContainer}>
 					<button
-						className="btn btn-primary"
+						style={tryAgainButton}
 						onClick={() => {
 							resetErrorBoundary();
 							resetErrors();
@@ -146,37 +145,45 @@ export default function ErrorHandler(props: PropsWithChildren) {
 		(logger || errorLogger).error(logMsg, ...args);
 	};
 
+	const showModal = !!errorMsg || !!errorObj;
+
 	return (
 		<ErrorBoundary fallbackRender={errorPage}>
-			<Modal
-				dialogClassName="modal-lg"
-				onHide={resetErrors}
-				show={!!errorMsg || !!errorObj}
-				style={blackFont}
-			>
-				<Modal.Header closeButton>
-					<Modal.Title>Error</Modal.Title>
-				</Modal.Header>
-
-				<Modal.Body style={errorModalBody}>
-					{errorMsg &&
-						(isString(errorMsg) ? (
-							<p style={errorHeadline}>
-								{(errorMsg as string).length ? errorMsg : "No message."}
-							</p>
-						) : (
-							errorMsg
-						))}
-
-					{errorNote && <p style={errorNoteStyle}>{errorNote}</p>}
-
-					{errorObj && (
-						<div style={rawErrorContainer}>
-							<p style={rawErrorInPopup}>{errorObj.toString()}</p>
+			{showModal && (
+				<div style={modalOverlay} onClick={resetErrors}>
+					<div style={modalDialog} onClick={(e) => e.stopPropagation()}>
+						<div style={modalHeader}>
+							<h3 style={modalTitle}>Error</h3>
+							<button
+								onClick={resetErrors}
+								style={closeButton}
+								aria-label="Close"
+							>
+								×
+							</button>
 						</div>
-					)}
-				</Modal.Body>
-			</Modal>
+
+						<div style={errorModalBody}>
+							{errorMsg &&
+								(isString(errorMsg) ? (
+									<p style={errorHeadline}>
+										{(errorMsg as string).length ? errorMsg : "No message."}
+									</p>
+								) : (
+									errorMsg
+								))}
+
+							{errorNote && <p style={errorNoteStyle}>{errorNote}</p>}
+
+							{errorObj && (
+								<div style={rawErrorContainer}>
+									<p style={rawErrorInPopup}>{errorObj.toString()}</p>
+								</div>
+							)}
+						</div>
+					</div>
+				</div>
+			)}
 
 			<ErrorContext.Provider
 				value={{
@@ -230,4 +237,65 @@ const rawErrorInPopup: CSSProperties = {
 
 const tryAgainContainer: CSSProperties = {
 	marginTop: "50px",
+};
+
+const tryAgainButton: CSSProperties = {
+	backgroundColor: "#3b82f6",
+	color: "white",
+	border: "none",
+	padding: "10px 20px",
+	borderRadius: "4px",
+	cursor: "pointer",
+	fontSize: "16px",
+};
+
+const modalOverlay: CSSProperties = {
+	position: "fixed",
+	top: 0,
+	left: 0,
+	right: 0,
+	bottom: 0,
+	backgroundColor: "rgba(0, 0, 0, 0.5)",
+	display: "flex",
+	alignItems: "center",
+	justifyContent: "center",
+	zIndex: 1050,
+};
+
+const modalDialog: CSSProperties = {
+	backgroundColor: "white",
+	borderRadius: "8px",
+	maxWidth: "600px",
+	width: "90%",
+	maxHeight: "90vh",
+	overflow: "auto",
+	boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+};
+
+const modalHeader: CSSProperties = {
+	display: "flex",
+	justifyContent: "space-between",
+	alignItems: "center",
+	padding: "16px 20px",
+	borderBottom: "1px solid #e5e7eb",
+};
+
+const modalTitle: CSSProperties = {
+	margin: 0,
+	fontSize: "20px",
+	fontWeight: "600",
+};
+
+const closeButton: CSSProperties = {
+	background: "none",
+	border: "none",
+	fontSize: "28px",
+	cursor: "pointer",
+	color: "#6b7280",
+	padding: "0",
+	width: "32px",
+	height: "32px",
+	display: "flex",
+	alignItems: "center",
+	justifyContent: "center",
 };

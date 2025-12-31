@@ -90,7 +90,7 @@ export default function ExperimentalFeatures() {
 						LOAD_COMPLETE_USER_HISTORY,
 						triggerPullAllUserData,
 					)}
-					<hr className="hr hr-narrow" />
+					<hr className="my-2 border-gray-300" />
 					{makeLabeledButton(DELETE_ALL, wipeAll, "danger")}
 				</ul>
 			</div>

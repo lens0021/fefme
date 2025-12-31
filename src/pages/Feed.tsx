@@ -166,7 +166,7 @@ export default function Feed() {
 
 				<div className="w-full md:w-1/2">
 					{/* TODO: maybe the inset-inline-end property could be used to allow panel to scroll to length but still stick? */}
-					<div className="sticky-top left-col-scroll">
+					<div className="sticky top-0 left-col-scroll">
 						<div style={stickySwitchContainer}>
 							{showLinkPreviewsCheckbox}
 							{hideSensitiveCheckbox}
