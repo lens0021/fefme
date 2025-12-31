@@ -403,24 +403,6 @@ export function makeChunks<T>(
 
 
 /**
- * Sorts an array by a function and divides into {@linkcode numPercentile} chunks.
- * @template T
- * @param {T[]} array - The array to sort and chunk.
- * @param {(element: T) => number | undefined} fxn - Function to get value.
- * @param {number} numPercentiles - Number of percentiles.
- * @returns {T[][]} The percentile chunks.
- */
-export function makePercentileChunks<T>(
-    array: T[],
-    fxn: (element: T) => number | undefined,
-    numPercentiles: number
-): T[][] {
-    const sortedArray = array.toSorted((a, b) => (fxn(a) ?? 0) - (fxn(b) ?? 0));
-    return makeChunks(sortedArray, {numChunks: numPercentiles});
-};
-
-
-/**
  * Reduces an array to a {@linkcode StringNumberDict} using an update function.
  * @template T
  * @param {T[]} objs - The array to reduce.
@@ -816,4 +798,3 @@ export async function zipPromiseCalls<T>(
         {} as Record<string, T>
     );
 };
-

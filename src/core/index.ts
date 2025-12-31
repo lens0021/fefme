@@ -77,7 +77,6 @@ import {
 import {
     computeMinMax,
     makeChunks,
-    makePercentileChunks,
     sortKeysByValue,
     truncateToLength,
 } from "./helpers/collection_helpers";
@@ -949,7 +948,6 @@ export {
     isAccessTokenRevokedError,
     isValueInStringEnum,
     makeChunks,
-    makePercentileChunks,  // TODO: unused in demo app (for now)
     optionalSuffix,
     sleep,
     sortKeysByValue,
