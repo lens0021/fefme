@@ -4,7 +4,6 @@
  */
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
-import { buildNewFilterSettings } from "../core/filters/feed_filters";
 import TheAlgorithm, {
 	READY_TO_LOAD_MSG,
 	type Toot,
@@ -17,13 +16,11 @@ import FeedFiltersAccordionSection from "../components/algorithm/FeedFiltersAcco
 import WeightSetter from "../components/algorithm/WeightSetter";
 import Accordion from "../components/helpers/Accordion";
 import { persistentCheckbox } from "../components/helpers/Checkbox";
-import { confirm } from "../components/helpers/Confirmation";
 import StatusComponent from "../components/status/Status";
 import { GuiCheckboxName, config } from "../config";
 import { getLogger } from "../helpers/log_helpers";
 import { booleanIcon } from "../helpers/ui";
 import { useAlgorithm } from "../hooks/useAlgorithm";
-import { useAuthContext } from "../hooks/useAuth";
 import useOnScreen from "../hooks/useOnScreen";
 
 const logger = getLogger("Feed");
@@ -36,16 +33,13 @@ export default function Feed() {
 		isLoading,
 		lastLoadDurationSeconds,
 		currentUserWebfinger,
-		resetAlgorithm,
 		selfTypeFilterMode,
 		timeline,
 		triggerFeedUpdate,
 		triggerHomeTimelineBackFill,
 		triggerMoarData,
 		triggerPullAllUserData,
-		setSelfTypeFilterMode,
 	} = useAlgorithm();
-	const { logout, setApp } = useAuthContext();
 
 	// State variables
 	const [isLoadingThread, setIsLoadingThread] = useState(false);
@@ -79,54 +73,6 @@ export default function Feed() {
 			return shouldInvert ? !isSelf : isSelf;
 		});
 	}, [currentUserWebfinger, selfTypeFilterMode, timeline]);
-
-	// Reset all state except for the user and server
-	const reset = async () => {
-		if (
-			!(await confirm(
-				"Are you sure you want to reset your feed data? (You will stay logged in)",
-			))
-		)
-			return;
-		setNumDisplayedToots(config.timeline.defaultNumDisplayedToots);
-		resetAlgorithm();
-	};
-	const resetWeights = async () => {
-		if (
-			!(await confirm(
-				"Reset all feed weights to defaults? Your filters and cached posts will stay.",
-			))
-		)
-			return;
-		localStorage.removeItem("fefme_user_weights");
-		await algorithm?.updateUserWeightsToPreset("default");
-	};
-
-	const resetFilters = async () => {
-		if (
-			!(await confirm(
-				"Reset all filters to defaults? Your weights and cached posts will stay.",
-			))
-		)
-			return;
-		localStorage.removeItem("type-filter-self");
-		algorithm?.updateFilters(buildNewFilterSettings());
-		setSelfTypeFilterMode?.("none");
-	};
-	const handleLogout = () => {
-		logout();
-	};
-	const deleteAllData = async () => {
-		if (
-			!(await confirm(
-				"Delete all data and log out? You will need to reauthenticate.",
-			))
-		)
-			return;
-		setApp(null);
-		await algorithm?.reset(true);
-		logout();
-	};
 
 	// Note: Auto-fetch is disabled when visible timeline is empty due to filters
 	// User can manually load using buttons shown in the empty state
@@ -368,74 +314,12 @@ export default function Feed() {
 							</Accordion>
 						)}
 
-						<div className="flex flex-col gap-1 text-xs text-[color:var(--color-muted-fg)]">
-							{isLoading && (
-								<div className="flex items-center gap-3 mb-2">
-									<div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
-									<p>{`${algorithm?.loadingStatus || READY_TO_LOAD_MSG}...`}</p>
-								</div>
-							)}
-
-							<details className="mt-1 rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-muted)] p-2 text-xs text-[color:var(--color-muted-fg)]">
-								<summary className="cursor-pointer font-semibold">
-									Account & data reset
-								</summary>
-								<div className="mt-2 flex flex-col gap-3 text-xs">
-									<div className="flex flex-col gap-1">
-										<span>Reset all feed weights to their defaults.</span>
-										<button
-											type="button"
-											onClick={resetWeights}
-											className="rounded-md border border-[color:var(--color-border)] px-2 py-1 text-xs font-semibold text-[color:var(--color-primary)]"
-										>
-											Reset weights
-										</button>
-									</div>
-									<div className="flex flex-col gap-1">
-										<span>Reset all filters to their defaults.</span>
-										<button
-											type="button"
-											onClick={resetFilters}
-											className="rounded-md border border-[color:var(--color-border)] px-2 py-1 text-xs font-semibold text-[color:var(--color-primary)]"
-										>
-											Reset filters
-										</button>
-									</div>
-									<div className="flex flex-col gap-1">
-										<span>Reset cached posts and reload the feed.</span>
-										<button
-											type="button"
-											onClick={reset}
-											className="rounded-md border border-red-300 px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
-										>
-											Reset feed data
-										</button>
-									</div>
-									<div className="flex flex-col gap-1">
-										<span>Sign out of this session.</span>
-										<button
-											type="button"
-											onClick={handleLogout}
-											className="rounded-md border border-red-300 px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
-										>
-											Log out
-										</button>
-									</div>
-									<div className="flex flex-col gap-1">
-										<span>
-											Delete all local data, clear the app, and log out.
-										</span>
-										<button
-											type="button"
-											onClick={deleteAllData}
-											className="rounded-md border border-red-300 px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
-										>
-											Delete all data & log out
-										</button>
-									</div>
-								</div>
-							</details>
-						</div>
+						{isLoading && (
+							<div className="flex items-center gap-3 mb-2">
+								<div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
+								<p>{`${algorithm?.loadingStatus || READY_TO_LOAD_MSG}...`}</p>
+							</div>
+						)}
 
 						<ApiErrorsPanel />
 
