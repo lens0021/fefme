@@ -103,11 +103,11 @@ export function gridify(
 	const columns = makeChunks(elements, { numChunks: resolvedNumCols });
 
 	return (
-		<div className="flex gap-4">
+		<div className="flex flex-col gap-3 sm:flex-row">
 			{columns.map((columnItems) => (
 				<div
 					key={columnItems.map((item) => String(item.key ?? "item")).join("-")}
-					className="flex-1"
+					className="flex-1 min-w-0"
 					style={colStyle || {}}
 				>
 					{columnItems}

@@ -98,7 +98,7 @@ export default function Checkbox(props: CheckboxProps) {
 
 	const checkbox = (
 		<label
-			className={`flex items-center gap-2 cursor-pointer p-1 ${checkboxClasses}`}
+			className={`flex flex-wrap items-center gap-2 cursor-pointer p-1 ${checkboxClasses}`}
 			style={highlightStyle}
 		>
 			<input
@@ -114,7 +114,7 @@ export default function Checkbox(props: CheckboxProps) {
 				}}
 				className="cursor-pointer"
 			/>
-			<span>
+			<span className="min-w-0 break-words">
 				{labelNode}
 				{labelExtra && ` (${labelExtra})`}
 			</span>
