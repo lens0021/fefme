@@ -40,6 +40,7 @@ import Poll from "./Poll";
 import PreviewCard from "./PreviewCard";
 import useOnScreen from "../../hooks/useOnScreen";
 import { config } from "../../config";
+import { executeWithLoadingState } from "../../helpers/async_helpers";
 import { getLogger } from "../../helpers/log_helpers";
 import { formatScore, formatScores } from "../../helpers/number_helpers";
 import {
@@ -428,16 +429,16 @@ export default function StatusComponent(props: StatusComponentProps) {
 						(toot.repliesCount > 0 || !!toot.inReplyToAccountId) && (
 							<p style={{ paddingTop: "8px" }}>
 								<a
-									onClick={() => {
+									onClick={async () => {
 										logger.debug(
-											`setIsLoadingThread for toot: ${toot.description}`,
+											`Loading thread for toot: ${toot.description}`,
 										);
-										setIsLoadingThread(true); // TODO: maybe just use global isLoading?
 
-										toot
-											.getConversation()
-											.then((toots) => setThread(toots))
-											.finally(() => setIsLoadingThread(false));
+										const toots = await executeWithLoadingState(
+											() => toot.getConversation(),
+											setIsLoadingThread,
+										);
+										setThread(toots);
 									}}
 									style={{
 										...viewThreadStyle,
