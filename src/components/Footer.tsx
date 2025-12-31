@@ -12,8 +12,6 @@ export default function Footer(): JSX.Element {
     return (
         <Navbar expand="lg" className="bg-body-tertiary" bg="dark" data-bs-theme="dark" style={footerNav}>
             <Container>
-                <Navbar.Brand style={whiteFont}>Fefme</Navbar.Brand>
-
                 <Nav className="me-auto">
                     <Nav.Link href={config.app.repoUrl} style={whiteFont}>
                         <img
@@ -23,7 +21,7 @@ export default function Footer(): JSX.Element {
                             style={elementStyle}
                         />
 
-                        <span className="p-2"> Fefme on Github</span>
+                        <span className="p-2">Fefme</span>
                     </Nav.Link>
 
                     <Nav.Link href="https://github.com/michelcrypt4d4mus/fedialgo" style={whiteFont}>
@@ -34,7 +32,7 @@ export default function Footer(): JSX.Element {
                             style={elementStyle}
                         />
 
-                        <span className="p-2"> FediAlgo (library)</span>
+                        <span className="p-2">FediAlgo</span>
                     </Nav.Link>
                 </Nav>
             </Container>
