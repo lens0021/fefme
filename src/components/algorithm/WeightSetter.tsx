@@ -100,19 +100,11 @@ export default function WeightSetter() {
 
 	return (
 		<Accordion variant="top" title={"Feed Algorithm Control Panel"}>
-			<div className="flex justify-center mb-4">
-				<button
-					type="button"
-					onClick={resetToDefaults}
-					className="rounded-md cursor-pointer px-3 py-1.5 text-xs font-semibold border border-red-300 text-red-600 hover:bg-red-50"
-				>
-					Reset to Defaults
-				</button>
+			<div className="px-4">
+				{Object.values(NonScoreWeightName).map((weight) =>
+					makeWeightSlider(weight),
+				)}
 			</div>
-
-			{Object.values(NonScoreWeightName).map((weight) =>
-				makeWeightSlider(weight),
-			)}
 			<div className="h-3" />
 
 			<div className="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-muted)] px-4 pb-3 pt-3">
