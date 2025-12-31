@@ -6,7 +6,7 @@ import { useAuthContext } from "../hooks/useAuth";
 
 /** Header component on the feed page. */
 export default function Header(): JSX.Element {
-	const { logout, user } = useAuthContext();
+	const { user } = useAuthContext();
 
 	return (
 		<div className="w-full pt-4">
@@ -24,15 +24,6 @@ export default function Header(): JSX.Element {
 					</div>
 				)}
 
-				{user && (
-					<button
-						type="button"
-						onClick={() => logout()}
-						className="text-xs border border-red-600 text-red-600 hover:bg-red-600 hover:text-white px-3 py-1 rounded transition-colors self-start"
-					>
-						Logout
-					</button>
-				)}
 			</div>
 		</div>
 	);
