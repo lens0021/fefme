@@ -9,6 +9,7 @@ import TheAlgorithm, {
 	BooleanFilterName,
 	type Toot,
 	optionalSuffix,
+	timeString,
 } from "../core/index";
 import { buildNewFilterSettings } from "../core/filters/feed_filters";
 import { Tooltip } from "react-tooltip";
@@ -82,6 +83,21 @@ export default function Feed() {
 			return shouldInvert ? !isSelf : isSelf;
 		});
 	}, [currentUserWebfinger, selfTypeFilterMode, timeline]);
+
+	// Calculate timestamps for most recent and oldest cached posts
+	const { mostRecentCachedTime, oldestCachedTime } = useMemo(() => {
+		if (!timeline || timeline.length === 0) {
+			return { mostRecentCachedTime: null, oldestCachedTime: null };
+		}
+		const mostRecent = algorithm?.mostRecentHomeTootAt();
+		const oldest = timeline
+			.map((toot) => new Date(toot.createdAt))
+			.reduce((earliest, current) => (current < earliest ? current : earliest));
+		return {
+			mostRecentCachedTime: mostRecent ? timeString(mostRecent) : null,
+			oldestCachedTime: timeString(oldest),
+		};
+	}, [algorithm, timeline]);
 
 	// Reset all state except for the user and server
 	const reset = async () => {
@@ -271,8 +287,9 @@ export default function Feed() {
 											Load new posts
 										</button>
 										<span>
-											Fetches posts created after your most recent cached post,
-											then re-scores the feed.
+											Fetches posts created after your most recent cached post
+											{mostRecentCachedTime && ` (${mostRecentCachedTime})`}, then
+											re-scores the feed.
 										</span>
 
 										<button
@@ -284,7 +301,8 @@ export default function Feed() {
 										</button>
 										<span>
 											Backfills older home-timeline posts starting from your
-											current oldest cached post.
+											current oldest cached post
+											{oldestCachedTime && ` (${oldestCachedTime})`}.
 										</span>
 
 										<button
