@@ -19,13 +19,8 @@ export default class TrendingLinksScorer extends TootScorer {
 
 	// TODO: this is unnecessary as numAccounts should be stored in the TrendingLink objects
 	async prepareScoreData(): Promise<StringNumberDict> {
-		return (await MastodonServer.fediverseTrendingLinks()).reduce(
-			(accountsPostingLinkCounts, link) => {
-				accountsPostingLinkCounts[link.url] = link.numAccounts || 0;
-				return accountsPostingLinkCounts;
-			},
-			{} as StringNumberDict,
-		);
+		const links = await MastodonServer.fediverseTrendingLinks();
+		return Object.fromEntries(links.map((link) => [link.url, link.numAccounts || 0]));
 	}
 
 	async _score(toot: Toot): Promise<number> {
