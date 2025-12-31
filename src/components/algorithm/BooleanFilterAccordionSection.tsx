@@ -11,6 +11,7 @@ import FilterCheckboxGrid from "./filters/FilterCheckboxGrid";
 import HeaderSwitch from "./filters/HeaderSwitch";
 import MinTootsSlider, { computeDefaultValue } from "../helpers/MinTootsSlider";
 import { config } from "../../config";
+import { createSwitchFactory } from "../../helpers/react_helpers";
 import { getLogger } from "../../helpers/log_helpers";
 import { SwitchType } from "../../helpers/styles";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
@@ -71,16 +72,7 @@ export default function BooleanFilterAccordionSection(
 		minTootsState[1](minTootsSliderDefaultValue); // equivalent of setMinToots() if setMinToots was a variable
 	}
 
-	const makeHeaderSwitch = (switchType: SwitchType) => (
-		<HeaderSwitch
-			isChecked={switchState[switchType]}
-			key={switchType}
-			label={switchType}
-			onChange={(e) =>
-				setSwitchState({ ...switchState, [switchType]: e.target.checked })
-			}
-		/>
-	);
+	const makeHeaderSwitch = createSwitchFactory(switchState, setSwitchState);
 
 	const headerSwitches = useMemo(() => {
 		let _headerSwitches = [
@@ -123,19 +115,7 @@ export default function BooleanFilterAccordionSection(
 		minTootsState[0],
 	]);
 
-	const makeFooterSwitch = (key: TagTootsCategory) => (
-		<HeaderSwitch
-			isChecked={tagSwitchState[key]}
-			key={key}
-			label={key}
-			onChange={(e) =>
-				setTagSwitchState({
-					...tagSwitchState,
-					[key]: e.target.checked,
-				})
-			}
-		/>
-	);
+	const makeFooterSwitch = createSwitchFactory(tagSwitchState, setTagSwitchState);
 
 	if (filter.propertyName == BooleanFilterName.HASHTAG) {
 		footerSwitches = Object.values(TagTootsCategory).map((k) =>

@@ -125,6 +125,40 @@ export function verticalSpacer(height: number, key?: string): ReactElement {
 	);
 }
 
+/**
+ * Creates a factory function for generating HeaderSwitch components with state management
+ * @param state The current state object
+ * @param setState The setState function
+ * @returns A factory function that creates HeaderSwitch components
+ *
+ * @example
+ * const switchState = { sortByCount: false, highlightsOnly: true };
+ * const [state, setState] = useState(switchState);
+ * const makeSwitchElement = createSwitchFactory(state, setState);
+ * const sortSwitch = makeSwitchElement('sortByCount');
+ */
+export function createSwitchFactory<T extends Record<string, boolean>>(
+	state: T,
+	setState: React.Dispatch<React.SetStateAction<T>>,
+) {
+	return (key: keyof T) => {
+		// Dynamic import to avoid circular dependency
+		const HeaderSwitch =
+			require("../components/algorithm/filters/HeaderSwitch").default;
+
+		return (
+			<HeaderSwitch
+				isChecked={state[key]}
+				key={key as string}
+				label={key as string}
+				onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+					setState({ ...state, [key]: e.target.checked })
+				}
+			/>
+		);
+	};
+}
+
 function nodeToString(child?: ReactNode): string | null {
 	if (
 		typeof child === "undefined" ||
