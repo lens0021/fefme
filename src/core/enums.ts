@@ -186,6 +186,7 @@ export enum TypeFilterName {
 	TRENDING_LINKS = "trending links",
 	TRENDING_TAGS = "trending hashtags",
 	TRENDING_TOOTS = "trending toots",
+	UNSEEN = "unseen",
 	VIDEOS = "videos",
 }
 

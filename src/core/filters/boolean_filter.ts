@@ -51,6 +51,7 @@ export const TYPE_FILTERS: Record<TypeFilterName, TypeFilter> = {
 	[TypeFilterName.TRENDING_TAGS]: (toot) =>
 		!!toot.realToot.trendingTags?.length,
 	[TypeFilterName.TRENDING_TOOTS]: (toot) => !!toot.realToot.trendingRank,
+	[TypeFilterName.UNSEEN]: (toot) => !(toot.numTimesShown ?? 0),
 	[TypeFilterName.VIDEOS]: (toot) => !!toot.realToot.videoAttachments?.length,
 } as const;
 
