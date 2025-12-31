@@ -82,7 +82,7 @@ export default function Feed() {
 
 	// Reset all state except for the user and server
 	const reset = async () => {
-		if (!(await confirm(`Are you sure you want to clear all historical data?`)))
+		if (!(await confirm(`Are you sure you want to reset your feed data? (You will stay logged in)`)))
 			return;
 		setNumDisplayedToots(config.timeline.defaultNumDisplayedToots);
 		resetAlgorithm();
@@ -205,7 +205,7 @@ export default function Feed() {
 									{footerMsg} (
 									{
 										<a onClick={reset} style={resetLinkStyle}>
-											clear all data and reload
+											Reset Feed Data
 										</a>
 									}
 									)

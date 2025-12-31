@@ -16,7 +16,7 @@ import { confirm } from "../helpers/Confirmation";
 import { useAlgorithm } from "../../hooks/useAlgorithm";
 import { useAuthContext } from "../../hooks/useAuth";
 
-const DELETE_ALL = "Delete All User Data";
+const DELETE_ALL = "Delete All Data & Logout";
 const LOAD_COMPLETE_USER_HISTORY = "Load Complete User History";
 
 const BUTTON_TEXT = {
@@ -43,7 +43,7 @@ export default function ExperimentalFeatures() {
 	const wipeAll = async () => {
 		if (
 			!(await confirm(
-				`Are you sure you want to completely wipe all FediAlgo data and start over?`,
+				`Are you sure you want to delete everything? You will be logged out and need to re-authenticate.`,
 			))
 		)
 			return;
