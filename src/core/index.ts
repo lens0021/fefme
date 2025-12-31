@@ -12,11 +12,12 @@ import AuthorFollowersScorer from "./scorer/toot/author_followers_scorer";
 import BooleanFilter from "./filters/boolean_filter";
 import ChaosScorer from "./scorer/toot/chaos_scorer";
 import DiversityFeedScorer from "./scorer/feed/diversity_feed_scorer";
-import FavouritedTagsScorer from "./scorer/toot/favourited_tags_scorer";
 import FollowedAccountsScorer from "./scorer/toot/followed_accounts_scorer";
 import FollowedTagsScorer from "./scorer/toot/followed_tags_scorer";
 import FollowersScorer from "./scorer/toot/followers_scorer";
-import HashtagParticipationScorer from "./scorer/toot/hashtag_participation_scorer";
+import FavouritedTagsScorer, {
+	HashtagParticipationScorer,
+} from "./scorer/toot/tag_scorer_factory";
 import InteractionsScorer from "./scorer/toot/interactions_scorer";
 import MastoApi, { FULL_HISTORY_PARAMS } from "./api/api";
 import MastodonServer from "./api/mastodon_server";
