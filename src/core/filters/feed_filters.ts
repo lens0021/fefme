@@ -253,6 +253,11 @@ export async function updateBooleanFilterOptions(
 		);
 	}
 
+	// Always ensure "seen" option is available, even if there are no seen toots yet
+	if (!optionLists[BooleanFilterName.TYPE].getObj("seen")) {
+		optionLists[BooleanFilterName.TYPE].addObjs([{ name: "seen", numToots: 0 }]);
+	}
+
 	// Build the options for all the boolean filters based on the counts
 	Object.keys(optionLists).forEach((key) => {
 		const filterName = key as BooleanFilterName;
