@@ -149,6 +149,29 @@ export default function Feed() {
 		logout();
 	};
 
+	// Auto-fetch older posts when timeline is empty
+	useEffect(() => {
+		if (
+			!isLoading &&
+			algorithm &&
+			timeline.length > 0 &&
+			visibleTimeline.length === 0 &&
+			lastAutoBackfillSize.current !== 0
+		) {
+			logger.log(
+				"No visible posts after filtering, auto-fetching older posts...",
+			);
+			lastAutoBackfillSize.current = 0;
+			triggerHomeTimelineBackFill?.();
+		}
+	}, [
+		algorithm,
+		isLoading,
+		timeline.length,
+		triggerHomeTimelineBackFill,
+		visibleTimeline.length,
+	]);
+
 	// Show more posts when the user scrolls to bottom of the page
 	// TODO: this triggers twice: once when isbottom changes to true and again because numDisplayedToots
 	//       is increased, triggering a second evaluation of the block

@@ -397,19 +397,19 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 
 			setAlgorithm(algo);
 
-			// Initial load happens in background without blocking UI
-			algo
-				.triggerFeedUpdate()
-				.then(() => {
-					const duration = AgeIn.seconds(new Date()).toFixed(1);
-					logger.log(`Background feed update completed in ${duration}s`);
-					setLastLoadDurationSeconds(Number(duration));
-				})
-				.catch((err) => {
-					if (!err.message.includes(GET_FEED_BUSY_MSG)) {
-						logAndShowError("Background feed update failed", err);
-					}
-				});
+			// Only trigger initial feed update if we have no cached posts
+			// Otherwise, user can manually refresh when ready
+			const hasCachedPosts = algo.timeline.length > 0;
+			if (!hasCachedPosts) {
+				logger.log("No cached posts found, triggering initial feed update...");
+				triggerLoadFxn(
+					() => algo.triggerFeedUpdate(),
+					logAndShowError,
+					setLoadState,
+				);
+			} else {
+				logger.log(`Showing ${algo.timeline.length} cached posts`);
+			}
 
 			algo
 				.serverInfo()
