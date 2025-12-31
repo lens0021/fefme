@@ -18,7 +18,7 @@ import {
 	blackFont,
 	rawErrorContainer,
 	whiteFont,
-} from "../../helpers/style_helpers";
+} from "../../helpers/styles";
 import { config } from "../../config";
 import { extractText } from "../../helpers/react_helpers";
 import { getLogger } from "../../helpers/log_helpers";

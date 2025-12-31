@@ -10,7 +10,7 @@ import {
 	blackFont,
 	globalFont,
 	roundedCorners,
-} from "../../helpers/style_helpers";
+} from "../../helpers/styles";
 import { ModalProps } from "../../types";
 
 type ReactJsonViewProps = typeof ReactJsonView.defaultProps;

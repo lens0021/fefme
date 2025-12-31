@@ -9,7 +9,7 @@ import {
 	mildlyRoundedCorners,
 	whiteBackground,
 	centerAlignedFlexRow,
-} from "../../helpers/style_helpers";
+} from "../../helpers/styles";
 
 interface SliderProps {
 	description?: string;

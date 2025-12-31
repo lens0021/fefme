@@ -18,7 +18,7 @@ import {
 } from "fedialgo";
 
 import FilterCheckbox from "./FilterCheckbox";
-import { buildGradient } from "../../../helpers/style_helpers";
+import { buildGradient } from "../../../helpers/styles";
 import { config } from "../../../config";
 import { getLogger } from "../../../helpers/log_helpers";
 import { gridify } from "../../../helpers/react_helpers";

@@ -18,7 +18,7 @@ import { mastodon } from "masto";
 
 import { MB } from "./helpers/number_helpers";
 import { nTimes } from "./helpers/string_helpers";
-import { THEME, SwitchType, ThemeConfig } from "./helpers/style_helpers";
+import { THEME, SwitchType, ThemeConfig } from "./helpers/styles";
 import {
 	type CheckboxTooltipConfig,
 	type GuiCheckboxLabel,

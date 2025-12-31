@@ -1,21 +1,10 @@
-/*
- * Reusable CSS.
- * CSS color keywords:https://www.w3.org/wiki/CSS/Properties/color/keywords
- * Color blender tool: https://meyerweb.com/eric/tools/color-blend/#D3D3D3:FCBA03:5:hex
+/**
+ * Theme configuration and color palettes for light/dark modes
  */
 import { CSSProperties } from "react";
-
 import tinycolor from "tinycolor2";
 import tinygradient from "tinygradient";
-
 import { DEFAULT_FONT_SIZE } from "fedialgo";
-
-// TODO: Can't live in FilterCheckbox.tsx because of circular dependency
-export enum SwitchType {
-	HIGHLIGHTS_ONLY = "highlightsOnly",
-	INVERT_SELECTION = "invertSelection",
-	SORT_BY_COUNT = "sortByCount",
-}
 
 export type GradientEndpoints = [tinycolor.Instance, tinycolor.Instance];
 
@@ -127,7 +116,6 @@ const DARK_PALETTE: ColorPalette = {
 	dmBackground: "#1e3a8a", // blue-900
 };
 
-// Color blender tool: https://meyerweb.com/eric/tools/color-blend/#D3D3D3:FCBA03:5:hex
 const THEME_BASE: ThemeConfigBase = {
 	// Color palettes
 	light: LIGHT_PALETTE,
@@ -210,173 +198,3 @@ export function buildGradient(
 	const gradientPoints = [endpoints[0], ...(middleColors || []), endpoints[1]];
 	return tinygradient(...gradientPoints);
 }
-
-/** If isWaiting is true, cursor is 'wait', otherwise 'defaultCursor' arg's value if provided or 'default' if not. */
-export function waitOrDefaultCursor(
-	isWaiting: boolean,
-	defaultCursor: CSSProperties["cursor"] = "default",
-): CSSProperties {
-	return { cursor: isWaiting ? "wait" : defaultCursor };
-}
-
-//////////////////////////////////////
-// React Boostrap Layout classNames //
-//////////////////////////////////////
-
-export const TEXT_CENTER = "text-center";
-export const TEXT_CENTER_P2 = `${TEXT_CENTER} p-2`;
-
-///////////////////////////////
-// CSS Properties Below Here //
-///////////////////////////////
-
-export const accordionBody: CSSProperties = {
-	backgroundColor: "#b2bfd4",
-};
-
-export const accordionSubheader: CSSProperties = {
-	marginLeft: "7px",
-	padding: "7px",
-};
-
-export const boldFont: CSSProperties = {
-	fontWeight: "bold",
-};
-
-export const blackBackground: CSSProperties = {
-	backgroundColor: "black",
-};
-
-export const blackFont: CSSProperties = {
-	color: "black",
-};
-
-export const blackBoldFont: CSSProperties = {
-	...blackFont,
-	...boldFont,
-};
-
-export const centerAlignedFlex: CSSProperties = {
-	alignItems: "center",
-	display: "flex",
-};
-
-export const centerAlignedFlexCol: CSSProperties = {
-	...centerAlignedFlex,
-	flexDirection: "column",
-};
-
-export const centerAlignedFlexRow: CSSProperties = {
-	...centerAlignedFlex,
-	flexDirection: "row",
-};
-
-export const flexSpaceAround: CSSProperties = {
-	display: "flex",
-	justifyContent: "space-around",
-};
-
-/** Black Tahoma / Geneva / sans-serif. */
-export const globalFont: CSSProperties = {
-	...blackFont,
-	fontFamily: "Tahoma, Geneva, sans-serif",
-};
-
-export const headerFont: CSSProperties = {
-	...globalFont,
-	fontSize: 15,
-	fontWeight: 800,
-	marginBottom: "0px",
-	marginLeft: "15px",
-	marginTop: "0px",
-};
-
-export const linkCursor: CSSProperties = {
-	cursor: "pointer",
-};
-
-/** Make normal text look like a link by underlining it and changing the cursor on hover **/
-export const linkesque: CSSProperties = {
-	...linkCursor,
-	textDecoration: "underline",
-};
-
-export const loadingMsgStyle: CSSProperties = {
-	fontSize: 16,
-	height: "auto",
-	marginTop: "6px",
-};
-
-export const mildlyRoundedCorners: CSSProperties = {
-	borderRadius: 3,
-};
-
-export const monoFont: CSSProperties = {
-	fontFamily:
-		"source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace",
-};
-
-export const noPadding: CSSProperties = {
-	padding: "0px",
-};
-
-export const paddingBorder: CSSProperties = {
-	padding: "2px",
-};
-
-export const rawErrorContainer: CSSProperties = {
-	...blackBackground,
-	...monoFont,
-	borderRadius: 10,
-	marginTop: "15px",
-	minHeight: "120px",
-	padding: "35px",
-};
-
-export const roundedBox: CSSProperties = {
-	borderRadius: 20,
-	background: "lightgrey",
-	paddingLeft: "25px",
-	paddingRight: "20px",
-	paddingBottom: "13px",
-	paddingTop: "15px",
-};
-
-// TODO: could roundedBox use this borderRadius value?
-export const roundedCorners: CSSProperties = {
-	borderRadius: 15,
-};
-
-export const stickySwitchContainer: CSSProperties = {
-	display: "flex",
-	justifyContent: "space-between",
-	height: "auto",
-	paddingLeft: "2px",
-	paddingRight: "2px",
-};
-
-export const titleStyle: CSSProperties = {
-	...boldFont,
-	...globalFont,
-	fontSize: 17,
-	marginBottom: "5px",
-	marginLeft: "5px",
-	marginTop: "0px",
-	textDecoration: "underline",
-};
-
-export const tooltipZIndex: CSSProperties = {
-	zIndex: 2000,
-};
-
-export const verticalContainer: CSSProperties = {
-	marginTop: "35px",
-};
-
-export const whiteBackground: CSSProperties = {
-	backgroundColor: "white",
-};
-
-export const whiteFont: CSSProperties = {
-	color: "white",
-};

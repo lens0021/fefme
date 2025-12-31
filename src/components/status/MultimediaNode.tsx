@@ -6,7 +6,7 @@ import { LazyLoadImage } from "react-lazy-load-image-component";
 import { mastodon } from "masto";
 
 import AttachmentsModal from "./AttachmentsModal";
-import { blackBackground, roundedCorners } from "../../helpers/style_helpers";
+import { blackBackground, roundedCorners } from "../../helpers/styles";
 import { config } from "../../config";
 import { getLogger } from "../../helpers/log_helpers";
 import { isEmptyStr } from "../../helpers/string_helpers";

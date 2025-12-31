@@ -6,7 +6,7 @@ import TopLevelAccordion from "../helpers/TopLevelAccordion";
 import { config } from "../../config";
 import { HEADER_SWITCH_TOOLTIP } from "./filters/HeaderSwitch";
 import { HIGHLIGHTED_TOOLTIP } from "./filters/FilterCheckbox";
-import { noPadding, stickySwitchContainer } from "../../helpers/style_helpers";
+import { noPadding, stickySwitchContainer } from "../../helpers/styles";
 import { useAlgorithm } from "../../hooks/useAlgorithm";
 
 /**

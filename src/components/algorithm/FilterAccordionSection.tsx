@@ -9,7 +9,7 @@ import {
 	centerAlignedFlexRow,
 	flexSpaceAround,
 	roundedBox,
-} from "../../helpers/style_helpers";
+} from "../../helpers/styles";
 import { horizontalSpacer } from "../../helpers/react_helpers";
 
 interface FilterAccordionSectionProps extends SubAccordionProps {

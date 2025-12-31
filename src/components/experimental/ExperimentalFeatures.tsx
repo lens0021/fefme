@@ -11,7 +11,7 @@ import {
 	centerAlignedFlexRow,
 	roundedBox,
 	TEXT_CENTER_P2,
-} from "../../helpers/style_helpers";
+} from "../../helpers/styles";
 import { confirm } from "../helpers/Confirmation";
 import { useAlgorithm } from "../../hooks/useAlgorithm";
 import { useAuthContext } from "../../hooks/useAuth";

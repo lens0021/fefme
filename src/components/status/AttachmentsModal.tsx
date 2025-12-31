@@ -5,7 +5,7 @@ import { useEffect } from "react";
 
 import { MediaCategory, Toot, VIDEO_TYPES } from "fedialgo";
 
-import { blackFont } from "../../helpers/style_helpers";
+import { blackFont } from "../../helpers/styles";
 import { getLogger } from "../../helpers/log_helpers";
 
 const logger = getLogger("AttachmentsModal");

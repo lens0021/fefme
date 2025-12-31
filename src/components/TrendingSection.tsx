@@ -21,7 +21,7 @@ import {
 	linkesque,
 	monoFont,
 	roundedBox,
-} from "../helpers/style_helpers";
+} from "../helpers/styles";
 import { config } from "../config";
 import { getLogger } from "../helpers/log_helpers";
 import { gridify, verticalSpacer } from "../helpers/react_helpers";

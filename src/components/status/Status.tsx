@@ -46,7 +46,7 @@ import {
 	linkCursor,
 	waitOrDefaultCursor,
 	whiteFont,
-} from "../../helpers/style_helpers";
+} from "../../helpers/styles";
 import { openToot } from "../../helpers/react_helpers";
 import { timestampString } from "../../helpers/string_helpers";
 import { useAlgorithm } from "../../hooks/useAlgorithm";

@@ -37,7 +37,7 @@ import {
 	tooltipZIndex,
 	verticalContainer,
 	waitOrDefaultCursor,
-} from "../helpers/style_helpers";
+} from "../helpers/styles";
 
 const LOAD_BUTTON_SEPARATOR = " ● ";
 const logger = getLogger("Feed");

@@ -5,7 +5,7 @@ import { CSSProperties } from "react";
 
 import tinycolor from "tinycolor2";
 
-import type { GradientEndpoints } from "./style_helpers";
+import type { GradientEndpoints } from "./styles";
 
 export interface CheckboxGradientCfg {
 	// Sometimes we want to adjust the gradient instead of using the one between the endpoints to make any of the

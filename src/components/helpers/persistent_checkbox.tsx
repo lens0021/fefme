@@ -7,7 +7,7 @@ import { ReactElement } from "react";
 import { Tooltip } from "react-tooltip";
 
 import { GuiCheckboxName, config } from "../../config";
-import { tooltipZIndex } from "../../helpers/style_helpers";
+import { tooltipZIndex } from "../../helpers/styles";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
 import { type GuiCheckboxLabel } from "../../helpers/tooltip_helpers";
 

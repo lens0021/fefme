@@ -9,7 +9,7 @@ import {
 	accordionBody,
 	noPadding,
 	titleStyle,
-} from "../../helpers/style_helpers";
+} from "../../helpers/styles";
 
 interface TopLevelAccordionProps extends PropsWithChildren {
 	bodyStyle?: CSSProperties;

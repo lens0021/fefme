@@ -10,7 +10,7 @@ import { type ObjList } from "fedialgo";
 import Slider from "../algorithm/Slider";
 import { config } from "../../config";
 import { getLogger } from "../../helpers/log_helpers";
-import { tooltipZIndex } from "../../helpers/style_helpers";
+import { tooltipZIndex } from "../../helpers/styles";
 
 interface MinTootsSliderProps {
 	minTootsState: ReturnType<typeof useState<number>>;

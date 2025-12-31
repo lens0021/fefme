@@ -3,7 +3,7 @@
  */
 import { ConfirmDialog, confirmable, createConfirmation } from "react-confirm";
 
-import { blackFont } from "../../helpers/style_helpers";
+import { blackFont } from "../../helpers/styles";
 
 interface ConfirmationProps {
 	okLabel?: string;

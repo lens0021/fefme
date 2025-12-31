@@ -6,7 +6,7 @@ import React, { CSSProperties } from "react";
 import { Tooltip } from "react-tooltip";
 
 import { config } from "../../config";
-import { linkesque, tooltipZIndex } from "../../helpers/style_helpers";
+import { linkesque, tooltipZIndex } from "../../helpers/styles";
 import { type LinkWithTooltipCfg } from "../../helpers/tooltip_helpers";
 
 const TOOLTIPPED_LINK_ANCHOR = "tooltipped-link-anchor";

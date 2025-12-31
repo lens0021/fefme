@@ -5,7 +5,7 @@ import React, { CSSProperties, PropsWithChildren, useState } from "react";
 
 import { capitalCase } from "change-case";
 
-import { accordionBody, globalFont } from "../../helpers/style_helpers";
+import { accordionBody, globalFont } from "../../helpers/styles";
 import { hasAnyCapitalLetters } from "../../helpers/string_helpers";
 
 export interface SubAccordionProps extends PropsWithChildren {

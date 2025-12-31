@@ -16,7 +16,7 @@ import TopLevelAccordion from "../helpers/TopLevelAccordion";
 import WeightSlider from "./WeightSlider";
 import { confirm } from "../helpers/Confirmation";
 import { getLogger } from "../../helpers/log_helpers";
-import { roundedBox, titleStyle } from "../../helpers/style_helpers";
+import { roundedBox, titleStyle } from "../../helpers/styles";
 import { useAlgorithm } from "../../hooks/useAlgorithm";
 import { useError } from "../helpers/ErrorHandler";
 

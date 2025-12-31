@@ -17,7 +17,7 @@ import {
 	linkesque,
 	roundedCorners,
 	tooltipZIndex,
-} from "../../../helpers/style_helpers";
+} from "../../../helpers/styles";
 import { useAlgorithm } from "../../../hooks/useAlgorithm";
 
 const HASHTAG_ANCHOR = "user-hashtag-anchor";

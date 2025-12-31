@@ -2,7 +2,7 @@ import React, { CSSProperties, useState } from "react";
 
 import { config } from "../config";
 import { useAlgorithm } from "../hooks/useAlgorithm";
-import { verticalContainer } from "../helpers/style_helpers";
+import { verticalContainer } from "../helpers/styles";
 
 /**
  * The footer that appears on the login screen when API errors and warnings were encountered

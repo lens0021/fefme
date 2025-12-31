@@ -12,7 +12,7 @@ import HeaderSwitch from "./filters/HeaderSwitch";
 import MinTootsSlider, { computeDefaultValue } from "../helpers/MinTootsSlider";
 import { config } from "../../config";
 import { getLogger } from "../../helpers/log_helpers";
-import { SwitchType } from "../../helpers/style_helpers";
+import { SwitchType } from "../../helpers/styles";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
 
 export type TagHighlightSwitchState = Record<TagTootsCategory, boolean>;

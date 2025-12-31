@@ -11,7 +11,7 @@ import FilterCheckbox from "./FilterCheckbox";
 import { CheckboxTooltipConfig } from "../../../helpers/tooltip_helpers";
 import { config } from "../../../config";
 import { getLogger } from "../../../helpers/log_helpers";
-import { SwitchType, tooltipZIndex } from "../../../helpers/style_helpers";
+import { SwitchType, tooltipZIndex } from "../../../helpers/styles";
 import { useAlgorithm } from "../../../hooks/useAlgorithm";
 
 const HEADER_SWITCH_TOOLTIP_ANCHOR = `header-switch-tooltip-anchor`;

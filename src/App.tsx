@@ -17,7 +17,7 @@ import Footer from "./components/Footer";
 import Header from "./components/Header";
 import LoginPage from "./pages/LoginPage";
 import ProtectedRoute from "./components/ProtectedRoute";
-import { centerAlignedFlexCol } from "./helpers/style_helpers";
+import { centerAlignedFlexCol } from "./helpers/styles";
 import { getLogger, logLocaleInfo } from "./helpers/log_helpers";
 import { useTheme } from "./hooks/useTheme";
 

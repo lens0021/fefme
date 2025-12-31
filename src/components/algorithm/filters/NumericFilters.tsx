@@ -9,7 +9,7 @@ import FilterAccordionSection from "../FilterAccordionSection";
 import HeaderSwitch from "./HeaderSwitch";
 import Slider from "./../Slider";
 import { config } from "../../../config";
-import { SwitchType } from "../../../helpers/style_helpers";
+import { SwitchType } from "../../../helpers/styles";
 import { useAlgorithm } from "../../../hooks/useAlgorithm";
 
 export default function NumericFilters(props: { isActive: boolean }) {

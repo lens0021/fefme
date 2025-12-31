@@ -25,7 +25,7 @@ import {
 	blackBackground,
 	blackFont,
 	roundedCorners,
-} from "../../helpers/style_helpers";
+} from "../../helpers/styles";
 import { useAlgorithm } from "../../hooks/useAlgorithm";
 
 const SCORE_TYPES: (keyof ScoreStats)[] = ["raw", "weighted"];
