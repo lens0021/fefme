@@ -1,0 +1,29 @@
+import { defineConfig, loadEnv } from 'vite';
+import react from '@vitejs/plugin-react';
+
+// https://vitejs.dev/config/
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+
+  return {
+    plugins: [react()],
+
+    build: {
+      outDir: env.BUILD_DIR || 'docs',
+      sourcemap: mode === 'development',
+    },
+
+    server: {
+      port: 3000,
+      open: true,
+    },
+
+    define: {
+      'process.env.FEDIALGO_DEBUG': JSON.stringify(env.FEDIALGO_DEBUG),
+      'process.env.FEDIALGO_HOMEPAGE': JSON.stringify(env.FEDIALGO_HOMEPAGE),
+      'process.env.FEDIALGO_VERSION': JSON.stringify(env.FEDIALGO_VERSION),
+      'process.env.QUICK_MODE': JSON.stringify(env.QUICK_MODE),
+      'process.env.NODE_ENV': JSON.stringify(mode === 'production' ? 'production' : 'development'),
+    },
+  };
+});

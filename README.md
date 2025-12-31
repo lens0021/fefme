@@ -4,7 +4,8 @@ This is a fork of <https://github.com/michelcrypt4d4mus/fedialgo_demo_app_foryou
 
 Cautions:
 
-* I have removed several features from the original thet were unnecessary for this fork.
+* I have removed several features from the original that were unnecessary for this fork.
+* Much of this fork's code was written by AI agents. If you are uncomfortable with AI-generated code, please refer to the original project.
 
 * Try the demo [here](https://lens0021.github.io/fefme/)
 
@@ -74,7 +75,7 @@ Here's an example of the elements that go into scoring a post:
 1. `git clone https://github.com/lens0021/fefme`
 1. `cd fefme`
 1. `npm install` (you can ignore the various warnings)
-1. `npm run start`
+1. `npm run dev`
    * It should automatically change focus to your default browser and prompt you to login to Mastodon but if that doesn't happen you can point your browser at [`http://localhost:3000/`](http://localhost:3000/).
 
 You can install the local `fedialgo` package by running `npm link` in the `fedialgo` project dir and then `npm link fedialgo` in this project's dir _or_ you can do that kind of thing manually by running `npm install path/to/local/fedialgo` in this repo's dir but either way in order to pick up any code changes from `fedialgo` you will have to run `npm run build` in the `fedialgo` package dir.
@@ -89,11 +90,7 @@ There's also an arrow icon at the top right of ecah post that will open a displa
 
 #### Environment Variables
 
-Environment variables are managed by [`dotenv-flow`](https://www.npmjs.com/package/dotenv-flow) so there are files in this repo called `.env.production` and `.env.development` for the main two `NODE_ENV` values. To override the values in those files you should be able to just create files named `.env.production.local` and `.env.development.local`, respectively.
-
-### Troubleshooting
-
-Someone reported they were unable to build with `npm run build` but using `NODE_ENV=production npm run build --no-hmr` seemed to fix the issue.
+Environment variables are automatically loaded by Vite from `.env` files. There are files in this repo called `.env.production` and `.env.development` for the main two modes. To override the values in those files you can create files named `.env.production.local` and `.env.development.local`, respectively.
 
 #### Code Notes
 
@@ -102,5 +99,4 @@ Someone reported they were unable to build with `npm run build` but using `NODE_
 
 #### Known Issues
 
-* If you get an error about `GenerateSW() was called more than once` or whatever just ignore it.
 * Infinite scroll isn't _really_ infinite (yet). If you scroll far enough you will run out of posts to peruse.

@@ -13,7 +13,7 @@
         ],
         "module": "esnext",
         "moduleResolution": "node",
-        "noEmit": false,
+        "noEmit": true,
         "resolveJsonModule": true,
         "skipLibCheck": true,
         "strict": false,
