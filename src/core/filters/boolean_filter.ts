@@ -240,6 +240,16 @@ export default class BooleanFilter extends TootFilter {
 	}
 
 	/**
+	 * Remove an option from the array and deduplicate.
+	 * @param {string[]} options - Array to filter.
+	 * @param {string} toRemove - Option name to remove.
+	 * @returns {string[]} New deduplicated array without the removed option.
+	 */
+	private removeAndDeduplicate(options: string[], toRemove: string): string[] {
+		return [...new Set(options.filter((option) => option !== toRemove))];
+	}
+
+	/**
 	 * Set the option to include, exclude, or neutral.
 	 * @param {string} optionName - The option name.
 	 * @param {BooleanFilterOptionState} state - Desired option state.
@@ -252,12 +262,8 @@ export default class BooleanFilter extends TootFilter {
 			`updateOption(${optionName}, ${state}) invoked`,
 		);
 
-		this.selectedOptions = this.selectedOptions.filter(
-			(option) => option !== optionName,
-		);
-		this.excludedOptions = this.excludedOptions.filter(
-			(option) => option !== optionName,
-		);
+		this.selectedOptions = this.removeAndDeduplicate(this.selectedOptions, optionName);
+		this.excludedOptions = this.removeAndDeduplicate(this.excludedOptions, optionName);
 
 		if (state === "include") {
 			this.selectedOptions.push(optionName);
@@ -265,9 +271,9 @@ export default class BooleanFilter extends TootFilter {
 			this.excludedOptions.push(optionName);
 		}
 
-		// Remove duplicates; build new Array object to trigger useMemo() in Demo App  // TODO: not great
-		this.selectedOptions = [...new Set(this.selectedOptions)];
-		this.excludedOptions = [...new Set(this.excludedOptions)];
+		// Build new Array object to trigger useMemo() in Demo App  // TODO: not great
+		this.selectedOptions = [...this.selectedOptions];
+		this.excludedOptions = [...this.excludedOptions];
 	}
 
 	getOptionState(optionName: string): BooleanFilterOptionState {
