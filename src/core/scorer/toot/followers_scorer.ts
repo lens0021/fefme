@@ -1,9 +1,8 @@
-import Account from '../../api/objects/account';
-import AccountScorer from './acccount_scorer';
-import MastoApi from '../../api/api';
-import { ScoreName } from '../../enums';
-import { type StringNumberDict } from '../../types';
-
+import Account from "../../api/objects/account";
+import AccountScorer from "./acccount_scorer";
+import MastoApi from "../../api/api";
+import { ScoreName } from "../../enums";
+import { type StringNumberDict } from "../../types";
 
 /**
  * One point for accounts that follow the Fedialgo user.
@@ -11,13 +10,13 @@ import { type StringNumberDict } from '../../types';
  * @augments Scorer
  */
 export default class FollowersScorer extends AccountScorer {
-    description = "Favour accounts who follow you";
+	description = "Favour accounts who follow you";
 
-    constructor() {
-        super(ScoreName.FOLLOWERS);
-    };
+	constructor() {
+		super(ScoreName.FOLLOWERS);
+	}
 
-    async prepareScoreData(): Promise<StringNumberDict> {
-        return Account.countAccounts(await MastoApi.instance.getFollowers());
-    };
-};
+	async prepareScoreData(): Promise<StringNumberDict> {
+		return Account.countAccounts(await MastoApi.instance.getFollowers());
+	}
+}

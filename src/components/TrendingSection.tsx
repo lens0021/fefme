@@ -236,7 +236,10 @@ export default function TrendingSection(props: TrendingProps) {
 					</p>
 				)}
 
-				<ol className="list-decimal pl-5" style={{ fontSize: config.theme.trendingObjFontSize }}>
+				<ol
+					className="list-decimal pl-5"
+					style={{ fontSize: config.theme.trendingObjFontSize }}
+				>
 					{isSingleCol
 						? elements
 						: gridify(elements, 2, { marginLeft: "1px", marginRight: "1px" })}

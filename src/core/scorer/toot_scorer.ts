@@ -5,9 +5,8 @@
 
 import Scorer from "./scorer";
 import { ageString } from "../helpers/time_helpers";
-import { ScoreName } from '../enums';
+import { ScoreName } from "../enums";
 import { type StringNumberDict } from "../types";
-
 
 /**
  * Base class for a {@linkcode Scorer} that can score a {@linkcode Toot} based solely on the properties of
@@ -18,36 +17,39 @@ import { type StringNumberDict } from "../types";
  * @augments Scorer
  */
 export default abstract class TootScorer extends Scorer {
-    constructor(scoreName: ScoreName) {
-        super(scoreName);
-    }
+	constructor(scoreName: ScoreName) {
+		super(scoreName);
+	}
 
-    /**
-     * Calls {@linkcode TootScorer.prepareScoreData} to get any data required for scoring {@linkcode Toot} later.
-     * NOTE: Don't overload this - {@linkcode prepareScoreData()} instead.
-     */
-    async fetchRequiredData(): Promise<void> {
-        const startTime = Date.now();
+	/**
+	 * Calls {@linkcode TootScorer.prepareScoreData} to get any data required for scoring {@linkcode Toot} later.
+	 * NOTE: Don't overload this - {@linkcode prepareScoreData()} instead.
+	 */
+	async fetchRequiredData(): Promise<void> {
+		const startTime = Date.now();
 
-        try {
-            this.scoreData = await this.prepareScoreData();
-        } catch (e) {
-            this.logger.error(`Error in prepareScoreData():`, e);
-            this.scoreData = {};
-        }
+		try {
+			this.scoreData = await this.prepareScoreData();
+		} catch (e) {
+			this.logger.error(`Error in prepareScoreData():`, e);
+			this.scoreData = {};
+		}
 
-        if (Object.values(this.scoreData).length > 0) {
-            this.logger.debugWithTraceObjs(`prepareScoreData() finished ${ageString(startTime)}`, this.scoreData);
-        }
+		if (Object.values(this.scoreData).length > 0) {
+			this.logger.debugWithTraceObjs(
+				`prepareScoreData() finished ${ageString(startTime)}`,
+				this.scoreData,
+			);
+		}
 
-        this.isReady = true;
-    }
+		this.isReady = true;
+	}
 
-    /**
-     * Can be overloaded in subclasses to set up any data required for scoring {@linkcode Toot}s.
-     * @returns {StringNumberDict} Dictionary of data required for scoring {@linkcode Toot}s.
-     */
-    async prepareScoreData(): Promise<StringNumberDict> {
-        return {};
-    }
-};
+	/**
+	 * Can be overloaded in subclasses to set up any data required for scoring {@linkcode Toot}s.
+	 * @returns {StringNumberDict} Dictionary of data required for scoring {@linkcode Toot}s.
+	 */
+	async prepareScoreData(): Promise<StringNumberDict> {
+		return {};
+	}
+}

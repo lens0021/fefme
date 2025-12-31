@@ -11,46 +11,51 @@ import { ageString } from "../helpers/time_helpers";
 
 const SCORERS_MUTEX = new Mutex();
 
-
 /**
  * Class that exists to avoid circular dependencies so Scorer can access the weights in
  * {@linkcode TheAlgorithm} instance.
  */
 export default class ScorerCache {
-    // These scorers require the complete feed to work properly
-    static feedScorers: FeedScorer[] = [];
-    // These can score a toot without knowing about the rest of the toots in the feed
-    static tootScorers: TootScorer[] = [];
-    // All scorers that can be weighted
-    static weightedScorers: Scorer[] = [];
+	// These scorers require the complete feed to work properly
+	static feedScorers: FeedScorer[] = [];
+	// These can score a toot without knowing about the rest of the toots in the feed
+	static tootScorers: TootScorer[] = [];
+	// All scorers that can be weighted
+	static weightedScorers: Scorer[] = [];
 
-    static addScorers(tootScorers: TootScorer[], feedScorers: FeedScorer[]) {
-        this.feedScorers = feedScorers;
-        this.tootScorers = tootScorers;
-        this.weightedScorers = [...tootScorers, ...feedScorers];
-    }
+	static addScorers(tootScorers: TootScorer[], feedScorers: FeedScorer[]) {
+		this.feedScorers = feedScorers;
+		this.tootScorers = tootScorers;
+		this.weightedScorers = [...tootScorers, ...feedScorers];
+	}
 
-    /**
-     * Prepare the {@linkcode Scorer}s for scoring. If {@linkcode force} is true force recompute of
-     * all {@linkcode Scorer}'s {@linkcode scoringData} dictionaries.
-     * @param {boolean} [force] - Whether to force recompute of {@linkcode Scorer.scoringData}.
-     */
-    static async prepareScorers(force?: boolean): Promise<void> {
-        const startedAt = new Date();
-        const releaseMutex = await SCORERS_MUTEX.acquire();
+	/**
+	 * Prepare the {@linkcode Scorer}s for scoring. If {@linkcode force} is true force recompute of
+	 * all {@linkcode Scorer}'s {@linkcode scoringData} dictionaries.
+	 * @param {boolean} [force] - Whether to force recompute of {@linkcode Scorer.scoringData}.
+	 */
+	static async prepareScorers(force?: boolean): Promise<void> {
+		const startedAt = new Date();
+		const releaseMutex = await SCORERS_MUTEX.acquire();
 
-        try {
-            const scorersToPrepare = this.tootScorers.filter(scorer => force || !scorer.isReady);
-            if (scorersToPrepare.length == 0) return;
-            await Promise.all(scorersToPrepare.map(scorer => scorer.fetchRequiredData()));
-            console.log(`[ScorerCache] ${this.tootScorers.length} scorers ready ${ageString(startedAt)}`);
-        } finally {
-            releaseMutex();
-        }
-    }
+		try {
+			const scorersToPrepare = this.tootScorers.filter(
+				(scorer) => force || !scorer.isReady,
+			);
+			if (scorersToPrepare.length == 0) return;
+			await Promise.all(
+				scorersToPrepare.map((scorer) => scorer.fetchRequiredData()),
+			);
+			console.log(
+				`[ScorerCache] ${this.tootScorers.length} scorers ready ${ageString(startedAt)}`,
+			);
+		} finally {
+			releaseMutex();
+		}
+	}
 
-    /** Reset all the {@linkcode Scorer}'s internal state. */
-    static resetScorers() {
-        this.weightedScorers.forEach(scorer => scorer.reset());
-    }
-};
+	/** Reset all the {@linkcode Scorer}'s internal state. */
+	static resetScorers() {
+		this.weightedScorers.forEach((scorer) => scorer.reset());
+	}
+}

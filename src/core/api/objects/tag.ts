@@ -5,12 +5,16 @@
  */
 import MastoApi from "../../api/api";
 import { config } from "../../config";
-import { createRandomString, optionalSuffix, removeDiacritics, wordRegex } from "../../helpers/string_helpers";
+import {
+	createRandomString,
+	optionalSuffix,
+	removeDiacritics,
+	wordRegex,
+} from "../../helpers/string_helpers";
 import { detectForeignScriptLanguage } from "../../helpers/language_helper";
 import { type TagWithUsageCounts } from "../../types";
 
 const BROKEN_TAG = "<<BROKEN_TAG>>";
-
 
 /**
  * Build a synthetic {@linkcode TagWithUsageCounts} for a given string.
@@ -18,16 +22,15 @@ const BROKEN_TAG = "<<BROKEN_TAG>>";
  * @returns {TagWithUsageCounts}
  */
 export function buildTag(str: string): TagWithUsageCounts {
-    const name = str.trim().toLowerCase();
+	const name = str.trim().toLowerCase();
 
-    return {
-        name,
-        id: createRandomString(16),  // Generate a random ID for the tag. // TODO: same str should return the same ID?
-        regex: wordRegex(name),
-        url: MastoApi.instance.tagUrl(name),
-    };
+	return {
+		name,
+		id: createRandomString(16), // Generate a random ID for the tag. // TODO: same str should return the same ID?
+		regex: wordRegex(name),
+		url: MastoApi.instance.tagUrl(name),
+	};
 }
-
 
 /**
  * Returns {@linkcode true} for hashtags that are searchable as a string even if the "#" prefix wasn't used,
@@ -36,36 +39,37 @@ export function buildTag(str: string): TagWithUsageCounts {
  * @returns {boolean}
  */
 export function isValidForSubstringSearch(tag: TagWithUsageCounts): boolean {
-    return (tag.name.length > 1 && !config.toots.tagOnlyStrings.has(tag.name))
+	return tag.name.length > 1 && !config.toots.tagOnlyStrings.has(tag.name);
 }
-
 
 /** Lowercase the tag name, replace URL with one on homeserver. */
 export function repairTag(tag: TagWithUsageCounts): TagWithUsageCounts {
-    const language = detectForeignScriptLanguage(tag.name);
-    if (language) tag.language = language;  // Don't set 'language' prop unnecessarily for space reasons
+	const language = detectForeignScriptLanguage(tag.name);
+	if (language) tag.language = language; // Don't set 'language' prop unnecessarily for space reasons
 
-    if (!tag.name?.length) {
-        console.warn(`Broken tag object:`, tag);
-        tag.name = BROKEN_TAG;
-    } else if (!language) {
-        // If it's not a non-Latin language tag remove diacritics // TODO: should we remove diacritics?
-        tag.name = removeDiacritics(tag.name.toLowerCase());
-    }
+	if (!tag.name?.length) {
+		console.warn(`Broken tag object:`, tag);
+		tag.name = BROKEN_TAG;
+	} else if (!language) {
+		// If it's not a non-Latin language tag remove diacritics // TODO: should we remove diacritics?
+		tag.name = removeDiacritics(tag.name.toLowerCase());
+	}
 
-    if (MastoApi.instance) {
-        tag.url = MastoApi.instance.tagUrl(tag)
-    } else {
-        console.warn(`MastoApi.instance is null, can't get homeserver tag URL for tag:`, tag);
-        tag.url = tag.url.toLowerCase() || "";
-    }
+	if (MastoApi.instance) {
+		tag.url = MastoApi.instance.tagUrl(tag);
+	} else {
+		console.warn(
+			`MastoApi.instance is null, can't get homeserver tag URL for tag:`,
+			tag,
+		);
+		tag.url = tag.url.toLowerCase() || "";
+	}
 
-    return tag;
+	return tag;
 }
-
 
 /** Create a string representation of the tag with its usage counts & language. */
 export function tagInfoStr(tag: TagWithUsageCounts): string {
-    const infoStr = `${tag.numToots} numToots${optionalSuffix(tag.language)}`;
-    return `${tag.name} (${infoStr})`;
+	const infoStr = `${tag.numToots} numToots${optionalSuffix(tag.language)}`;
+	return `${tag.name} (${infoStr})`;
 }

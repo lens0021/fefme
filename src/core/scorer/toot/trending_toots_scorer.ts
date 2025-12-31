@@ -1,7 +1,6 @@
-import TootScorer from '../toot_scorer';
-import type Toot from '../../api/objects/toot';
-import { ScoreName } from '../../enums';
-
+import TootScorer from "../toot_scorer";
+import type Toot from "../../api/objects/toot";
+import { ScoreName } from "../../enums";
 
 /**
  * Scores with the {@linkcode Toot.trendingRank} set by {@linkcode MastodonServer.fediverseTrendingToots}.
@@ -9,13 +8,13 @@ import { ScoreName } from '../../enums';
  * @augments Scorer
  */
 export default class TrendingTootScorer extends TootScorer {
-    description = "Favour toots that are trending in the Fediverse";
+	description = "Favour toots that are trending in the Fediverse";
 
-    constructor() {
-        super(ScoreName.TRENDING_TOOTS);
-    }
+	constructor() {
+		super(ScoreName.TRENDING_TOOTS);
+	}
 
-    async _score(toot: Toot) {
-        return toot.realToot.trendingRank || 0;
-    }
-};
+	async _score(toot: Toot) {
+		return toot.realToot.trendingRank || 0;
+	}
+}

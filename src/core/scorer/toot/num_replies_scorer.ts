@@ -1,7 +1,6 @@
-import TootScorer from '../toot_scorer';
-import type Toot from '../../api/objects/toot';
-import { ScoreName } from '../../enums';
-
+import TootScorer from "../toot_scorer";
+import type Toot from "../../api/objects/toot";
+import { ScoreName } from "../../enums";
 
 /**
  * Score how many times the {@linkcode Toot} has been replied to by other users.
@@ -9,13 +8,13 @@ import { ScoreName } from '../../enums';
  * @augments Scorer
  */
 export default class NumRepliesScorer extends TootScorer {
-    description = "Favour toots with lots of replies";
+	description = "Favour toots with lots of replies";
 
-    constructor() {
-        super(ScoreName.NUM_REPLIES);
-    }
+	constructor() {
+		super(ScoreName.NUM_REPLIES);
+	}
 
-    async _score(toot: Toot) {
-        return toot.realToot.repliesCount || 0;
-    }
-};
+	async _score(toot: Toot) {
+		return toot.realToot.repliesCount || 0;
+	}
+}

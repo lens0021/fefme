@@ -14,10 +14,7 @@ import NumericFilters from "./filters/NumericFilters";
  * are trending in the Fediverse.
  */
 export default function FeedFiltersAccordionSection() {
-	const {
-		algorithm,
-		selfTypeFilterEnabled,
-	} = useAlgorithm();
+	const { algorithm, selfTypeFilterEnabled } = useAlgorithm();
 
 	const booleanFiltersCfg = config.filters.boolean.optionsFormatting;
 	// Filter for 'visible' because the APP filters are currently hidden

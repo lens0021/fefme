@@ -349,10 +349,10 @@ export default function StatusComponent(props: StatusComponentProps) {
 								)}
 							>
 								<div className="h-12 w-12 overflow-hidden rounded-full bg-[color:var(--color-muted)]">
-										<LazyLoadImage
-											src={toot.account.avatar}
-											alt={`${toot.account.webfingerURI}`}
-										/>
+									<LazyLoadImage
+										src={toot.account.avatar}
+										alt={`${toot.account.webfingerURI}`}
+									/>
 								</div>
 							</button>
 
@@ -406,10 +406,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 
 					{/* Text content of the post */}
 					<div className={contentClass} style={fontStyle}>
-						<div
-							className={contentClass}
-							lang={toot.language}
-						>
+						<div className={contentClass} lang={toot.language}>
 							{parse(
 								toot.contentNonTagsParagraphs(config.theme.defaultFontSize),
 							)}
@@ -442,7 +439,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 									type="button"
 									onClick={async () => {
 										logger.debug(
-										`Loading thread for post: ${toot.description}`,
+											`Loading thread for post: ${toot.description}`,
 										);
 
 										const toots = await executeWithLoadingState(

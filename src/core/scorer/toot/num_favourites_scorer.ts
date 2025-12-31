@@ -1,7 +1,6 @@
-import TootScorer from '../toot_scorer';
-import type Toot from '../../api/objects/toot';
-import { ScoreName } from '../../enums';
-
+import TootScorer from "../toot_scorer";
+import type Toot from "../../api/objects/toot";
+import { ScoreName } from "../../enums";
 
 /**
  * Score how many times the {@linkcode Toot} has been favourited by other users.
@@ -11,13 +10,13 @@ import { ScoreName } from '../../enums';
  * @augments Scorer
  */
 export default class NumFavouritesScorer extends TootScorer {
-    description = "Favour toots favourited by your server's users";
+	description = "Favour toots favourited by your server's users";
 
-    constructor() {
-        super(ScoreName.NUM_FAVOURITES);
-    }
+	constructor() {
+		super(ScoreName.NUM_FAVOURITES);
+	}
 
-    async _score(toot: Toot) {
-        return toot.realToot.favouritesCount || 0;
-    }
-};
+	async _score(toot: Toot) {
+		return toot.realToot.favouritesCount || 0;
+	}
+}

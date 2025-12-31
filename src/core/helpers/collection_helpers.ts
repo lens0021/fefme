@@ -3,42 +3,47 @@
  * @module collection_helpers
  */
 
-import { chunk, isFinite, isNil } from 'lodash';
+import { chunk, isFinite, isNil } from "lodash";
 
 import { compareStr, hashObject } from "./string_helpers";
 import { config } from "../config";
 import { isAccessTokenRevokedError } from "../api/errors";
 import { isNumberOrNumberString } from "./math_helper";
-import { Logger } from './logger';
-import { sleep } from './time_helpers';
+import { Logger } from "./logger";
+import { sleep } from "./time_helpers";
 import { UNIQUE_ID_PROPERTIES, type ApiCacheKey } from "../enums";
 import {
-    type ApiObj,
-    type ApiObjWithID,
-    type CountKey,
-    type MinMax,
-    type MinMaxID,
-    type Optional,
-    type OptionalNumber,
-    type OptionalString,
-    type PromiseDict,
-    type StringDict,
-    type StringNumberDict,
-    type Weights,
-    type WithCreatedAt,
+	type ApiObj,
+	type ApiObjWithID,
+	type CountKey,
+	type MinMax,
+	type MinMaxID,
+	type Optional,
+	type OptionalNumber,
+	type OptionalString,
+	type PromiseDict,
+	type StringDict,
+	type StringNumberDict,
+	type Weights,
+	type WithCreatedAt,
 } from "../types";
 
 // Unfortunately these types, returned by Promise.allSettled(), are not exported anywhere so we're manually recreating...
-interface PromiseFulfilledResult<T> { status: "fulfilled", value: T };
-interface PromiseRejectedResult { status: "rejected", reason: unknown };
+interface PromiseFulfilledResult<T> {
+	status: "fulfilled";
+	value: T;
+}
+interface PromiseRejectedResult {
+	status: "rejected";
+	reason: unknown;
+}
 
 type PromisesResults<T> = {
-    fulfilled: T[];
-    rejectedReasons: unknown[];
+	fulfilled: T[];
+	rejectedReasons: unknown[];
 };
 
 const BATCH_MAP = "batchMap()";
-
 
 /**
  * Adds up an arbitrary number of {@linkcode StringNumberDict}s, returning a new dict.
@@ -46,16 +51,15 @@ const BATCH_MAP = "batchMap()";
  * @returns {StringNumberDict} The summed dictionary.
  */
 export function addDicts(...dicts: StringNumberDict[]): StringNumberDict {
-    const sumDict: StringNumberDict = {};
-    const keys = new Set(dicts.map((dict => Object.keys(dict))).flat());
+	const sumDict: StringNumberDict = {};
+	const keys = new Set(dicts.map((dict) => Object.keys(dict)).flat());
 
-    keys.forEach((k) => {
-        sumDict[k] = sumArray(dicts.map((d) => d[k] || 0));
-    });
+	keys.forEach((k) => {
+		sumDict[k] = sumArray(dicts.map((d) => d[k] || 0));
+	});
 
-    return sumDict;
-};
-
+	return sumDict;
+}
 
 /**
  * Returns a new object with only the key/value pairs that have a value greater than {@linkcode minValue}.
@@ -63,10 +67,14 @@ export function addDicts(...dicts: StringNumberDict[]): StringNumberDict {
  * @param {number} minValue - The minimum value to include.
  * @returns {StringNumberDict} The filtered dictionary.
  */
-export function atLeastValues(obj: StringNumberDict, minValue: number): StringNumberDict {
-    return Object.fromEntries(Object.entries(obj).filter(([_k, v]) => v > minValue));
-};
-
+export function atLeastValues(
+	obj: StringNumberDict,
+	minValue: number,
+): StringNumberDict {
+	return Object.fromEntries(
+		Object.entries(obj).filter(([_k, v]) => v > minValue),
+	);
+}
 
 /**
  * Returns an array containing the value if defined, otherwise an empty array.
@@ -75,9 +83,8 @@ export function atLeastValues(obj: StringNumberDict, minValue: number): StringNu
  * @returns {[T] | []} The optional array.
  */
 export function asOptionalArray<T>(value: T | undefined | null): [T] | [] {
-    return isNil(value) ? [] : [value as T];
-};
-
+	return isNil(value) ? [] : [value as T];
+}
 
 /**
  * Calculates the average of an array of numbers, ignoring {@linkcode null}/{@linkcode undefined}
@@ -86,11 +93,10 @@ export function asOptionalArray<T>(value: T | undefined | null): [T] | [] {
  * @returns {number} The average, or NaN if the array is empty.
  */
 export function average(values: number[]): number {
-    values = values.filter(isFinite);
-    if (values.length == 0) return NaN;
-    return values.reduce((a, b) => a + b, 0) / values.length;
-};
-
+	values = values.filter(isFinite);
+	if (values.length == 0) return NaN;
+	return values.reduce((a, b) => a + b, 0) / values.length;
+}
 
 /**
  * Processes an array asynchronously in batches.
@@ -104,49 +110,58 @@ export function average(values: number[]): number {
  * @returns {Promise<any[]>} The results of mapping items with {@linkcode fxn()} argument.
  */
 export async function batchMap<T, U>(
-    array: T[],
-    fxn: (e: T) => Promise<U>,
-    options?: {
-        batchSize?: number,
-        logger?: Logger,
-        sleepBetweenMS?: number
-    }
+	array: T[],
+	fxn: (e: T) => Promise<U>,
+	options?: {
+		batchSize?: number;
+		logger?: Logger;
+		sleepBetweenMS?: number;
+	},
 ): Promise<U[]> {
-    options ??= {};
-    const { batchSize, sleepBetweenMS } = options;
-    const logger = options.logger ? options.logger.tempLogger(BATCH_MAP) : new Logger(BATCH_MAP);
-    const chunkSize = batchSize || config.scoring.scoringBatchSize;
-    const chunks = makeChunks(array, { chunkSize, logger });
-    let results: U[] = [];
+	options ??= {};
+	const { batchSize, sleepBetweenMS } = options;
+	const logger = options.logger
+		? options.logger.tempLogger(BATCH_MAP)
+		: new Logger(BATCH_MAP);
+	const chunkSize = batchSize || config.scoring.scoringBatchSize;
+	const chunks = makeChunks(array, { chunkSize, logger });
+	let results: U[] = [];
 
-    for (let i = 0; i < chunks.length; i++) {
-        const chunk = chunks[i];
-        const newResults = await Promise.all(chunk.map(fxn));
-        if (newResults.filter(Boolean).length) results = [...results, ...newResults]; // Only append non-null results
+	for (let i = 0; i < chunks.length; i++) {
+		const chunk = chunks[i];
+		const newResults = await Promise.all(chunk.map(fxn));
+		if (newResults.filter(Boolean).length)
+			results = [...results, ...newResults]; // Only append non-null results
 
-        if (sleepBetweenMS && (i < (chunks.length - 1))) {
-            logger.debug(`${(i + 1) * chunkSize} of ${array.length}, sleeping ${sleepBetweenMS}ms`);
-            await sleep(sleepBetweenMS);
-        }
-    };
+		if (sleepBetweenMS && i < chunks.length - 1) {
+			logger.debug(
+				`${(i + 1) * chunkSize} of ${array.length}, sleeping ${sleepBetweenMS}ms`,
+			);
+			await sleep(sleepBetweenMS);
+		}
+	}
 
-    return results;
-};
-
+	return results;
+}
 
 /**
  * Checks if the elements of an array have unique IDs and logs a warning if not.
  * @param {ApiObjWithID[]} array - Array of objects with IDs.
  * @param {Logger} logger - Logger to use for warnings.
  */
-export function checkUniqueRows<T extends ApiObj>(cacheKey: ApiCacheKey, array: T[], logger: Logger): void {
-    const uniqObjs = uniquifyApiObjs(cacheKey, array, logger);
+export function checkUniqueRows<T extends ApiObj>(
+	cacheKey: ApiCacheKey,
+	array: T[],
+	logger: Logger,
+): void {
+	const uniqObjs = uniquifyApiObjs(cacheKey, array, logger);
 
-    if (uniqObjs.length != array.length) {
-        logger.warn(`checkUniqueRows() Found ${array.length - uniqObjs.length} duplicate objects in "${cacheKey}"`);
-    }
-};
-
+	if (uniqObjs.length != array.length) {
+		logger.warn(
+			`checkUniqueRows() Found ${array.length - uniqObjs.length} duplicate objects in "${cacheKey}"`,
+		);
+	}
+}
 
 /**
  * Computes the minimum and maximum values from an array using a value function.
@@ -155,24 +170,26 @@ export function checkUniqueRows<T extends ApiObj>(cacheKey: ApiCacheKey, array: 
  * @param {(value: T) => number | undefined} valueFxn - Function to extract value.
  * @returns {Optional<MinMax>} The min and max values, or null if array is empty.
  */
-export function computeMinMax<T>(array: T[], valueFxn: (value: T) => OptionalNumber): Optional<MinMax> {
-    if (array.length == 0) return null;
+export function computeMinMax<T>(
+	array: T[],
+	valueFxn: (value: T) => OptionalNumber,
+): Optional<MinMax> {
+	if (array.length == 0) return null;
 
-    return array.reduce(
-        (minMax: MinMax, obj: T) => {
-            const value = valueFxn(obj);
+	return array.reduce(
+		(minMax: MinMax, obj: T) => {
+			const value = valueFxn(obj);
 
-            if (value) {
-                if (value < minMax.min) minMax.min = value;
-                if (value > minMax.max) minMax.max = value;
-            }
+			if (value) {
+				if (value < minMax.min) minMax.min = value;
+				if (value > minMax.max) minMax.max = value;
+			}
 
-            return minMax;
-        },
-        {min: Number.MAX_VALUE, max: Number.MIN_VALUE} as MinMax
-    );
-};
-
+			return minMax;
+		},
+		{ min: Number.MAX_VALUE, max: Number.MIN_VALUE } as MinMax,
+	);
+}
 
 /**
  * Returns a dictionary keyed by the result of {@linkcode getKey()} with the count of each key.
@@ -183,19 +200,15 @@ export function computeMinMax<T>(array: T[], valueFxn: (value: T) => OptionalNum
  * @returns {StringNumberDict} The counts dictionary.
  */
 export function countValues<T>(
-    items: T[],
-    getKey: (item: T) => OptionalString = (item) => item as string,
-    countNulls?: boolean
+	items: T[],
+	getKey: (item: T) => OptionalString = (item) => item as string,
+	countNulls?: boolean,
 ): StringNumberDict {
-    return items.reduce(
-        (counts, item) => {
-            const key = getKey(item);
-            return (isNil(key) && !countNulls) ? counts : incrementCount(counts, key);
-        },
-        {} as StringNumberDict
-    );
-};
-
+	return items.reduce((counts, item) => {
+		const key = getKey(item);
+		return isNil(key) && !countNulls ? counts : incrementCount(counts, key);
+	}, {} as StringNumberDict);
+}
 
 /**
  * Filters an array and logs the number of elements removed.
@@ -208,17 +221,16 @@ export function countValues<T>(
  * @returns {T[]} The filtered array.
  */
 export function filterWithLog<T>(
-    array: T[],
-    filterFxn: (value: T) => boolean,
-    logger: Logger,
-    reason: string,    // Describe why things were filtered
-    objType?: string,
+	array: T[],
+	filterFxn: (value: T) => boolean,
+	logger: Logger,
+	reason: string, // Describe why things were filtered
+	objType?: string,
 ): T[] {
-    const filtered = array.filter(filterFxn);
-    logger.logArrayReduction(array, filtered, objType || "object", reason);
-    return filtered;
-};
-
+	const filtered = array.filter(filterFxn);
+	logger.logArrayReduction(array, filtered, objType || "object", reason);
+	return filtered;
+}
 
 /**
  * Finds the minimum and maximum {@linkcode id} property in an array of objects.
@@ -236,37 +248,36 @@ export function filterWithLog<T>(
  * @returns {MinMaxID | null} The min and max IDs, or null if invalid.
  */
 export function findMinMaxId(array: ApiObjWithID[]): MinMaxID | null {
-    if (!array?.length) {
-        console.warn(`[findMinMaxId()] called with 0 length array:`, array);
-        return null;
-    }
+	if (!array?.length) {
+		console.warn(`[findMinMaxId()] called with 0 length array:`, array);
+		return null;
+	}
 
-    const idVals = array.map(e => e.id);
-    const isNumberArray = idVals.every(isNumberOrNumberString);
+	const idVals = array.map((e) => e.id);
+	const isNumberArray = idVals.every(isNumberOrNumberString);
 
-    if (idVals.some((id) => id === null || id === undefined)) {
-        console.warn(`[findMinMaxId()] called with null IDs:`, idVals);
-        return null;
-    }
+	if (idVals.some((id) => id === null || id === undefined)) {
+		console.warn(`[findMinMaxId()] called with null IDs:`, idVals);
+		return null;
+	}
 
-    // IDs are presented as strings but are usually numbers
-    const sortedIDs = idVals.toSorted((a, b) => {
-        a = a.toString();
-        b = b.toString();
+	// IDs are presented as strings but are usually numbers
+	const sortedIDs = idVals.toSorted((a, b) => {
+		a = a.toString();
+		b = b.toString();
 
-        if (isNumberArray) {
-            return parseFloat(a) - parseFloat(b);
-        } else {
-            return a > b ? 1 : -1;
-        }
-    });
+		if (isNumberArray) {
+			return parseFloat(a) - parseFloat(b);
+		} else {
+			return a > b ? 1 : -1;
+		}
+	});
 
-    return {
-        min: sortedIDs[0].toString(),
-        max: sortedIDs.slice(-1)[0].toString()
-    };
-};
-
+	return {
+		min: sortedIDs[0].toString(),
+		max: sortedIDs.slice(-1)[0].toString(),
+	};
+}
 
 /**
  * Collates the fulfilled and rejected results from
@@ -276,15 +287,22 @@ export function findMinMaxId(array: ApiObjWithID[]): MinMaxID | null {
  * @param {Promise<T>[]} promises - Array of promises.
  * @returns {Promise<PromisesResults<T>>} The results object.
  */
-export async function getPromiseResults<T>(promises: Promise<T>[]): Promise<PromisesResults<T>> {
-    const results = await Promise.allSettled(promises);
+export async function getPromiseResults<T>(
+	promises: Promise<T>[],
+): Promise<PromisesResults<T>> {
+	const results = await Promise.allSettled(promises);
 
-    return {
-        fulfilled: (results.filter(r => r.status == "fulfilled") as PromiseFulfilledResult<T>[]).map(r => r.value),
-        rejectedReasons: (results.filter(r => r.status == "rejected") as PromiseRejectedResult[]).map(r => r.reason),
-    }
-};
-
+	return {
+		fulfilled: (
+			results.filter(
+				(r) => r.status == "fulfilled",
+			) as PromiseFulfilledResult<T>[]
+		).map((r) => r.value),
+		rejectedReasons: (
+			results.filter((r) => r.status == "rejected") as PromiseRejectedResult[]
+		).map((r) => r.reason),
+	};
+}
 
 /**
  * Groups an array by the result of {@linkcode makeKey()}.
@@ -294,18 +312,20 @@ export async function getPromiseResults<T>(promises: Promise<T>[]): Promise<Prom
  * @param {(item: T) => string} makeKey - Function to get group key.
  * @returns {Record<string, T[]>} The grouped object.
  */
-export function groupBy<T>(array: T[], makeKey: (item: T) => string | number): Record<string, T[]> {
-    return array.reduce(
-        (grouped, item) => {
-            const group = makeKey(item);
-            grouped[group] ||= [];
-            grouped[group].push(item);
-            return grouped;
-        },
-        {} as Record<string, T[]>
-    );
-};
-
+export function groupBy<T>(
+	array: T[],
+	makeKey: (item: T) => string | number,
+): Record<string, T[]> {
+	return array.reduce(
+		(grouped, item) => {
+			const group = makeKey(item);
+			grouped[group] ||= [];
+			grouped[group].push(item);
+			return grouped;
+		},
+		{} as Record<string, T[]>,
+	);
+}
 
 /**
  * Increments the count for a key in a dictionary by {@linkcode increment}.
@@ -314,12 +334,15 @@ export function groupBy<T>(array: T[], makeKey: (item: T) => string | number): R
  * @param {number} [increment=1] - The increment amount.
  * @returns {StringNumberDict} The updated dictionary.
  */
-export function incrementCount(counts: StringNumberDict, k?: CountKey | null, increment: number = 1): StringNumberDict {
-    k = k ?? "unknown";
-    counts[k] = (counts[k] || 0) + increment;
-    return counts;
-};
-
+export function incrementCount(
+	counts: StringNumberDict,
+	k?: CountKey | null,
+	increment: number = 1,
+): StringNumberDict {
+	k = k ?? "unknown";
+	counts[k] = (counts[k] || 0) + increment;
+	return counts;
+}
 
 /**
  * Return true if the object is a non-null object (not an array, function, etc.).
@@ -327,9 +350,10 @@ export function incrementCount(counts: StringNumberDict, k?: CountKey | null, in
  * @returns {boolean} True if it's a non-null object
  */
 function isRecord(obj: unknown): obj is Record<string, unknown> {
-    return typeof obj === "object" && obj !== null && obj.constructor.name === "Object";
-};
-
+	return (
+		typeof obj === "object" && obj !== null && obj.constructor.name === "Object"
+	);
+}
 
 /**
  * Decrements the count for a key in a dictionary.
@@ -338,10 +362,13 @@ function isRecord(obj: unknown): obj is Record<string, unknown> {
  * @param {number} [increment=1] - The decrement amount.
  * @returns {StringNumberDict} The updated dictionary.
  */
-export function decrementCount(counts: StringNumberDict, k?: CountKey | null, increment: number = 1): StringNumberDict {
-    return incrementCount(counts, k, -1 * increment);
-};
-
+export function decrementCount(
+	counts: StringNumberDict,
+	k?: CountKey | null,
+	increment: number = 1,
+): StringNumberDict {
+	return incrementCount(counts, k, -1 * increment);
+}
 
 /**
  * Builds a dictionary from an array keyed by id.
@@ -350,9 +377,8 @@ export function decrementCount(counts: StringNumberDict, k?: CountKey | null, in
  * @returns {Record<string, T>} The keyed dictionary.
  */
 export function keyById<T extends ApiObjWithID>(array: T[]): Record<string, T> {
-    return keyByProperty<T>(array, obj => obj.id);
-};
-
+	return keyByProperty<T>(array, (obj) => obj.id);
+}
 
 /**
  * Builds a dictionary from an array keyed by a property.
@@ -361,16 +387,18 @@ export function keyById<T extends ApiObjWithID>(array: T[]): Record<string, T> {
  * @param {(value: T) => string} keyFxn - Function to get key.
  * @returns {Record<string, T>} The keyed dictionary.
  */
-export function keyByProperty<T>(array: T[], keyFxn: (value: T) => string): Record<string, T> {
-    return array.reduce(
-        (keyedDict, obj) => {
-            keyedDict[keyFxn(obj)] = obj;
-            return keyedDict;
-        },
-        {} as Record<string, T>
-    );
-};
-
+export function keyByProperty<T>(
+	array: T[],
+	keyFxn: (value: T) => string,
+): Record<string, T> {
+	return array.reduce(
+		(keyedDict, obj) => {
+			keyedDict[keyFxn(obj)] = obj;
+			return keyedDict;
+		},
+		{} as Record<string, T>,
+	);
+}
 
 /**
  * Splits an array into chunks of a given size or number of chunks.
@@ -383,24 +411,25 @@ export function keyByProperty<T>(array: T[], keyFxn: (value: T) => string): Reco
  * @returns {T[][]} The array of chunks.
  */
 export function makeChunks<T>(
-    array: T[],
-    options: {
-        chunkSize?: number,
-        logger?: Logger,
-        numChunks?: number
-    }
+	array: T[],
+	options: {
+		chunkSize?: number;
+		logger?: Logger;
+		numChunks?: number;
+	},
 ): T[][] {
-    const { logger, numChunks } = options;
-    let { chunkSize } = options;
+	const { logger, numChunks } = options;
+	let { chunkSize } = options;
 
-    if ((numChunks && chunkSize) || (!numChunks && !chunkSize)) {
-        throw new Error(`${logger?.logPrefix || 'makeChunks'} requires numChunks OR chunkSize. options=${JSON.stringify(options)}`);
-    }
+	if ((numChunks && chunkSize) || (!numChunks && !chunkSize)) {
+		throw new Error(
+			`${logger?.logPrefix || "makeChunks"} requires numChunks OR chunkSize. options=${JSON.stringify(options)}`,
+		);
+	}
 
-    chunkSize = numChunks ? Math.ceil(array.length / numChunks) : chunkSize;
-    return chunk(array, chunkSize);
-};
-
+	chunkSize = numChunks ? Math.ceil(array.length / numChunks) : chunkSize;
+	return chunk(array, chunkSize);
+}
 
 /**
  * Reduces an array to a {@linkcode StringNumberDict} using an update function.
@@ -410,18 +439,14 @@ export function makeChunks<T>(
  * @returns {StringNumberDict} The reduced dictionary.
  */
 export function reduceToCounts<T>(
-    objs: T[],
-    updateCounts: (accumulator: StringNumberDict, obj: T) => void
+	objs: T[],
+	updateCounts: (accumulator: StringNumberDict, obj: T) => void,
 ): StringNumberDict {
-    return objs.reduce(
-        (counts, obj: T) => {
-            updateCounts(counts, obj);
-            return counts;
-        },
-        {} as StringNumberDict
-    );
-};
-
+	return objs.reduce((counts, obj: T) => {
+		updateCounts(counts, obj);
+		return counts;
+	}, {} as StringNumberDict);
+}
 
 /**
  * Removes keys from an object if their value is {@linkcode null} or in {@linkcode keysToRemove} array.
@@ -433,25 +458,31 @@ export function reduceToCounts<T>(
  * @returns {Partial<T>} The cleaned object.
  */
 export function removeKeys<T extends object, K extends keyof T>(
-    obj: T,
-    keysToRemove?: K[],
-    keysToRemoveIfFalse?: K[]
+	obj: T,
+	keysToRemove?: K[],
+	keysToRemoveIfFalse?: K[],
 ): Partial<T> {
-    const copy = { ...obj };
+	const copy = { ...obj };
 
-    Object.keys(copy).forEach((k) => {
-        const key = k as K;
+	Object.keys(copy).forEach((k) => {
+		const key = k as K;
 
-        if ((keysToRemove || []).includes(key) || copy[key] === null || copy[key] === undefined) {
-            delete copy[key];
-        } else if ((keysToRemoveIfFalse || []).includes(key) && copy[key] === false) {
-            delete copy[key];
-        }
-    });
+		if (
+			(keysToRemove || []).includes(key) ||
+			copy[key] === null ||
+			copy[key] === undefined
+		) {
+			delete copy[key];
+		} else if (
+			(keysToRemoveIfFalse || []).includes(key) &&
+			copy[key] === false
+		) {
+			delete copy[key];
+		}
+	});
 
-    return copy;
-};
-
+	return copy;
+}
 
 /**
  * Use {@linkcode https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled Promise.allSettled()}
@@ -461,33 +492,37 @@ export function removeKeys<T extends object, K extends keyof T>(
  * @returns {Promise<Record<string, any>>} The cleaned object.
  */
 export async function resolvePromiseDict(
-    dict: PromiseDict,
-    logger: Logger,
-    defaultValue: ((key: string) => unknown) | unknown = null
+	dict: PromiseDict,
+	logger: Logger,
+	defaultValue: ((key: string) => unknown) | unknown = null,
 ): Promise<Record<string, any>> {
-    // Ensure order of keys and values // TODO: is this necessary?
-    const indexed = Object.entries(dict).reduce(
-        (keysAndValues, [k, v]) => {
-            keysAndValues[0].push(k);
-            keysAndValues[1].push(v);
-            return keysAndValues;
-        },
-        [[], []] as [string[], Promise<unknown>[]]
-    );
+	// Ensure order of keys and values // TODO: is this necessary?
+	const indexed = Object.entries(dict).reduce(
+		(keysAndValues, [k, v]) => {
+			keysAndValues[0].push(k);
+			keysAndValues[1].push(v);
+			return keysAndValues;
+		},
+		[[], []] as [string[], Promise<unknown>[]],
+	);
 
-    const resolved = (await Promise.allSettled(indexed[1])).map((r, i) => {
-        if (r.status === "fulfilled") {
-            return r.value;
-        } else {
-            const failedKey = indexed[0][i];
-            logger.warn(`resolvePromiseDict() - Promise for key "${failedKey}" failed with reason:`, r.reason);
-            return typeof defaultValue == 'function' ? defaultValue(failedKey) : defaultValue;
-        }
-    });
+	const resolved = (await Promise.allSettled(indexed[1])).map((r, i) => {
+		if (r.status === "fulfilled") {
+			return r.value;
+		} else {
+			const failedKey = indexed[0][i];
+			logger.warn(
+				`resolvePromiseDict() - Promise for key "${failedKey}" failed with reason:`,
+				r.reason,
+			);
+			return typeof defaultValue == "function"
+				? defaultValue(failedKey)
+				: defaultValue;
+		}
+	});
 
-    return zipArrays(indexed[0], resolved);
-};
-
+	return zipArrays(indexed[0], resolved);
+}
 
 /**
  * Randomizes the order of an array.
@@ -495,11 +530,10 @@ export async function resolvePromiseDict(
  * @param {T[]} array - The array to shuffle.
  * @returns {T[]} The shuffled array.
  */
-export function shuffle<T extends (string | number | object)>(array: T[]): T[] {
-    const sortRandom = (a: T, b: T) => hashObject(a).localeCompare(hashObject(b));
-    return array.toSorted(sortRandom);
-};
-
+export function shuffle<T extends string | number | object>(array: T[]): T[] {
+	const sortRandom = (a: T, b: T) => hashObject(a).localeCompare(hashObject(b));
+	return array.toSorted(sortRandom);
+}
 
 /**
  * Sorts the keys of a dictionary by their values in descending order.
@@ -507,18 +541,17 @@ export function shuffle<T extends (string | number | object)>(array: T[]): T[] {
  * @returns {string[]} The sorted keys.
  */
 export function sortKeysByValue(dict: StringNumberDict): string[] {
-    return Object.keys(dict).sort((a, b) => {
-        const aVal = dict[a] || 0;
-        const bVal = dict[b] || 0;
+	return Object.keys(dict).sort((a, b) => {
+		const aVal = dict[a] || 0;
+		const bVal = dict[b] || 0;
 
-        if (aVal == bVal) {
-            return compareStr(a, b);
-        } else {
-            return bVal - aVal;
-        }
-    });
-};
-
+		if (aVal == bVal) {
+			return compareStr(a, b);
+		} else {
+			return bVal - aVal;
+		}
+	});
+}
 
 /**
  * Create a string representation of a dictionary with the keys sorted by their values.
@@ -526,9 +559,13 @@ export function sortKeysByValue(dict: StringNumberDict): string[] {
  * @returns {string} The sorted dictionary as a string.
  */
 export function sortedDictString(dict: StringNumberDict): string {
-    return "\n   " + sortKeysByValue(dict).map(k => `${k}: ${dict[k]}`).join(",\n    ");
-};
-
+	return (
+		"\n   " +
+		sortKeysByValue(dict)
+			.map((k) => `${k}: ${dict[k]}`)
+			.join(",\n    ")
+	);
+}
 
 /**
  * Sorts an array of objects by one or two properties.
@@ -540,47 +577,49 @@ export function sortedDictString(dict: StringNumberDict): string {
  * @returns {T[]} The sorted array.
  */
 export function sortObjsByProps<T extends object>(
-    array: T[],
-    prop: keyof T | (keyof T)[],
-    ascending?: boolean | boolean[],
-    ignoreCase?: boolean
+	array: T[],
+	prop: keyof T | (keyof T)[],
+	ascending?: boolean | boolean[],
+	ignoreCase?: boolean,
 ): T[] {
-    ascending ||= false;
-    const props = Array.isArray(prop) ? prop : [prop];
-    const ascendings = Array.isArray(ascending) ? ascending : [ascending];
-    if (props.length > 2) throw new Error("sortObjsByProps() only supports 2 properties for sorting for now");
+	ascending ||= false;
+	const props = Array.isArray(prop) ? prop : [prop];
+	const ascendings = Array.isArray(ascending) ? ascending : [ascending];
+	if (props.length > 2)
+		throw new Error(
+			"sortObjsByProps() only supports 2 properties for sorting for now",
+		);
 
-    return array.toSorted((a: T, b: T) => {
-        let aVal: T[keyof T] | string = a[props[0]];
-        let bVal: T[keyof T] | string = b[props[0]];
-        let ascending = ascendings[0];
+	return array.toSorted((a: T, b: T) => {
+		let aVal: T[keyof T] | string = a[props[0]];
+		let bVal: T[keyof T] | string = b[props[0]];
+		let ascending = ascendings[0];
 
-        if (ignoreCase && typeof aVal == "string" && typeof bVal == "string") {
-            aVal = aVal.toLowerCase();
-            bVal = bVal.toLowerCase();
-        }
+		if (ignoreCase && typeof aVal == "string" && typeof bVal == "string") {
+			aVal = aVal.toLowerCase();
+			bVal = bVal.toLowerCase();
+		}
 
-        if (aVal < bVal) return ascending ? -1 : 1;
-        if (aVal > bVal) return ascending ? 1 : -1;
-        if (props.length == 1) return 0;
+		if (aVal < bVal) return ascending ? -1 : 1;
+		if (aVal > bVal) return ascending ? 1 : -1;
+		if (props.length == 1) return 0;
 
-        // Compare second property
-        aVal = a[props[1]];
-        bVal = b[props[1]];
-        ascending = ascendings.length > 1 ? ascendings[1] : ascendings[0];
+		// Compare second property
+		aVal = a[props[1]];
+		bVal = b[props[1]];
+		ascending = ascendings.length > 1 ? ascendings[1] : ascendings[0];
 
-        if (ignoreCase && typeof aVal == "string" && typeof bVal == "string") {
-            aVal = aVal.toLowerCase();
-            bVal = bVal.toLowerCase();
-        }
+		if (ignoreCase && typeof aVal == "string" && typeof bVal == "string") {
+			aVal = aVal.toLowerCase();
+			bVal = bVal.toLowerCase();
+		}
 
-        if (aVal < bVal) return ascending ? -1 : 1;
-        if (aVal > bVal) return ascending ? 1 : -1;
+		if (aVal < bVal) return ascending ? -1 : 1;
+		if (aVal > bVal) return ascending ? 1 : -1;
 
-        return 0;
-    });
-};
-
+		return 0;
+	});
+}
 
 /**
  * Sorts an array of objects by the {@linkcode createdAt} property.
@@ -589,9 +628,8 @@ export function sortObjsByProps<T extends object>(
  * @returns {T[]} The sorted array.
  */
 export function sortObjsByCreatedAt<T extends WithCreatedAt>(array: T[]): T[] {
-    return sortObjsByProps<T>(array, "createdAt");
-};
-
+	return sortObjsByProps<T>(array, "createdAt");
+}
 
 /**
  * Splits an array into two arrays based on a condition.
@@ -600,13 +638,15 @@ export function sortObjsByCreatedAt<T extends WithCreatedAt>(array: T[]): T[] {
  * @param {(element: T) => boolean} condition - The condition function.
  * @returns {T[][]} The two arrays.
  */
-export function split<T>(array: T[], condition: (element: T) => boolean): [T[], T[]] {
-    return [
-        array.filter((element) => condition(element)),
-        array.filter((element) => !condition(element)),
-    ];
-};
-
+export function split<T>(
+	array: T[],
+	condition: (element: T) => boolean,
+): [T[], T[]] {
+	return [
+		array.filter((element) => condition(element)),
+		array.filter((element) => !condition(element)),
+	];
+}
 
 /**
  * Subtracts a constant from all values in a dictionary.
@@ -614,12 +654,14 @@ export function split<T>(array: T[], condition: (element: T) => boolean): [T[], 
  * @param {number} constant - The constant to subtract.
  * @returns {StringNumberDict} The updated dictionary.
  */
-export function subtractConstant(dict: StringNumberDict, constant: number): StringNumberDict {
-    return Object.fromEntries(
-        Object.entries(dict).map(([k, v]) => [k, v - constant])
-    );
-};
-
+export function subtractConstant(
+	dict: StringNumberDict,
+	constant: number,
+): StringNumberDict {
+	return Object.fromEntries(
+		Object.entries(dict).map(([k, v]) => [k, v - constant]),
+	);
+}
 
 /**
  * Sums the elements of an array. {@linkcode null} and {@linkcode undefined} count as 0.
@@ -627,9 +669,8 @@ export function subtractConstant(dict: StringNumberDict, constant: number): Stri
  * @returns {number} The sum (0 if empty)
  */
 export function sumArray(array: OptionalNumber[]): number {
-    return array.map((x) => (x ?? 0)).reduce((total, b) => total + b, 0);
-};
-
+	return array.map((x) => x ?? 0).reduce((total, b) => total + b, 0);
+}
 
 /**
  * Sums the values of a dictionary. {@linkcode null} and {@linkcode undefined} count as 0.
@@ -637,9 +678,8 @@ export function sumArray(array: OptionalNumber[]): number {
  * @returns {number} The sum.
  */
 export function sumValues(obj: StringNumberDict | Weights): number {
-    return sumArray(Object.values(obj));
-};
-
+	return sumArray(Object.values(obj));
+}
 
 /**
  * Swaps the keys and values of a dictionary.
@@ -648,9 +688,10 @@ export function sumValues(obj: StringNumberDict | Weights): number {
  * @returns {StringDict} The swapped dictionary.
  */
 export function swapKeysAndValues<T extends StringDict>(dict: T): StringDict {
-    return Object.fromEntries(Object.entries(dict).map(entry => entry.toReversed()))
-};
-
+	return Object.fromEntries(
+		Object.entries(dict).map((entry) => entry.toReversed()),
+	);
+}
 
 /**
  * Recursively applies a {@linkcode transform()} function to all keys in a nested object.
@@ -659,23 +700,25 @@ export function swapKeysAndValues<T extends StringDict>(dict: T): StringDict {
  * @param {(key: string) => string} transform - The transform function.
  * @returns {T} The transformed data.
  */
-export function transformKeys<T>(data: T, transform: (key: string) => string): T {
-    if (Array.isArray(data)) {
-        return data.map((value) => transformKeys<T>(value, transform)) as T;
-    }
+export function transformKeys<T>(
+	data: T,
+	transform: (key: string) => string,
+): T {
+	if (Array.isArray(data)) {
+		return data.map((value) => transformKeys<T>(value, transform)) as T;
+	}
 
-    if (isRecord(data)) {
-        return Object.fromEntries(
-            Object.entries(data).map(([key, value]) => [
-                transform(key),
-                transformKeys(value, transform),
-            ])
-        ) as T;
-    }
+	if (isRecord(data)) {
+		return Object.fromEntries(
+			Object.entries(data).map(([key, value]) => [
+				transform(key),
+				transformKeys(value, transform),
+			]),
+		) as T;
+	}
 
-    return data as T;
-};
-
+	return data as T;
+}
 
 /**
  * Truncates an array to a maximum length, logging if truncated.
@@ -685,14 +728,19 @@ export function transformKeys<T>(data: T, transform: (key: string) => string): T
  * @param {Logger} [logger] - Logger instance.
  * @returns {T[]} The truncated array.
  */
-export function truncateToLength<T>(array: T[], maxRecords: number, logger?: Logger): T[] {
-    if (array.length <= maxRecords) return array;
-    const startLen = array.length;
-    array = array.slice(0, maxRecords);
-    (logger ?? new Logger("truncateToConfiguredLength()")).deep(`Truncated array of ${startLen} to ${array.length}`);
-    return array;
-};
-
+export function truncateToLength<T>(
+	array: T[],
+	maxRecords: number,
+	logger?: Logger,
+): T[] {
+	if (array.length <= maxRecords) return array;
+	const startLen = array.length;
+	array = array.slice(0, maxRecords);
+	(logger ?? new Logger("truncateToConfiguredLength()")).deep(
+		`Truncated array of ${startLen} to ${array.length}`,
+	);
+	return array;
+}
 
 /**
  * Returns a new array with only unique, non-null string values.
@@ -700,10 +748,11 @@ export function truncateToLength<T>(array: T[], maxRecords: number, logger?: Log
  * @returns {string[] | undefined} The unique array or undefined if empty.
  */
 export const uniquify = (array: OptionalString[]): string[] | undefined => {
-    const nonNullArray = [...new Set(array.filter((element) => !isNil(element)))] as string[];
-    return nonNullArray.length ? nonNullArray : undefined;
+	const nonNullArray = [
+		...new Set(array.filter((element) => !isNil(element))),
+	] as string[];
+	return nonNullArray.length ? nonNullArray : undefined;
 };
-
 
 /**
  * Uniquify an array of API objects by the appropriate property. This is a no-op for API objects
@@ -713,22 +762,32 @@ export const uniquify = (array: OptionalString[]): string[] | undefined => {
  * @param {T[]} array - Array of API objects.
  * @param {Logger} logger - Logger to use for warnings.
  */
-export function uniquifyApiObjs<T extends ApiObj>(cacheKey: ApiCacheKey, array: T[], logger: Logger): T[] {
-    const uniqueProperty = UNIQUE_ID_PROPERTIES[cacheKey] as keyof ApiObj;
-    const thisLogger = logger.tempLogger(`uniquifyApiObjs`);
+export function uniquifyApiObjs<T extends ApiObj>(
+	cacheKey: ApiCacheKey,
+	array: T[],
+	logger: Logger,
+): T[] {
+	const uniqueProperty = UNIQUE_ID_PROPERTIES[cacheKey] as keyof ApiObj;
+	const thisLogger = logger.tempLogger(`uniquifyApiObjs`);
 
-    if (!uniqueProperty) {
-        thisLogger.trace(`No unique property for "${cacheKey}", skipping uniquify...`);
-        return array;
-    } else if (array.length && isNil(array[0][uniqueProperty])) {
-        thisLogger.error(`checkUniqueRows() called with array that has no "${uniqueProperty}" property!`, array);
-        return array;
-    }
+	if (!uniqueProperty) {
+		thisLogger.trace(
+			`No unique property for "${cacheKey}", skipping uniquify...`,
+		);
+		return array;
+	} else if (array.length && isNil(array[0][uniqueProperty])) {
+		thisLogger.error(
+			`checkUniqueRows() called with array that has no "${uniqueProperty}" property!`,
+			array,
+		);
+		return array;
+	}
 
-    logger.deep(`Uniquifying array of ${array.length} objects by "${uniqueProperty}" property`);
-    return uniquifyByProp(array, (obj) => obj[uniqueProperty], cacheKey);
-};
-
+	logger.deep(
+		`Uniquifying array of ${array.length} objects by "${uniqueProperty}" property`,
+	);
+	return uniquifyByProp(array, (obj) => obj[uniqueProperty], cacheKey);
+}
 
 /**
  * Removes elements of an array with duplicate values for a given property.
@@ -738,17 +797,27 @@ export function uniquifyApiObjs<T extends ApiObj>(cacheKey: ApiCacheKey, array: 
  * @param {string} [logPrefix] - Log prefix.
  * @returns {T[]} The uniquified array.
  */
-export function uniquifyByProp<T>(rows: T[], transform: (obj: T) => string, logPrefix?: string): T[] {
-    const logger = new Logger(logPrefix || 'collections_helpers', "uniquifyByProp()");
-    const newRows = [...new Map(rows.map((element) => [transform(element).toLowerCase(), element])).values()];
+export function uniquifyByProp<T>(
+	rows: T[],
+	transform: (obj: T) => string,
+	logPrefix?: string,
+): T[] {
+	const logger = new Logger(
+		logPrefix || "collections_helpers",
+		"uniquifyByProp()",
+	);
+	const newRows = [
+		...new Map(
+			rows.map((element) => [transform(element).toLowerCase(), element]),
+		).values(),
+	];
 
-    if (logPrefix && newRows.length < rows.length) {
-        logger.trace(`Removed ${rows.length - newRows.length} duplicate rows`);
-    }
+	if (logPrefix && newRows.length < rows.length) {
+		logger.trace(`Removed ${rows.length - newRows.length} duplicate rows`);
+	}
 
-    return newRows;
-};
-
+	return newRows;
+}
 
 /**
  * Zips two arrays into a dictionary
@@ -759,9 +828,8 @@ export function uniquifyByProp<T>(rows: T[], transform: (obj: T) => string, logP
  * @example zipArrays([ 'a', 'b', 'c' ], [ 1, 2, 3 ]) -> { a: 1, b: 2, c: 3 }
  */
 export function zipArrays<T>(array1: string[], array2: T[]): Record<string, T> {
-    return Object.fromEntries(array1.map((e, i) => [e, array2[i]]));
-};
-
+	return Object.fromEntries(array1.map((e, i) => [e, array2[i]]));
+}
 
 /**
  * Runs a list of {@linkcode Promise}s in parallel, each generated by a call to {@linkcode promiser(arg)},
@@ -774,27 +842,30 @@ export function zipArrays<T>(array1: string[], array2: T[]): Record<string, T> {
  * @returns {Promise<Record<string, T>>} The results dictionary.
  */
 export async function zipPromiseCalls<T>(
-    args: string[],
-    promiser: (s: string) => Promise<T>,
-    logger?: Logger
+	args: string[],
+	promiser: (s: string) => Promise<T>,
+	logger?: Logger,
 ): Promise<Record<string, T>> {
-    const allResults = zipArrays(args, await Promise.allSettled(args.map(promiser)));
-    logger ||= new Logger(`zipPromises`);
+	const allResults = zipArrays(
+		args,
+		await Promise.allSettled(args.map(promiser)),
+	);
+	logger ||= new Logger(`zipPromises`);
 
-    return Object.entries(allResults).reduce(
-        (results, [arg, result]) => {
-            if (result.status == "fulfilled") {
-                results[arg] = result.value;
-            } else {
-                if (isAccessTokenRevokedError(result.reason)) {
-                    throw result.reason;
-                } else {
-                    logger!.warn(`Failure on argument "${arg}":`, result.reason)
-                }
-            }
+	return Object.entries(allResults).reduce(
+		(results, [arg, result]) => {
+			if (result.status == "fulfilled") {
+				results[arg] = result.value;
+			} else {
+				if (isAccessTokenRevokedError(result.reason)) {
+					throw result.reason;
+				} else {
+					logger!.warn(`Failure on argument "${arg}":`, result.reason);
+				}
+			}
 
-            return results;
-        },
-        {} as Record<string, T>
-    );
-};
+			return results;
+		},
+		{} as Record<string, T>,
+	);
+}

@@ -37,8 +37,7 @@ const REQUIRED_OAUTH_SCOPES = [
 ];
 
 const HOMEPAGE =
-	import.meta.env.VITE_FEDIALGO_HOMEPAGE ||
-	"https://lens0021.github.io/fefme";
+	import.meta.env.VITE_FEDIALGO_HOMEPAGE || "https://lens0021.github.io/fefme";
 const HOMEPAGE_URL = (() => {
 	try {
 		return new URL(HOMEPAGE);

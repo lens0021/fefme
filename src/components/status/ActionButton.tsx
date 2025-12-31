@@ -300,7 +300,11 @@ export default function ActionButton(props: ActionButtonProps) {
 			title={label}
 			type="button"
 		>
-			<FontAwesomeIcon aria-hidden="true" className={iconClassName} icon={icon} />
+			<FontAwesomeIcon
+				aria-hidden="true"
+				className={iconClassName}
+				icon={icon}
+			/>
 
 			{buttonText && (
 				<span className="text-[11px] leading-none">{buttonText}</span>

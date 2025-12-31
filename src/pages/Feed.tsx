@@ -101,10 +101,8 @@ export default function Feed() {
 	useEffect(() => {
 		const showMoreToots = () => {
 			if (numDisplayedToots < visibleTimeline.length) {
-			const msg = `Showing ${numDisplayedToots} posts, adding ${config.timeline.numTootsToLoadOnScroll}`;
-				logger.log(
-					`${msg} more (${visibleTimeline.length} available in feed)`,
-				);
+				const msg = `Showing ${numDisplayedToots} posts, adding ${config.timeline.numTootsToLoadOnScroll}`;
+				logger.log(`${msg} more (${visibleTimeline.length} available in feed)`);
 				setNumDisplayedToots(
 					numDisplayedToots + config.timeline.numTootsToLoadOnScroll,
 				);
@@ -372,32 +370,30 @@ export default function Feed() {
 							</div>
 						)}
 
-						<div className="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] p-2">
-							{visibleTimeline.slice(0, numShownToots).map((toot) => (
-								<StatusComponent
-									isLoadingThread={isLoadingThread}
-									key={toot.uri}
-									setThread={setThread}
-									setIsLoadingThread={setIsLoadingThread}
-									showLinkPreviews={showLinkPreviews}
-									status={toot}
-								/>
+						{visibleTimeline.slice(0, numShownToots).map((toot) => (
+							<StatusComponent
+								isLoadingThread={isLoadingThread}
+								key={toot.uri}
+								setThread={setThread}
+								setIsLoadingThread={setIsLoadingThread}
+								showLinkPreviews={showLinkPreviews}
+								status={toot}
+							/>
+						))}
+
+						{visibleTimeline.length === 0 &&
+							(isLoading ? (
+								<div className="flex min-h-[40vh] items-center justify-center gap-3">
+									<div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600" />
+									<p>{`${config.timeline.defaultLoadingMsg}...`}</p>
+								</div>
+							) : (
+								<div className="flex min-h-[40vh] items-center justify-center text-lg">
+									<p>{config.timeline.noTootsMsg}</p>
+								</div>
 							))}
 
-							{visibleTimeline.length === 0 &&
-								(isLoading ? (
-									<div className="flex min-h-[40vh] items-center justify-center gap-3">
-										<div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600" />
-										<p>{`${config.timeline.defaultLoadingMsg}...`}</p>
-									</div>
-								) : (
-									<div className="flex min-h-[40vh] items-center justify-center text-lg">
-										<p>{config.timeline.noTootsMsg}</p>
-									</div>
-								))}
-
-							<div ref={bottomRef} className="mt-2.5" />
-						</div>
+						<div ref={bottomRef} className="mt-2.5" />
 					</div>
 				</div>
 			</div>

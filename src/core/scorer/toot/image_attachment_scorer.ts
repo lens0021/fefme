@@ -1,7 +1,6 @@
-import TootScorer from '../toot_scorer';
-import type Toot from '../../api/objects/toot';
-import { ScoreName } from '../../enums';
-
+import TootScorer from "../toot_scorer";
+import type Toot from "../../api/objects/toot";
+import { ScoreName } from "../../enums";
 
 /**
  * Score the number of image attachments in the {@linkcode Toot}.
@@ -9,13 +8,13 @@ import { ScoreName } from '../../enums';
  * @augments Scorer
  */
 export default class ImageAttachmentScorer extends TootScorer {
-    description = "Favour toots with images";
+	description = "Favour toots with images";
 
-    constructor() {
-        super(ScoreName.IMAGE_ATTACHMENTS);
-    }
+	constructor() {
+		super(ScoreName.IMAGE_ATTACHMENTS);
+	}
 
-    async _score(toot: Toot) {
-        return toot.realToot.imageAttachments.length;
-    }
-};
+	async _score(toot: Toot) {
+		return toot.realToot.imageAttachments.length;
+	}
+}

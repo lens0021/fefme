@@ -1,7 +1,6 @@
-import TootScorer from '../toot_scorer';
-import type Toot from '../../api/objects/toot';
-import { ScoreName } from '../../enums';
-
+import TootScorer from "../toot_scorer";
+import type Toot from "../../api/objects/toot";
+import { ScoreName } from "../../enums";
 
 /**
  * Score the number of video attachments in the {@linkcode Toot}.
@@ -9,13 +8,13 @@ import { ScoreName } from '../../enums';
  * @augments Scorer
  */
 export default class VideoAttachmentScorer extends TootScorer {
-    description = "Favour video attachments";
+	description = "Favour video attachments";
 
-    constructor() {
-        super(ScoreName.VIDEO_ATTACHMENTS);
-    }
+	constructor() {
+		super(ScoreName.VIDEO_ATTACHMENTS);
+	}
 
-    async _score(toot: Toot) {
-        return toot.realToot.videoAttachments.length;
-    }
-};
+	async _score(toot: Toot) {
+		return toot.realToot.videoAttachments.length;
+	}
+}
