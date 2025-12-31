@@ -52,7 +52,6 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 		props;
 	const {
 		algorithm,
-		allowMultiSelect,
 		alwaysShowFollowed,
 		selfTypeFilterEnabled,
 		setSelfTypeFilterEnabled,
@@ -237,15 +236,10 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 					}
 					labelExtra={labelExtra}
 					onChange={(e) => {
-						if (
-							isTypeFilter &&
-							!allowMultiSelect &&
-							e.target.checked &&
-							selfTypeFilterEnabled
-						) {
+						if (isTypeFilter && e.target.checked && selfTypeFilterEnabled) {
 							setSelfTypeFilterEnabled?.(false);
 						}
-						filter.updateOption(option.name, e.target.checked, allowMultiSelect);
+						filter.updateOption(option.name, e.target.checked, true);
 					}}
 					tooltip={findTooltip(option)}
 					tooltipAnchor={FILTER_TOOLTIP_ANCHOR}
@@ -263,10 +257,6 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 					key="type-filter-self"
 					label="Me"
 					onChange={(e) => {
-						if (e.target.checked && !allowMultiSelect) {
-							filter.selectedOptions = [];
-							algorithm.updateFilters(algorithm.filters);
-						}
 						setSelfTypeFilterEnabled(e.target.checked);
 					}}
 					updateFilters={false}

@@ -13,7 +13,7 @@ export const computeMinTootsDefaultValue = (
 	const resolvedIdealNumOptions =
 		idealNumOptions ?? minTootsSliderCfg.idealNumOptions;
 	logger.deep(
-		`Computing default value for minToots slider with ${objList.length} options`,
+		`Computing default value for minPosts slider with ${objList.length} options`,
 	);
 
 	// Don't show the slider if there are too few options
@@ -26,7 +26,7 @@ export const computeMinTootsDefaultValue = (
 
 	if (!idealOption) {
 		logger.warn(
-			"No ideal option found to help set minToots slider default value",
+			"No ideal option found to help set minPosts slider default value",
 		);
 		sliderDefault =
 			objList.objs.length > resolvedIdealNumOptions / 2
@@ -38,7 +38,7 @@ export const computeMinTootsDefaultValue = (
 
 	// TODO: if the objList gets refreshed while the filter is set to a high value, the slider will disappear :(
 	logger.trace(
-		`Adjusted minToots slider default to ${sliderDefault} (${objList.length} tags)`,
+		`Adjusted minPosts slider default to ${sliderDefault} (${objList.length} tags)`,
 	);
 	return sliderDefault;
 };
@@ -76,4 +76,4 @@ export const computeMinTootsMaxValue = (objList: ObjList, title: string) => {
 	return maxValue;
 };
 
-const getMinTootsLogger = (title: string) => getLogger("MinTootsSlider", title);
+const getMinTootsLogger = (title: string) => getLogger("MinPostsSlider", title);

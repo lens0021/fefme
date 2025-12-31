@@ -29,14 +29,14 @@ export function followUri(uri: string, e: MouseEvent): boolean {
 	return false;
 }
 
-// Open the Toot in a new tab, resolved to its URL on the user's home server
+// Open the Post in a new tab, resolved to its URL on the user's home server
 export async function openToot(
 	toot: Toot,
 	e: MouseEvent,
 	isGoToSocialUser?: boolean,
 ): Promise<boolean> {
 	e.preventDefault();
-	appLogger.log("openToot() called with:", toot);
+appLogger.log("openPost() called with:", toot);
 	const resolvedURL = isGoToSocialUser ? toot.url : await toot.localServerUrl();
 	return followUri(resolvedURL, e);
 }

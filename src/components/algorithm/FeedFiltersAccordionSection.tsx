@@ -16,7 +16,6 @@ import NumericFilters from "./filters/NumericFilters";
 export default function FeedFiltersAccordionSection() {
 	const {
 		algorithm,
-		allowMultiSelectCheckbox,
 		alwaysShowFollowedCheckbox,
 		selfTypeFilterEnabled,
 		showFilterHighlightsCheckbox,
@@ -63,7 +62,6 @@ export default function FeedFiltersAccordionSection() {
 
 			<div>
 				<div className="flex justify-around h-auto px-[2px] pt-[4.5px] text-base font-bold">
-					{allowMultiSelectCheckbox}
 					{showFilterHighlightsCheckbox}
 					{alwaysShowFollowedCheckbox}
 				</div>

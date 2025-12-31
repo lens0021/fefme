@@ -16,8 +16,8 @@ const BUTTON_TEXT = {
 		"Wipe all user data including the registered app. Necessary to handle OAuth permissions errors." +
 		" You'll need to reauthenticate afterwards.",
 	[LOAD_COMPLETE_USER_HISTORY]:
-		"Load all your toots and favourites. May improve scoring of your feed." +
-		" Takes time & resources proportional to the number of times you've tooted.",
+		"Load all your posts and favourites. May improve scoring of your feed." +
+		" Takes time & resources proportional to the number of times you've posted.",
 };
 
 export const OAUTH_ERROR_MSG = `If you were trying to bookmark, mute, or reply with an image you may have used ${FEDIALGO} before it requested the appropriate permissions to perform those actions. This can be fixed with the "${DELETE_ALL}" button in the Experimental Features section or by manually clearing your browser's local storage (cookies and everything else) for this site. and then logging back in.`;

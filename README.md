@@ -9,7 +9,7 @@ Cautions:
 
 * Try the demo [here](https://lens0021.github.io/fefme/)
 
-Each incoming post in your recent timeline will be scored based on a variety of factors and resorted top to bottom based on what toots have the highest scores instead of just reverse chronological order. You can adjust in a very fine grained way how much weight you want to give to each of those factors in determining each post's scores.
+Each incoming post in your recent timeline will be scored based on a variety of factors and resorted top to bottom based on what posts have the highest scores instead of just reverse chronological order. You can adjust in a very fine grained way how much weight you want to give to each of those factors in determining each post's scores.
 
 ## Usage
 
@@ -17,7 +17,7 @@ Each incoming post in your recent timeline will be scored based on a variety of 
 1. Specify the Mastodon server your account lives on and click "Login". If you're already logged in with that browser you won't have to enter a password. (Note: passwords and tokens are never sent to FediAlgo! Your login in strictly between you and your Mastodon server. Once authenticated your Mastodon server gives your browser a temporary token FediAlgo uses to read your timeline, the same as any other Mastodon client app.)
 1. After you've logged in to your Mastodon server (or if you're already logged into that server in the browser you're using) your browser will request that you give `fedialgo` permission to access your Mastodon account. If you don't accept this the app will not work.
    You should see a permissions prompt that lists the OAuth scopes for reading your timeline, notifications, and posting interactions.
-1. Wait for the magic. The first time you load the page it can take a while because it has to collect a bunch of federated data: things like trending posts on other servers, toots from accounts you follow, your notifications, and your recent Mastodon history so it can tell which users you interact with the most (which is by default an important part of the algorithm).
+1. Wait for the magic. The first time you load the page it can take a while because it has to collect a bunch of federated data: things like trending posts on other servers, posts from accounts you follow, your notifications, and your recent Mastodon history so it can tell which users you interact with the most (which is by default an important part of the algorithm).
 1. Have fun.
 1. Profit.
 
@@ -37,9 +37,9 @@ The filter panels include source, language, and hashtag options, plus numeric th
 
 ## Investigating A Post's Score
 
-Clicking the ⚖️ in the GUI will bring up a popup that will show you the gorey details of how a toot measured up.
+Clicking the ⚖️ in the GUI will bring up a popup that will show you the gorey details of how a post measured up.
 
-The score inspector shows the raw scoring inputs and the final weighted score for a toot.
+The score inspector shows the raw scoring inputs and the final weighted score for a post.
 
 Here's an example of the elements that go into scoring a post:
 
@@ -48,8 +48,8 @@ This modal breaks down each factor (recency, engagement, follow status, etc.) an
 ## Boosting And Favoriting
 
 * You can boost, bookmark, and favorite other people's posts through this app's web interface.
-* Clicking the reply icon will take you to the standard Mastodon web app view of the toot you want to reply to on your home server.
-* Clicking the timestamp in the top right corner will take you to the toot on that tooter's home server (you'll only be able to reply if that's also your home server).
+* Clicking the reply icon will take you to the standard Mastodon web app view of the post you want to reply to on your home server.
+* Clicking the timestamp in the top right corner will take you to the post on that poster's home server (you'll only be able to reply if that's also your home server).
 
 ## Contributing
 

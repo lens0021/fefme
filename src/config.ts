@@ -33,7 +33,7 @@ const REQUIRED_OAUTH_SCOPES = [
 	"write:follows",
 	"write:media",
 	"write:mutes",
-	"write:statuses", // Required for retooting and voting in polls
+	"write:statuses", // Required for reposting and voting in polls
 ];
 
 const HOMEPAGE =
@@ -53,9 +53,7 @@ const GITHUB_REPO_URL =
 const ISSUES_URL = `${GITHUB_REPO_URL.replace(/\/$/, "")}/issues`;
 
 export enum GuiCheckboxName {
-	allowMultiSelect = "allowMultiSelect",
 	alwaysShowFollowed = "alwaysShowFollowed",
-	autoupdate = "autoupdate",
 	hideSensitive = "hideSensitive",
 	showFilterHighlights = "showFilterHighlights",
 	showLinkPreviews = "showLinkPreviews",
@@ -217,7 +215,7 @@ const config: Readonly<ConfigType> = {
 			optionsFormatting: {
 				// How filter options should be displayed w/what header switches
 				[BooleanFilterName.APP]: {
-					// App filter is kinda useless (98% of toots don't have the application property)
+					// App filter is kinda useless (98% of posts don't have the application property)
 					hidden: true,
 					position: 99,
 				},
@@ -246,14 +244,14 @@ const config: Readonly<ConfigType> = {
 										`${s} ${nTimes(n)} recently`,
 								},
 							},
-							text: "You tooted this hashtag", // the string "N times" is appended in getTooltipInfo()
+							text: "You posted this hashtag", // the string "N times" is appended in getTooltipInfo()
 						},
 						[TagTootsCategory.TRENDING]: {
 							highlight: {
 								gradient: {
 									endpoints: THEME.trendingTagGradient,
 									textWithSuffix: (s: string, n: number) =>
-										`${s} (${n} recent toot${n > 1 ? "s" : ""})`,
+										`${s} (${n} recent post${n > 1 ? "s" : ""})`,
 								},
 							},
 							text: "This hashtag is trending",
@@ -314,9 +312,9 @@ const config: Readonly<ConfigType> = {
 		},
 		numeric: {
 			description:
-				"Filter based on minimum/maximum number of replies, retoots, etc",
+				"Filter based on minimum/maximum number of replies, reposts, etc",
 			invertSelectionTooltipTxt:
-				"Show toots with less than the selected number of interactions instead of more",
+				"Show posts with less than the selected number of interactions instead of more",
 			position: 3,
 			maxValue: 50, // Maximum value for numeric filters
 			title: "Interactions", // Title for numeric filters section
@@ -326,9 +324,9 @@ const config: Readonly<ConfigType> = {
 				[SwitchType.HIGHLIGHTS_ONLY]:
 					"Only show the color highlighted options in this panel",
 				[SwitchType.INVERT_SELECTION]:
-					"Exclude toots matching your selected options instead of including them",
+					"Exclude posts matching your selected options instead of including them",
 				[SwitchType.SORT_BY_COUNT]:
-					"Sort the options in this panel by number of toots instead of alphabetically",
+					"Sort the options in this panel by number of posts instead of alphabetically",
 			},
 			tooltipHoverDelay: 500, // Delay for header tooltips in milliseconds
 		},
@@ -346,30 +344,18 @@ const config: Readonly<ConfigType> = {
 	theme: THEME,
 
 	timeline: {
-		autoloadOnFocusAfterMinutes: 5, // Autoload new toots if timeline is this old (and feature is enabled)
+		autoloadOnFocusAfterMinutes: 5, // Autoload new posts if timeline is this old (and feature is enabled)
 		apiErrorsUserMsgSuffix: "warnings while retrieving Mastodon data",
-		defaultLoadingMsg: "Loading (first time can take up to a minute or so)", // Message when first loading toots
-		defaultNumDisplayedToots: 20, // Default number of toots displayed in the timeline
+		defaultLoadingMsg: "Loading (first time can take up to a minute or so)", // Message when first loading posts
+		defaultNumDisplayedToots: 20, // Default number of posts displayed in the timeline
 		dmBackgroundColor: "var(--color-dm-bg)", // Background color for DMs (theme-aware)
 
 		guiCheckboxLabels: {
-			allowMultiSelect: {
-				defaultValue: false,
-				label: "Allow Multiselect",
-				tooltipText:
-					"Allow selecting multiple filter options at the same time for a filter type.",
-			},
 			alwaysShowFollowed: {
 				defaultValue: true,
 				label: "Always Show Followed",
 				tooltipText:
-					"Always show filter options for followed users and hashtags even if they have below the minimum toots threshold.",
-			},
-			autoupdate: {
-				defaultValue: false,
-				label: "Auto Update On Focus",
-				tooltipText:
-					"Automatically fetch new toots whenever you view this browser tab.",
+					"Always show filter options for followed users and hashtags even if they have below the minimum posts threshold.",
 			},
 			hideSensitive: {
 				defaultValue: true,
@@ -391,13 +377,13 @@ const config: Readonly<ConfigType> = {
 
 		loadTootsButtonLabels: {
 			loadNewToots: {
-				label: "(load new toots)",
-				tooltipText: "Load toots created since the last time you loaded toots.",
+				label: "(load new posts)",
+				tooltipText: "Load posts created since the last time you loaded posts.",
 			},
 			loadOldToots: {
-				label: "(load old toots)",
+				label: "(load old posts)",
 				tooltipText:
-					"Load more toots but starting from the oldest toot in your feed and working backwards",
+					"Load more posts but starting from the oldest post in your feed and working backwards",
 			},
 			loadUserDataForAlgorithm: {
 				label: "(load more algorithm data)",
@@ -407,8 +393,8 @@ const config: Readonly<ConfigType> = {
 		},
 
 		loadingErroMsg: "Currently loading, please wait a moment and try again.", // Error message when busy
-		noTootsMsg: "No toots in feed! Maybe check your filters settings?", // Message when no toots are available
-		numTootsToLoadOnScroll: 10, // Number of toots to load on scroll to bottom of page
+		noTootsMsg: "No posts in feed! Maybe check your filter settings?", // Message when no posts are available
+		numTootsToLoadOnScroll: 10, // Number of posts to load on scroll to bottom of page
 		tooltips: {
 			accountTooltipDelayMS: 100, // Delay for account tooltips in milliseconds
 			defaultTooltipDelayMS: 800, // Default delay for tooltips in milliseconds;
@@ -416,7 +402,7 @@ const config: Readonly<ConfigType> = {
 	},
 
 	toots: {
-		imageHeight: 314, // Default height for images in toots
+		imageHeight: 314, // Default height for images in posts
 		maxPreviewCardLength: 350, // Maximum length of preview card description
 		scoreDigits: 3, // Number of digits to display in the score
 	},
@@ -441,7 +427,7 @@ const config: Readonly<ConfigType> = {
 			},
 			[TrendingType.SERVERS]: {
 				description:
-					"The Mastodon servers all these trending links, toots, and hashtags came from, sorted by the percentage of that server's monthly active users you follow:",
+					"The Mastodon servers all these trending links, posts, and hashtags came from, sorted by the percentage of that server's monthly active users you follow:",
 				initialNumShown: 40, // TODO: unused
 				title: "Servers Telling Us What's Trending In The Fediverse",
 			},
@@ -451,7 +437,7 @@ const config: Readonly<ConfigType> = {
 			},
 			toots: {
 				initialNumShown: 10,
-				objTypeLabel: "trending toots",
+				objTypeLabel: "trending posts",
 			},
 		},
 	},

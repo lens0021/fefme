@@ -1,5 +1,5 @@
 /**
- * @fileoverview Render a Status, also known as a Toot.
+ * @fileoverview Render a Status, also known as a Post.
  */
 import React, {
 	type CSSProperties,
@@ -63,9 +63,9 @@ enum InfoIconType {
 	Hashtags = "Hashtags",
 	Mention = "You're Mentioned",
 	Reply = "Reply",
-	ShowToot = "Show Raw Toot JSON",
+	ShowToot = "Show Raw Post JSON",
 	TrendingLink = "Contains Trending Link",
-	TrendingToot = "Trending Toot",
+	TrendingToot = "Trending Post",
 }
 
 const INFO_ICONS: Record<InfoIconType, IconInfo> = {
@@ -113,12 +113,12 @@ export default function StatusComponent(props: StatusComponentProps) {
 		"text-[15px] leading-relaxed text-[color:var(--color-fg)] [&_a]:text-[color:var(--color-primary)] [&_a:hover]:underline [&_p]:mb-2 [&_p:last-child]:mb-0";
 	const fontStyle = fontColor ? { color: fontColor } : {};
 
-	// If it's a retoot set 'toot' to the original toot
+	// If it's a retoot set 'toot' to the original post
 	const toot = status.realToot;
 
 	if (!toot.mediaAttachments) {
 		logger.error(
-			"StatusComponent received toot with no mediaAttachments:",
+			"StatusComponent received post with no mediaAttachments:",
 			toot,
 		);
 	}
@@ -142,11 +142,11 @@ export default function StatusComponent(props: StatusComponentProps) {
 	const [showScoreModal, setShowScoreModal] = React.useState<boolean>(false);
 	const [showTootModal, setShowTootModal] = React.useState<boolean>(false);
 
-	// useEffect to handle things we want to do when the toot makes its first appearnace on screen
+	// useEffect to handle things we want to do when the post makes its first appearnace on screen
 	useEffect(() => {
 		if (isLoading || !isOnScreen) return;
 
-		// Pre-emptively resolve the toot ID as it appears on screen to speed up future interactions
+		// Pre-emptively resolve the post ID as it appears on screen to speed up future interactions
 		// TODO: disabled this for now as it increases storage demands for small instances
 		// toot.resolveID().catch((e) => logger.error(`Error resolving toot ID: ${toot.description}`, e));
 		toot.numTimesShown = (toot.numTimesShown || 0) + 1;
@@ -186,7 +186,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 		[toot.reblogsBy],
 	);
 
-	// Construct a colored font awesome icon to indicate some kind of property of the toot
+	// Construct a colored font awesome icon to indicate some kind of property of the post
 	const infoIcon = useCallback(
 		(iconType: InfoIconType): React.ReactElement => {
 			const iconInfo = INFO_ICONS[iconType];
@@ -218,7 +218,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 		[toot, toot.editedAt, toot.followedTags, toot.trendingTags],
 	);
 
-	// Build an action button (reply, reblog, fave, etc) that appears at the bottom of a toot
+	// Build an action button (reply, reblog, fave, etc) that appears at the bottom of a post
 	const buildActionButton = (
 		action: ButtonAction,
 		onClick?: (e: React.MouseEvent) => void,
@@ -233,7 +233,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 				json={toot.scoreInfo ? (formatScores(toot.scoreInfo) as object) : {}}
 				jsonViewProps={{
 					collapsed: 3,
-					name: "toot.scoreInfo",
+					name: "post.scoreInfo",
 					style: scoreJsonStyle,
 				}}
 				setShow={setShowScoreModal}
@@ -249,7 +249,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 						</li>
 					</ul>
 				}
-				title="This Toot's Score"
+				title="This Post's Score"
 			/>
 
 			<JsonModal
@@ -259,13 +259,13 @@ export default function StatusComponent(props: StatusComponentProps) {
 					collapsed: 1,
 					displayArrayKey: true,
 					indentWidth: 8,
-					name: "toot",
+					name: "post",
 					style: rawTootJson,
 					theme: "brewer",
 				}}
 				setShow={setShowTootModal}
 				show={showTootModal}
-				title="Raw Toot Object"
+				title="Raw Post Object"
 			/>
 
 			<div
@@ -274,7 +274,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 				style={style}
 				tabIndex={0}
 			>
-				{/* Names of accounts that reblogged the toot (if any) */}
+				{/* Names of accounts that reblogged the post (if any) */}
 				{isReblog && (
 					<div className="mb-2 flex items-center gap-2 text-xs text-[color:var(--color-muted-fg)]">
 						<FontAwesomeIcon className="text-emerald-400" icon={faRetweet} />
@@ -286,7 +286,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 				<div className={`space-y-3 ${isReblog ? "pt-2" : ""}`}>
 					{/* Top bar with account and info icons */}
 					<div className="flex flex-wrap items-start justify-between gap-3">
-						{/* Top right icons + timestamp that link to the toot */}
+						{/* Top right icons + timestamp that link to the post */}
 						<div className="flex items-center gap-2 text-xs text-[color:var(--color-muted-fg)]">
 							<NewTabLink
 								className="inline-flex items-center gap-2 hover:text-[color:var(--color-fg)]"
@@ -295,8 +295,8 @@ export default function StatusComponent(props: StatusComponentProps) {
 									openToot(toot, e, isGoToSocialUser).catch((err) => {
 										logAndSetFormattedError({
 											errorObj: err,
-											msg: "Failed to resolve toot ID!",
-											note: "Could be connectivity issues or a deleted/suspended toot.",
+											msg: "Failed to resolve post ID!",
+											note: "Could be connectivity issues or a deleted/suspended post.",
 										});
 									});
 								}}
@@ -400,7 +400,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 						</div>
 					</div>
 
-					{/* Text content of the toot */}
+					{/* Text content of the post */}
 					<div className={contentClass} style={fontStyle}>
 						<div
 							className={contentClass}
@@ -438,7 +438,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 									type="button"
 									onClick={async () => {
 										logger.debug(
-											`Loading thread for toot: ${toot.description}`,
+										`Loading thread for post: ${toot.description}`,
 										);
 
 										const toots = await executeWithLoadingState(
@@ -457,7 +457,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 							</p>
 						)}
 
-					{/* Actions (retoot, favorite, show score, etc) that appear in bottom panel of toot */}
+					{/* Actions (retoot, favorite, show score, etc) that appear in bottom panel of post */}
 					<div className="flex flex-wrap items-center gap-2" ref={statusRef}>
 						{buildActionButton(TootAction.Reply, () =>
 							window.open(toot.realURL, "_blank"),

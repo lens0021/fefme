@@ -114,7 +114,7 @@ export default function BooleanFilterAccordionSection(
 			]);
 		}
 
-		// Add a slider and tooltip for minimum # of toots if there's enough options in the panel to justify it
+		// Add a slider and tooltip for minimum # of posts if there's enough options in the panel to justify it
 		if (minTootsSliderDefaultValue > 0) {
 			const tooltipAnchor = `${filter.propertyName}-min-toots-slider-tooltip`;
 			const pluralizedPanelTitle = `${filter.propertyName}s`.toLowerCase();
@@ -131,7 +131,7 @@ export default function BooleanFilterAccordionSection(
 						type="button"
 						className="text-left"
 						data-tooltip-id={tooltipAnchor}
-						data-tooltip-content={`Hide ${pluralizedPanelTitle} with less than ${minTootsState[0]} toots`}
+						data-tooltip-content={`Hide ${pluralizedPanelTitle} with less than ${minTootsState[0]} posts`}
 					>
 						<div className="me-2">
 							<div className="flex flex-row items-center text-sm justify-between whitespace-nowrap">

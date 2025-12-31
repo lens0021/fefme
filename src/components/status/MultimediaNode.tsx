@@ -26,9 +26,9 @@ interface MultimediaNodeProps {
 
 /**
  * Component to display multimedia content (images, videos, audios) in a single pane.
- * Either toot or mediaAttachments must be given. If toot is not provided the image will not be clickable.
+ * Either post or mediaAttachments must be given. If post is not provided the image will not be clickable.
  * @param {MultimediaNodeProps} props
- * @param {Toot} [props.toot] - Optional Toot object whose images / video / audio will be displayed
+ * @param {Toot} [props.toot] - Optional Post object whose images / video / audio will be displayed
  * @param {mastodon.v1.MediaAttachment[]} [props.mediaAttachments] - Images or videos
  * @param {string} [props.removeMediaAttachment] - Function to delete attachments
  */
@@ -79,7 +79,7 @@ export default function MultimediaNode(
 		);
 	}
 
-	// Make a LazyLoadImage element for displaying an image within a Toot.
+	// Make a LazyLoadImage element for displaying an image within a Post.
 	const makeImage = useCallback(
 		(image: mastodon.v1.MediaAttachment, idx: number): React.ReactElement => (
 			<div

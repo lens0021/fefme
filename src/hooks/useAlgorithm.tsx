@@ -17,6 +17,7 @@ import TheAlgorithm, {
 	AgeIn,
 	type Toot,
 	isAccessTokenRevokedError,
+	Logger as FedialgoLogger,
 } from "fedialgo";
 import { createRestAPIClient, type mastodon } from "masto";
 import { useError } from "../components/helpers/ErrorHandler";
@@ -28,7 +29,6 @@ import {
 	type MastodonServer,
 	addMimeExtensionsToServer,
 } from "../helpers/mastodon_helpers";
-import { Events } from "../helpers/string_helpers";
 import type { ErrorHandler } from "../types";
 import { useAuthContext } from "./useAuth";
 import { useLocalStorage } from "./useLocalStorage";
@@ -36,6 +36,8 @@ import { useLocalStorage } from "./useLocalStorage";
 const logger = getLogger("AlgorithmProvider");
 const loadLogger = logger.tempLogger("setLoadState");
 const FILTERS_STORAGE_KEY = "fefme_user_filters_v1";
+const FEDERATED_SOURCE = "FederatedTimeline";
+const FEDERATED_TIMELINE_LIMIT = 40;
 
 type SavedFilters = {
 	version: 1;
@@ -57,8 +59,6 @@ type SavedFilters = {
 
 interface AlgoContext {
 	algorithm?: TheAlgorithm;
-	allowMultiSelect?: boolean;
-	allowMultiSelectCheckbox?: ReactElement;
 	alwaysShowFollowed?: boolean;
 	alwaysShowFollowedCheckbox?: ReactElement;
 	api?: mastodon.rest.Client;
@@ -74,7 +74,6 @@ interface AlgoContext {
 	setSelfTypeFilterEnabled?: (value: boolean) => void;
 	showFilterHighlights?: boolean;
 	showFilterHighlightsCheckbox?: ReactElement;
-	shouldAutoUpdateCheckbox?: ReactElement;
 	timeline: Toot[];
 	triggerFeedUpdate?: () => void;
 	triggerHomeTimelineBackFill?: () => void;
@@ -111,17 +110,11 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 	}, [user]);
 
 	// Checkboxes with persistent storage that require somewhat global state
-	const [allowMultiSelect, allowMultiSelectCheckbox] = persistentCheckbox(
-		GuiCheckboxName.allowMultiSelect,
-	);
 	const [alwaysShowFollowed, alwaysShowFollowedCheckbox] = persistentCheckbox(
 		GuiCheckboxName.alwaysShowFollowed,
 	);
 	const [hideSensitive, hideSensitiveCheckbox] = persistentCheckbox(
 		GuiCheckboxName.hideSensitive,
-	);
-	const [shouldAutoUpdate, shouldAutoUpdateCheckbox] = persistentCheckbox(
-		GuiCheckboxName.autoupdate,
 	);
 	const [showFilterHighlights, showFilterHighlightsCheckbox] =
 		persistentCheckbox(GuiCheckboxName.showFilterHighlights);
@@ -273,13 +266,50 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 			triggerLoadFxn(loadFxn, logAndShowError, setLoadState),
 		[logAndShowError, setLoadState, triggerLoadFxn],
 	);
+
+	const mergeFederatedTimeline = useCallback(async () => {
+		if (!algorithm || !api) return;
+		try {
+			const statuses = await api.v1.timelines.public.list({
+				local: false,
+				limit: FEDERATED_TIMELINE_LIMIT,
+			});
+			if (!statuses?.length) return;
+
+			const federatedToots = await Toot.buildToots(
+				statuses,
+				FEDERATED_SOURCE as unknown as any,
+			);
+			const mergeToFeed = (algorithm as unknown as any).lockedMergeToFeed;
+			if (typeof mergeToFeed !== "function") {
+				logger.warn("Federated merge skipped: mergeToFeed is unavailable.");
+				return;
+			}
+
+			const mergeLogger = new FedialgoLogger(FEDERATED_SOURCE);
+			await mergeToFeed.call(algorithm, federatedToots, mergeLogger);
+		} catch (error) {
+			logger.warn("Failed to merge federated timeline posts:", error);
+		}
+	}, [algorithm, api]);
+
 	const triggerFeedUpdate = useCallback(
-		() => algorithm && trigger(() => algorithm.triggerFeedUpdate()),
-		[algorithm, trigger],
+		() =>
+			algorithm &&
+			trigger(async () => {
+				await algorithm.triggerFeedUpdate();
+				await mergeFederatedTimeline();
+			}),
+		[algorithm, mergeFederatedTimeline, trigger],
 	);
 	const triggerHomeTimelineBackFill = useCallback(
-		() => algorithm && trigger(() => algorithm.triggerHomeTimelineBackFill()),
-		[algorithm, trigger],
+		() =>
+			algorithm &&
+			trigger(async () => {
+				await algorithm.triggerHomeTimelineBackFill();
+				await mergeFederatedTimeline();
+			}),
+		[algorithm, mergeFederatedTimeline, trigger],
 	);
 	const triggerMoarData = useCallback(
 		() => algorithm && trigger(() => algorithm.triggerMoarData()),
@@ -311,10 +341,10 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 	useEffect(() => {
 		if (algorithm || !user || !api) return;
 
-		// Check that we have valid user credentials and load timeline toots, otherwise force a logout.
+		// Check that we have valid user credentials and load timeline posts, otherwise force a logout.
 		const constructFeed = async (): Promise<void> => {
 			logger.log(
-				`constructFeed() called with user ID ${user?.id} (feed has ${timeline.length} toots)`,
+				`constructFeed() called with user ID ${user?.id} (feed has ${timeline.length} posts)`,
 			);
 			let currentUser: mastodon.v1.Account;
 
@@ -420,52 +450,8 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		user,
 	]);
 
-	// Set up feed reloader to call algorithm.triggerFeedUpdate() on focus after configured amount of time
-	useEffect(() => {
-		if (!user || !algorithm) return;
-
-		const shouldReloadFeed = (): boolean => {
-			if (!shouldAutoUpdate) return false;
-			let should = false;
-			let msg: string;
-
-			if (isLoading || algorithm.isLoading) {
-				msg = "load in progress";
-				if (!isLoading) logger.error(`isLoading is true but ${msg}`);
-			} else {
-				const feedAgeInSeconds = algorithm.mostRecentHomeTootAgeInSeconds();
-
-				if (feedAgeInSeconds) {
-					msg = `feed is ${feedAgeInSeconds.toFixed(0)}s old`;
-					should =
-						feedAgeInSeconds > config.timeline.autoloadOnFocusAfterMinutes * 60;
-				} else {
-					msg = `${timeline.length} toots in feed but no most recent toot found!`;
-					logger.error(msg);
-				}
-			}
-
-			logger.log(`shouldReloadFeed() returning ${should} (${msg})`);
-			return should;
-		};
-
-		const handleFocus = () =>
-			document.hasFocus() && shouldReloadFeed() && triggerFeedUpdate();
-		window.addEventListener(Events.FOCUS, handleFocus);
-		return () => window.removeEventListener(Events.FOCUS, handleFocus);
-	}, [
-		algorithm,
-		isLoading,
-		shouldAutoUpdate,
-		timeline.length,
-		triggerFeedUpdate,
-		user,
-	]);
-
 	const algoContext: AlgoContext = {
 		algorithm,
-		allowMultiSelect,
-		allowMultiSelectCheckbox,
 		alwaysShowFollowed,
 		alwaysShowFollowedCheckbox,
 		api,
@@ -481,7 +467,6 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		setSelfTypeFilterEnabled,
 		showFilterHighlights,
 		showFilterHighlightsCheckbox,
-		shouldAutoUpdateCheckbox,
 		timeline,
 		triggerFeedUpdate,
 		triggerHomeTimelineBackFill,

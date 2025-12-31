@@ -57,7 +57,7 @@ interface TrendingObjsProps extends TrendingPropsBase {
 // One of tagList or trendingObjs must be provided in TrendingProps.
 type TrendingProps = TrendingTagListProps | TrendingObjsProps;
 
-/** Component for displaying a list of trending links, toots, or hashtags. */
+/** Component for displaying a list of trending links, posts, or hashtags. */
 export default function TrendingSection(props: TrendingProps) {
 	const { linkRenderer, objRenderer, tagList, trendingObjs } = props;
 	const panelType = props.panelType ?? (tagList?.source as TrendingPanelName);
@@ -164,7 +164,7 @@ export default function TrendingSection(props: TrendingProps) {
 			objs = objs.slice(0, numShown);
 		}
 
-		// Short circuit the rendering for custom object renderers (so far that's means just Toots)
+		// Short circuit the rendering for custom object renderers (so far that's means just Posts)
 		if (objRenderer) {
 			return (
 				<>
@@ -277,7 +277,7 @@ export default function TrendingSection(props: TrendingProps) {
 					type="button"
 					className="text-left"
 					data-tooltip-id={tooltipAnchor}
-					data-tooltip-content={`Hide ${pluralizedPanelTitle} with less than ${minTootsState[0]} toots`}
+					data-tooltip-content={`Hide ${pluralizedPanelTitle} with less than ${minTootsState[0]} posts`}
 				>
 					<div className="flex items-center gap-3 text-sm">
 						<input

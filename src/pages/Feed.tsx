@@ -6,6 +6,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import TheAlgorithm, {
 	READY_TO_LOAD_MSG,
+	BooleanFilterName,
 	type Toot,
 	optionalSuffix,
 } from "fedialgo";
@@ -41,7 +42,6 @@ export default function Feed() {
 		currentUserWebfinger,
 		resetAlgorithm,
 		selfTypeFilterEnabled,
-		shouldAutoUpdateCheckbox,
 		timeline,
 		triggerFeedUpdate,
 		triggerHomeTimelineBackFill,
@@ -71,12 +71,16 @@ export default function Feed() {
 	);
 	const visibleTimeline = useMemo(() => {
 		if (!selfTypeFilterEnabled || !currentUserWebfinger) return timeline;
-		return timeline.filter((toot) =>
-			toot.accounts?.some(
+		const shouldInvert =
+			algorithm?.filters?.booleanFilters?.[BooleanFilterName.TYPE]
+				?.invertSelection ?? false;
+		return timeline.filter((toot) => {
+			const isSelf = toot.accounts?.some(
 				(account) => account.webfingerURI === currentUserWebfinger,
-			),
-		);
-	}, [currentUserWebfinger, selfTypeFilterEnabled, timeline]);
+			);
+			return shouldInvert ? !isSelf : isSelf;
+		});
+	}, [algorithm, currentUserWebfinger, selfTypeFilterEnabled, timeline]);
 
 	// Reset all state except for the user and server
 	const reset = async () => {
@@ -90,13 +94,13 @@ export default function Feed() {
 		resetAlgorithm();
 	};
 
-	// Show more toots when the user scrolls to bottom of the page
+	// Show more posts when the user scrolls to bottom of the page
 	// TODO: this triggers twice: once when isbottom changes to true and again because numDisplayedToots
 	//       is increased, triggering a second evaluation of the block
 	useEffect(() => {
 		const showMoreToots = () => {
 			if (numDisplayedToots < visibleTimeline.length) {
-				const msg = `Showing ${numDisplayedToots} toots, adding ${config.timeline.numTootsToLoadOnScroll}`;
+			const msg = `Showing ${numDisplayedToots} posts, adding ${config.timeline.numTootsToLoadOnScroll}`;
 				logger.log(
 					`${msg} more (${visibleTimeline.length} available in feed)`,
 				);
@@ -106,9 +110,9 @@ export default function Feed() {
 			}
 		};
 
-		// If the user scrolls to the bottom of the page, show more toots
+		// If the user scrolls to the bottom of the page, show more posts
 		if (isBottom && visibleTimeline.length) showMoreToots();
-		// If there's less than numDisplayedToots in the feed set numDisplayedToots to the # of toots in the feed
+		// If there's less than numDisplayedToots in the feed set numDisplayedToots to the # of posts in the feed
 		if (visibleTimeline.length && visibleTimeline.length < numDisplayedToots)
 			setNumDisplayedToots(visibleTimeline.length);
 
@@ -138,7 +142,7 @@ export default function Feed() {
 	}, [isBottom, numDisplayedToots, visibleTimeline.length]);
 
 	// TODO: probably easier to not rely on fedialgo's measurement of the last load time; we can easily track it ourselves.
-	let footerMsg = `Scored ${(visibleTimeline.length || 0).toLocaleString()} toots`;
+	let footerMsg = `Scored ${(visibleTimeline.length || 0).toLocaleString()} posts`;
 	footerMsg += optionalSuffix(
 		lastLoadDurationSeconds,
 		(seconds) => `in ${seconds.toFixed(1)} seconds`,
@@ -167,7 +171,6 @@ export default function Feed() {
 						<div className="flex flex-col gap-2 text-sm">
 							{showLinkPreviewsCheckbox}
 							{hideSensitiveCheckbox}
-							{shouldAutoUpdateCheckbox}
 						</div>
 
 						{algorithm && <WeightSetter />}
@@ -221,7 +224,7 @@ export default function Feed() {
 
 							<p>
 								{TheAlgorithm.isDebugMode ? (
-									`Displaying ${numDisplayedToots} Toots (Scroll: ${scrollPercentage.toFixed(1)}%)`
+									`Displaying ${numDisplayedToots} Posts (Scroll: ${scrollPercentage.toFixed(1)}%)`
 								) : (
 									<>
 										Report bugs:{" "}

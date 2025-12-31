@@ -1,5 +1,5 @@
 /*
- * Render an action button for a status (toot).
+ * Render an action button for a status (post).
  * The action button can be a favourite, reblog, bookmark, reply, or score button.
  */
 import React from "react";
@@ -136,7 +136,7 @@ export default function ActionButton(props: ActionButtonProps) {
 	const isActive = Boolean(actionInfo.booleanName && currentState);
 	const isAccount = isAccountAction(action);
 
-	// Returns a function that's called when state changes for faves, bookmarks, retoots
+	// Returns a function that's called when state changes for faves, bookmarks, reposts
 	const performAction = () => {
 		return () => {
 			if (isAccountAction(action)) return performAccountAction()();
@@ -145,7 +145,7 @@ export default function ActionButton(props: ActionButtonProps) {
 			const startingState = !!toot[actionInfo.booleanName];
 			const newState = !startingState;
 			logger.log(
-				`${action}() toot (startingState: ${startingState}, count: ${startingCount}): `,
+				`${action}() post (startingState: ${startingState}, count: ${startingCount}): `,
 				toot,
 			);
 			// Optimistically update the GUI (we will reset to original state if the server call fails later)
@@ -249,7 +249,7 @@ export default function ActionButton(props: ActionButtonProps) {
 		if (isAccountAction(action)) {
 			msg += toot.account.displayNameFullHTML(config.theme.defaultFontSize);
 		} else {
-			msg = `${msg}toot`;
+			msg = `${msg}post`;
 		}
 
 		logAndSetFormattedError({

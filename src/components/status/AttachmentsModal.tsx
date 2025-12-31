@@ -1,5 +1,5 @@
 /*
- * Modal that allows for inspection of tooted images etc upon clicking.
+ * Modal that allows for inspection of posted images etc upon clicking.
  */
 import { useEffect } from "react";
 
@@ -25,7 +25,7 @@ export default function AttachmentsModal(props: AttachmentsModalProps) {
 
 		if (!media?.url) {
 			logger.warn(
-				`<AttachmentsModal> Invalid media.url at idx ${mediaInspectionIdx}. toot:`,
+				`<AttachmentsModal> Invalid media.url at idx ${mediaInspectionIdx}. post:`,
 				toot,
 			);
 		} else if (media.type === MediaCategory.IMAGE) {
@@ -42,7 +42,7 @@ export default function AttachmentsModal(props: AttachmentsModalProps) {
 			);
 		} else {
 			logger.warn(
-				`<AttachmentsModal> Unknown type at toot.mediaAttachments[${mediaInspectionIdx}]`,
+				`<AttachmentsModal> Unknown type at post.mediaAttachments[${mediaInspectionIdx}]`,
 				toot,
 			);
 		}

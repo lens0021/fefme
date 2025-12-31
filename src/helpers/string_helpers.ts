@@ -6,11 +6,6 @@ import { isEmpty, isNil } from "lodash";
 
 import { config } from "../config";
 
-// Window events: https://developer.mozilla.org/en-US/docs/Web/API/Element/focus_event
-export enum Events {
-	FOCUS = "focus",
-}
-
 export const NETWORK_ERROR = "NetworkError when attempting to fetch resource";
 
 // Locale
