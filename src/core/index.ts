@@ -52,7 +52,6 @@ import { isDebugMode, isDeepDebug, isLoadTest, isQuickMode } from './helpers/env
 import { lockExecution } from './helpers/mutex_helpers';
 import { Logger } from './helpers/logger';
 import { MAX_ENDPOINT_RECORDS_TO_PULL, config } from './config';
-import { rechartsDataPoints } from "./helpers/stats_helper";
 import { WEIGHT_PRESETS, WeightPresetLabel, isWeightPresetLabel, type WeightPresets } from './scorer/weight_presets';
 import { type ObjList } from "./api/counted_list";
 import {
@@ -406,16 +405,6 @@ export default class TheAlgorithm {
             Trending: this.trendingData,
             UserData: await MastoApi.instance.getUserData(),
         };
-    }
-
-    /**
-     * Build array of objects suitable for charting timeline scoring data by quintile/decile/etc.
-     * with {@link https://recharts.org/ Recharts}.
-     * @param {number} numPercentiles - Number of percentiles for stats.
-     * @returns {object[]} Recharts data points.
-     */
-    getRechartsStatsData(numPercentiles: number): object[] {
-        return rechartsDataPoints(this.feed, numPercentiles);
     }
 
     /**

@@ -171,31 +171,6 @@ export function getThemePalette(isDark: boolean): ColorPalette {
 	return isDark ? THEME.dark : THEME.light;
 }
 
-// Colors used for the 'recharts' package's animated charts - cycle through these for multiple lines/pies/etc.
-// Using conventional, popular colors from Tailwind-style palette
-export const RECHARTS_COLORS: CSSProperties["color"][] = [
-	"#ef4444", // red-500
-	"#f97316", // orange-500
-	"#10b981", // emerald-500
-	"#3b82f6", // blue-500
-	"#8b5cf6", // violet-500
-	"#ec4899", // pink-500
-	"#a16207", // yellow-700
-	"#6b7280", // gray-500
-	"#d946ef", // fuchsia-500
-	"#84cc16", // lime-500
-	"#06b6d4", // cyan-500
-	"#f59e0b", // amber-500
-	"#14b8a6", // teal-500
-	"#0ea5e9", // sky-500
-	"#a855f7", // purple-500
-	"#f43f5e", // rose-500
-	"#22c55e", // green-500
-	"#eab308", // yellow-500
-	"#6366f1", // indigo-500
-	"#64748b", // slate-500
-];
-
 /** Wrap middleColors in endpoints and generate a tinygradient (see docs for details) */
 export function buildGradient(
 	endpoints: [tinycolor.Instance, tinycolor.Instance],

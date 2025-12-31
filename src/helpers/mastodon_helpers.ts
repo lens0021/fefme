@@ -23,7 +23,6 @@ const MIME_GROUPS = Object.values(MediaCategory).reduce(
 );
 
 // Populate our mimeExtensions field in the mastodon.v2.Instance object based on the server's configuration.
-// Turns Mastodon server configuration into what we need for DropZone to work with image attachments etc.
 export function addMimeExtensionsToServer(
 	server: mastodon.v2.Instance,
 ): MastodonServer {
@@ -43,7 +42,7 @@ export function addMimeExtensionsToServer(
 	}
 }
 
-// Build a map of MIME types to file extensions used by DropZone for image attachments etc.
+// Build a map of MIME types to file extensions used for media uploads.
 function buildMimeExtensions(mimeTypes: string[]): MimeExtensions {
 	const mimeExtensions = mimeTypes.reduce((acc, mimeType) => {
 		const [category, fileType] = mimeType.split("/");
