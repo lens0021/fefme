@@ -1,10 +1,10 @@
 /*
- * Navigation helpers for React components.
+ * UI helpers and tooltip types.
  */
 import type React from "react";
 import {
-	type CSSProperties,
 	Children,
+	type CSSProperties,
 	type MouseEvent,
 	type ReactElement,
 	type ReactNode,
@@ -12,16 +12,18 @@ import {
 } from "react";
 
 import { type Toot, type TrendingWithHistory, makeChunks } from "fedialgo";
+import type tinycolor from "tinycolor2";
 
 import { appLogger } from "./log_helpers";
 import { isEmptyStr } from "./string_helpers";
+import type { GradientEndpoints } from "./styles";
 
 ////////////////////////
 // Navigation Helpers //
 ////////////////////////
 
 // Opens in new tab. For same tab do this:  window.location.href = statusURL;
-export function followUri(uri: string, e: React.MouseEvent): boolean {
+export function followUri(uri: string, e: MouseEvent): boolean {
 	e.preventDefault();
 	window.open(uri, "_blank");
 	return false;
@@ -30,7 +32,7 @@ export function followUri(uri: string, e: React.MouseEvent): boolean {
 // Open the Toot in a new tab, resolved to its URL on the user's home server
 export async function openToot(
 	toot: Toot,
-	e: React.MouseEvent,
+	e: MouseEvent,
 	isGoToSocialUser?: boolean,
 ): Promise<boolean> {
 	e.preventDefault();
@@ -115,18 +117,6 @@ export function gridify(
 	);
 }
 
-/** Create a horizontal spacer of a given width. **/
-export function horizontalSpacer(width: number, key?: string): ReactElement {
-	return <div key={key || ""} style={{ width: `${width}px` }} />;
-}
-
-/** Create a vertical spacer of a given height. **/
-export function verticalSpacer(height: number, key?: string): ReactElement {
-	return (
-		<div key={key || ""} style={{ height: `${height}px`, width: "100%" }} />
-	);
-}
-
 /**
  * Creates a factory function for generating HeaderSwitch components with state management
  * @param state The current state object
@@ -208,3 +198,46 @@ export function booleanIcon(
 		</span>
 	);
 }
+
+///////////////////////
+// Tooltip Typings   //
+///////////////////////
+
+export interface CheckboxGradientCfg {
+	// Sometimes we want to adjust the gradient instead of using the one between the endpoints to make any of the
+	// colors visible (e.g. when the user has one tag they participate in A LOT the rest will be undifferentiated)
+	adjustment?: {
+		adjustPctiles: number[];
+		minTagsToAdjust: number;
+	};
+	endpoints: GradientEndpoints;
+	textWithSuffix: (txt: string, n: number) => string;
+}
+
+// Two types unioned to create on XOR argument situation
+type CheckboxColor = { color: CSSProperties["color"]; gradient?: never };
+type CheckboxGradientColor = { color?: never; gradient: CheckboxGradientCfg };
+
+export type CheckboxTooltipConfig = {
+	anchor?: string;
+	highlight?: CheckboxColor | CheckboxGradientColor; // Union type forces exactly one of 'color' or 'gradient'
+	text: string;
+};
+
+// Same as CheckboxTooltipConfig but with the actual array of colors for the gradient
+export interface CheckboxGradientTooltipConfig extends CheckboxTooltipConfig {
+	colors: tinycolor.Instance[];
+}
+
+export type GuiCheckboxLabel = {
+	readonly anchor?: string; // Optional anchor for the tooltip
+	readonly defaultValue: boolean;
+	readonly label: string;
+	readonly tooltipText: string;
+};
+
+export type LinkWithTooltipCfg = {
+	readonly label: string;
+	readonly labelStyle?: React.CSSProperties;
+	readonly tooltipText: string;
+};

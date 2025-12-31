@@ -23,7 +23,7 @@ import type {
 	CheckboxTooltipConfig,
 	GuiCheckboxLabel,
 	LinkWithTooltipCfg,
-} from "./helpers/tooltip_helpers";
+} from "./helpers/ui";
 
 // Mastodon OAuth scopes required for this app to work. Details: https://docs.joinmastodon.org/api/oauth-scopes/
 const REQUIRED_OAUTH_SCOPES = [

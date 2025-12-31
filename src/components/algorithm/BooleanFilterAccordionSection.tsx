@@ -17,7 +17,7 @@ import {
 	computeMinTootsDefaultValue,
 	computeMinTootsMaxValue,
 } from "../../helpers/min_toots";
-import { createSwitchFactory } from "../../helpers/react_helpers";
+import { createSwitchFactory } from "../../helpers/ui";
 import { SwitchType } from "../../helpers/styles";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
 import Accordion from "../helpers/Accordion";

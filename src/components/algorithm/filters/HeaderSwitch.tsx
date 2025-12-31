@@ -10,7 +10,7 @@ import { Tooltip } from "react-tooltip";
 import { config } from "../../../config";
 import { getLogger } from "../../../helpers/log_helpers";
 import { SwitchType } from "../../../helpers/styles";
-import type { CheckboxTooltipConfig } from "../../../helpers/tooltip_helpers";
+import type { CheckboxTooltipConfig } from "../../../helpers/ui";
 import { useAlgorithm } from "../../../hooks/useAlgorithm";
 import Checkbox from "../../helpers/Checkbox";
 

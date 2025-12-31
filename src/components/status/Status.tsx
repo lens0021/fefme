@@ -32,7 +32,7 @@ import { config } from "../../config";
 import { executeWithLoadingState } from "../../helpers/async_helpers";
 import { getLogger } from "../../helpers/log_helpers";
 import { formatScore, formatScores } from "../../helpers/number_helpers";
-import { openToot } from "../../helpers/react_helpers";
+import { openToot } from "../../helpers/ui";
 import { timestampString } from "../../helpers/string_helpers";
 import { useAlgorithm } from "../../hooks/useAlgorithm";
 import useOnScreen from "../../hooks/useOnScreen";

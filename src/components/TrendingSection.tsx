@@ -18,7 +18,7 @@ import {
 	computeMinTootsDefaultValue,
 	computeMinTootsMaxValue,
 } from "../helpers/min_toots";
-import { gridify } from "../helpers/react_helpers";
+import { gridify } from "../helpers/ui";
 import Accordion from "./helpers/Accordion";
 import NewTabLink from "./helpers/NewTabLink";
 

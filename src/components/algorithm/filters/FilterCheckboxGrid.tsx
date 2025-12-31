@@ -19,12 +19,12 @@ import { isEmpty, isFinite as isFiniteNumber } from "lodash";
 
 import { config } from "../../../config";
 import { getLogger } from "../../../helpers/log_helpers";
-import { gridify } from "../../../helpers/react_helpers";
+import { gridify } from "../../../helpers/ui";
 import { buildGradient } from "../../../helpers/styles";
 import type {
 	CheckboxGradientTooltipConfig,
 	CheckboxTooltipConfig,
-} from "../../../helpers/tooltip_helpers";
+} from "../../../helpers/ui";
 import { useAlgorithm } from "../../../hooks/useAlgorithm";
 import Checkbox, {
 	FILTER_TOOLTIP_ANCHOR,

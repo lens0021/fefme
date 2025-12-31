@@ -8,8 +8,8 @@ import { capitalCase } from "change-case";
 import { Tooltip } from "react-tooltip";
 
 import { type GuiCheckboxName, config } from "../../config";
-import { followUri } from "../../helpers/react_helpers";
-import type { CheckboxTooltipConfig } from "../../helpers/tooltip_helpers";
+import { followUri } from "../../helpers/ui";
+import type { CheckboxTooltipConfig } from "../../helpers/ui";
 import { useAlgorithm } from "../../hooks/useAlgorithm";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
 

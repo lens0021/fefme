@@ -23,7 +23,7 @@ import StatusComponent, {
 } from "../components/status/Status";
 import { GuiCheckboxName, config } from "../config";
 import { getLogger } from "../helpers/log_helpers";
-import { booleanIcon } from "../helpers/react_helpers";
+import { booleanIcon } from "../helpers/ui";
 import { useAlgorithm } from "../hooks/useAlgorithm";
 import useOnScreen from "../hooks/useOnScreen";
 

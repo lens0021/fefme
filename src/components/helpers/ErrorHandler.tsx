@@ -12,7 +12,7 @@ import { ErrorBoundary } from "react-error-boundary";
 
 import { config } from "../../config";
 import { getLogger } from "../../helpers/log_helpers";
-import { extractText } from "../../helpers/react_helpers";
+import { extractText } from "../../helpers/ui";
 import { isEmptyStr } from "../../helpers/string_helpers";
 
 const errorLogger = getLogger("ErrorHandler");
