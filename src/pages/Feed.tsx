@@ -153,7 +153,7 @@ export default function Feed() {
 
 	return (
 		<div style={{ height: "auto" }}>
-			<div className="flex flex-wrap" style={waitOrDefaultCursor(isLoadingThread)}>
+			<div style={waitOrDefaultCursor(isLoadingThread)}>
 				{/* Tooltip options: https://react-tooltip.com/docs/options */}
 				<Tooltip
 					border={"solid"}
@@ -168,9 +168,9 @@ export default function Feed() {
 
 				{checkboxTooltip}
 
-				<div className="w-full md:w-1/2">
-					{/* TODO: maybe the inset-inline-end property could be used to allow panel to scroll to length but still stick? */}
-					<div className="sticky top-0 left-col-scroll">
+				<div className="w-full">
+					{/* Controls section */}
+					<div>
 						<div style={stickySwitchContainer}>
 							{showLinkPreviewsCheckbox}
 							{hideSensitiveCheckbox}
@@ -256,7 +256,7 @@ export default function Feed() {
 				</div>
 
 				{/* Feed column */}
-				<div className="w-full md:w-1/2">
+				<div className="w-full">
 					{algorithm && !isLoading && (
 						<div style={loadNewTootsText}>
 							<TooltippedLink
