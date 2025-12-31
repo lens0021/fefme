@@ -341,7 +341,7 @@ export default function Feed() {
 						)}
 
 						<div
-							className="rounded"
+							className="rounded -mx-3 px-2 sm:mx-0 sm:px-0"
 							style={{ backgroundColor: config.theme.feedBackgroundColor }}
 						>
 							{timeline.slice(0, numShownToots).map((toot) => (
