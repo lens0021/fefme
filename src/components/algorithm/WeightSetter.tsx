@@ -16,7 +16,13 @@ import TopLevelAccordion from "../helpers/TopLevelAccordion";
 import WeightSlider from "./WeightSlider";
 import { confirm } from "../helpers/Confirmation";
 import { getLogger } from "../../helpers/log_helpers";
-import { roundedBox, titleStyle } from "../../helpers/styles";
+import { config } from "../../config";
+import {
+	baseButton,
+	roundedBox,
+	titleStyle,
+	verticalSpacer,
+} from "../../helpers/styles";
 import { useAlgorithm } from "../../hooks/useAlgorithm";
 import { useError } from "../helpers/ErrorHandler";
 
@@ -112,7 +118,7 @@ export default function WeightSetter() {
 			{Object.values(NonScoreWeightName).map((weight) =>
 				makeWeightSlider(weight),
 			)}
-			<div style={{ height: "12px" }} />
+			<div style={verticalSpacer("12px")} />
 
 			<div style={roundedBox}>
 				<p style={weightingsStyle}>Weightings</p>
@@ -132,15 +138,9 @@ const resetButtonContainer: CSSProperties = {
 };
 
 const resetButton: CSSProperties = {
-	backgroundColor: "#ef4444",
+	...baseButton,
+	backgroundColor: config.theme.light.danger,
 	color: "white",
-	border: "none",
-	padding: "8px 16px",
-	borderRadius: "6px",
-	cursor: "pointer",
-	fontSize: "14px",
-	fontWeight: "500",
-	transition: "background-color 0.2s",
 };
 
 const weightingsStyle: CSSProperties = {

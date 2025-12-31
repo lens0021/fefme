@@ -13,6 +13,7 @@ import { Logger } from "fedialgo";
 
 import BugReportLink from "./BugReportLink";
 import {
+	baseButton,
 	blackBackground,
 	blackBoldFont,
 	blackFont,
@@ -240,13 +241,11 @@ const tryAgainContainer: CSSProperties = {
 };
 
 const tryAgainButton: CSSProperties = {
-	backgroundColor: "#3b82f6",
+	...baseButton,
+	backgroundColor: config.theme.light.primary,
 	color: "white",
-	border: "none",
-	padding: "10px 20px",
-	borderRadius: "4px",
-	cursor: "pointer",
 	fontSize: "16px",
+	padding: "10px 20px",
 };
 
 const modalOverlay: CSSProperties = {

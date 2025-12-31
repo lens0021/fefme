@@ -46,3 +46,25 @@ export const roundedBox: CSSProperties = {
 export const roundedCorners: CSSProperties = {
 	borderRadius: 15,
 };
+
+/**
+ * Base button style - common properties for all buttons
+ * Extend this with specific colors and sizes
+ */
+export const baseButton: CSSProperties = {
+	border: "none",
+	borderRadius: "6px",
+	cursor: "pointer",
+	fontSize: "14px",
+	fontWeight: "500",
+	padding: "8px 16px",
+	transition: "background-color 0.2s",
+};
+
+/**
+ * Create a vertical spacer div with specified height
+ * Usage: <div style={verticalSpacer("12px")} />
+ */
+export function verticalSpacer(height: string): CSSProperties {
+	return { height };
+}
