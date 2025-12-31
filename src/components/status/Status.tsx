@@ -129,7 +129,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 	const { isGoToSocialUser, isLoading } = useAlgorithm();
 	const { logAndSetFormattedError } = useError();
 	const contentClass =
-		"text-[15px] leading-relaxed text-[color:var(--color-fg)] [&_a]:text-[color:var(--color-primary)] [&_a:hover]:underline [&_p]:mb-2 [&_p:last-child]:mb-0";
+		"text-[15px] leading-relaxed text-[color:var(--color-fg)] break-words [&_a]:text-[color:var(--color-primary)] [&_a]:break-all [&_a:hover]:underline [&_p]:mb-2 [&_p:last-child]:mb-0";
 	const fontStyle = fontColor ? { color: fontColor } : {};
 
 	// If it's a retoot set 'toot' to the original post
