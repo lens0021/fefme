@@ -1,57 +1,111 @@
 /* Mastodon Bird UI by @rolle@mementomori.social
-   1.4.8rc1 */
+   1.4.8rc1 - Modified for light/dark theme support */
 
-/* CSS variables */
-:root {
-	/* Brand colors */
-	--color-brand-twitter: #1d9bf0;
-	--color-brand-twitter-bg: #15202b;
-	--color-brand-twitter-dim: #8b98a5;
-	--color-brand-twitter-mud: #273340;
-	--color-brand-twitter-dark: #232543;
-	--color-brand-twitter-threaded-line: #425364;
-	--color-brand-mastodon: #595aff;
-	--color-brand-mastodon-links: #8c8dff;
-	--color-brand-mastodon-bg: #1e2028;
-	--color-brand-mastodon-dim: #717c9b;
-	--color-brand-mastodon-mud: #272c40;
-	--color-brand-mastodon-dark: #232543;
-	--color-brand-mastodon-threaded-line: #434264;
-	--color-brand-mastodon-text-light: #8493a7;
+/* CSS variables - Light theme (default) */
+:root,
+[data-theme="light"] {
+	/* Core colors - Light mode */
+	--color-bg: #ffffff;
+	--color-fg: #0f172a;
+	--color-border: #e2e8f0;
+	--color-muted: #f1f5f9;
+	--color-muted-fg: #64748b;
 
-	/* Colors */
-	/* Note: Remember to search for the DIM hex
-     and replace it inside the SVG icons if you decide to change it */
-	--color-bg: var(--color-brand-mastodon-bg);
-	--color-bg-75: #1e2028bf;
-	--color-fg: #fff;
-	--color-border: #38384d;
-	--color-dim: var(--color-brand-mastodon-dim);
-	--color-accent: var(--color-brand-mastodon-links);
-	--color-accent-dark: var(--color-brand-mastodon);
-	--color-green: #00ba7c;
-	--color-red: #f91880;
-	--color-red-75: #f91880bf;
-	--color-yellow: #ffac33;
+	/* Semantic colors - Light mode */
+	--color-primary: #3b82f6;
+	--color-primary-fg: #ffffff;
+	--color-secondary: #8b5cf6;
+	--color-accent: #06b6d4;
+	--color-accent-dark: #0891b2;
+	--color-success: #10b981;
+	--color-green: #10b981;
+	--color-warning: #f59e0b;
+	--color-yellow: #f59e0b;
+	--color-danger: #ef4444;
+	--color-red: #ef4444;
+	--color-info: #06b6d4;
+
+	/* Component colors - Light mode */
+	--color-card-bg: #ffffff;
+	--color-input-bg: #f8fafc;
+	--color-dm-bg: #f0f9ff;
+
+	/* UI element colors - Light mode */
+	--color-bg-75: #ffffffbf;
+	--color-red-75: #ef4444bf;
+	--color-light-shade: #00000005;
+	--color-focusable-toot: #00000009;
+	--color-light-text: #0f172a;
+	--color-dim: #64748b;
+	--color-mud: #f1f5f9;
+	--color-black-coral: #475569;
+	--color-profile-button-hover: #0f172a1a;
+	--color-column-link-hover: #0f172a1a;
+	--color-modal-overlay: #0f172a66;
+	--color-dark: #1e293b;
+	--color-thread-line: #cbd5e1;
+	--color-gainsboro: #e2e8f0;
+	--color-light-purple: #94a3b8;
+	--color-dark-electric-blue: #64748b;
+	--color-button-text: #ffffff;
+	--color-ghost-button-text: #0f172a;
+	--color-verified: #10b981;
+	--color-destructive: #ef4444;
+}
+
+/* CSS variables - Dark theme */
+[data-theme="dark"] {
+	/* Core colors - Dark mode */
+	--color-bg: #0f172a;
+	--color-fg: #f1f5f9;
+	--color-border: #334155;
+	--color-muted: #1e293b;
+	--color-muted-fg: #94a3b8;
+
+	/* Semantic colors - Dark mode */
+	--color-primary: #60a5fa;
+	--color-primary-fg: #0f172a;
+	--color-secondary: #a78bfa;
+	--color-accent: #22d3ee;
+	--color-accent-dark: #06b6d4;
+	--color-success: #34d399;
+	--color-green: #34d399;
+	--color-warning: #fbbf24;
+	--color-yellow: #fbbf24;
+	--color-danger: #f87171;
+	--color-red: #f87171;
+	--color-info: #22d3ee;
+
+	/* Component colors - Dark mode */
+	--color-card-bg: #1e293b;
+	--color-input-bg: #0f172a;
+	--color-dm-bg: #1e3a8a;
+
+	/* UI element colors - Dark mode */
+	--color-bg-75: #0f172abf;
+	--color-red-75: #f87171bf;
 	--color-light-shade: #ffffff05;
 	--color-focusable-toot: #ffffff09;
-	--color-light-text: #f7f9f9;
-	--color-mud: var(--color-brand-mastodon-mud);
-	--color-black-coral: #536471;
-	--color-profile-button-hover: #eff3f41a;
-	--color-column-link-hover: #f7f9f91a;
-	--color-modal-overlay: #5b708366;
-	--color-dark: var(--color-brand-mastodon-dark);
-	--color-thread-line: var(--color-brand-mastodon-threaded-line);
-	--color-gainsboro: #d9e1e8;
-	--color-light-purple: #9baec8;
-	--color-dark-electric-blue: #576078;
-	--color-button-text: #f7f9f9;
-	--color-ghost-button-text: var(--color-button-text);
-	--color-verified: #79bd9a;
-	--color-destructive: #df405a;
+	--color-light-text: #f1f5f9;
+	--color-dim: #94a3b8;
+	--color-mud: #1e293b;
+	--color-black-coral: #94a3b8;
+	--color-profile-button-hover: #f1f5f91a;
+	--color-column-link-hover: #f1f5f91a;
+	--color-modal-overlay: #f1f5f966;
+	--color-dark: #1e293b;
+	--color-thread-line: #475569;
+	--color-gainsboro: #334155;
+	--color-light-purple: #64748b;
+	--color-dark-electric-blue: #475569;
+	--color-button-text: #0f172a;
+	--color-ghost-button-text: #f1f5f9;
+	--color-verified: #34d399;
+	--color-destructive: #f87171;
+}
 
-	/* Font related */
+/* Font related - shared across themes */
+:root {
 	--font-stack:
 		system-ui, -apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, Inter, helvetica neue, helvetica, Cantarell, Ubuntu, roboto, noto, arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 	--font-size: 15px;

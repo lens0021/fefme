@@ -363,7 +363,7 @@ class Config implements ReadonlyConfig {
 		apiErrorsUserMsgSuffix: `warnings while retrieving Mastodon data`,
 		defaultLoadingMsg: "Loading (first time can take up to a minute or so)", // Message when first loading toots
 		defaultNumDisplayedToots: 20, // Default number of toots displayed in the timeline
-		dmBackgroundColor: "rgb(28, 27, 58)", // Background color for DMs
+		dmBackgroundColor: "var(--color-dm-bg)", // Background color for DMs (theme-aware)
 
 		guiCheckboxLabels: {
 			allowMultiSelect: {

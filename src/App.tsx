@@ -17,13 +17,17 @@ import Footer from "./components/Footer";
 import Header from "./components/Header";
 import LoginPage from "./pages/LoginPage";
 import ProtectedRoute from "./components/ProtectedRoute";
-import { blackBackground, centerAlignedFlexCol } from "./helpers/style_helpers";
+import { centerAlignedFlexCol } from "./helpers/style_helpers";
 import { getLogger, logLocaleInfo } from "./helpers/log_helpers";
+import { useTheme } from "./hooks/useTheme";
 
 const logger = getLogger("App.tsx");
 
 export default function App(): React.ReactElement {
 	logLocaleInfo();
+
+	// Initialize theme detection
+	useTheme();
 
 	// This is a workaround for Github pages (which only allows GET query params), the HashRouter,
 	// and OAuth redirects. OAuth redirects cannot include a hash and Github Pages doesn't accept
@@ -88,8 +92,9 @@ export default function App(): React.ReactElement {
 }
 
 const containerStyle: CSSProperties = {
-	...blackBackground,
 	...centerAlignedFlexCol,
+	backgroundColor: "var(--color-bg)",
+	color: "var(--color-fg)",
 	height: "auto",
 };
 

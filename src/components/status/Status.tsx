@@ -73,15 +73,15 @@ enum InfoIconType {
 }
 
 const INFO_ICONS: Record<InfoIconType, IconInfo> = {
-	[InfoIconType.Bot]: { icon: faRobot, color: "#196273" },
-	[InfoIconType.DM]: { icon: faLock, color: "purple" },
+	[InfoIconType.Bot]: { icon: faRobot, color: config.theme.light.info },
+	[InfoIconType.DM]: { icon: faLock, color: config.theme.light.secondary },
 	[InfoIconType.Edited]: { icon: faPencil },
 	[InfoIconType.Hashtags]: {
 		icon: faHashtag,
 		color: config.theme.participatedTagColor,
 	},
-	[InfoIconType.Mention]: { icon: faBolt, color: "green" },
-	[InfoIconType.Reply]: { icon: faReply, color: "blue" },
+	[InfoIconType.Mention]: { icon: faBolt, color: config.theme.light.success },
+	[InfoIconType.Reply]: { icon: faReply, color: config.theme.light.primary },
 	[InfoIconType.ShowToot]: { icon: faUpRightFromSquare },
 	[InfoIconType.TrendingLink]: {
 		icon: faLink,
