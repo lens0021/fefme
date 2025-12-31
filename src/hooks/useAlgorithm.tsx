@@ -42,6 +42,7 @@ type SavedFilters = {
 		string,
 		{
 			invertSelection?: boolean;
+			excludedOptions?: string[];
 			selectedOptions?: string[];
 		}
 	>;
@@ -66,8 +67,8 @@ interface AlgoContext {
 	lastLoadDurationSeconds?: number;
 	resetAlgorithm?: () => Promise<void>;
 	serverInfo?: MastodonServer;
-	selfTypeFilterEnabled?: boolean;
-	setSelfTypeFilterEnabled?: (value: boolean) => void;
+	selfTypeFilterMode?: "include" | "exclude" | "none";
+	setSelfTypeFilterMode?: (value: "include" | "exclude" | "none") => void;
 	showFilterHighlights?: boolean;
 	timeline: Toot[];
 	triggerFeedUpdate?: () => void;
@@ -110,8 +111,9 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		GuiCheckboxName.hideSensitive,
 	);
 	const showFilterHighlights = true;
-	const [selfTypeFilterEnabled, setSelfTypeFilterEnabled] =
-		useLocalStorage<boolean>("type-filter-self", false);
+	const [selfTypeFilterMode, setSelfTypeFilterMode] = useLocalStorage<
+		"include" | "exclude" | "none"
+	>("type-filter-self", "none");
 
 	const currentUserWebfinger = useMemo(() => {
 		if (!user?.username || !user?.server) return null;
@@ -142,8 +144,8 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 			boolean: Object.values(filters.booleanFilters || {}).reduce(
 				(acc, filter) => {
 					acc[filter.propertyName] = {
-						invertSelection: filter.invertSelection,
 						selectedOptions: filter.selectedOptions,
+						excludedOptions: filter.excludedOptions,
 					};
 					return acc;
 				},
@@ -171,8 +173,20 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 			for (const [name, state] of Object.entries(saved.boolean)) {
 				const filter = algo.filters.booleanFilters[name];
 				if (!filter) continue;
-				filter.invertSelection = state.invertSelection ?? false;
-				filter.selectedOptions = state.selectedOptions ?? [];
+				const selectedOptions = state.selectedOptions ?? [];
+				const excludedOptions = state.excludedOptions ?? [];
+				if (
+					state.invertSelection &&
+					!excludedOptions.length &&
+					selectedOptions.length
+				) {
+					filter.selectedOptions = [];
+					filter.excludedOptions = selectedOptions;
+				} else {
+					filter.selectedOptions = selectedOptions;
+					filter.excludedOptions = excludedOptions;
+				}
+				filter.invertSelection = false;
 			}
 
 			for (const [name, state] of Object.entries(saved.numeric)) {
@@ -428,8 +442,8 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		lastLoadDurationSeconds,
 		resetAlgorithm,
 		serverInfo,
-		selfTypeFilterEnabled,
-		setSelfTypeFilterEnabled,
+		selfTypeFilterMode,
+		setSelfTypeFilterMode,
 		showFilterHighlights,
 		timeline,
 		triggerFeedUpdate,

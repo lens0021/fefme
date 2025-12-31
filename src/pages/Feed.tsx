@@ -41,7 +41,7 @@ export default function Feed() {
 		lastLoadDurationSeconds,
 		currentUserWebfinger,
 		resetAlgorithm,
-		selfTypeFilterEnabled,
+		selfTypeFilterMode,
 		timeline,
 		triggerFeedUpdate,
 		triggerHomeTimelineBackFill,
@@ -71,17 +71,15 @@ export default function Feed() {
 		numDisplayedToots,
 	);
 	const visibleTimeline = useMemo(() => {
-		if (!selfTypeFilterEnabled || !currentUserWebfinger) return timeline;
-		const shouldInvert =
-			algorithm?.filters?.booleanFilters?.[BooleanFilterName.TYPE]
-				?.invertSelection ?? false;
+		if (selfTypeFilterMode === "none" || !currentUserWebfinger) return timeline;
+		const shouldInvert = selfTypeFilterMode === "exclude";
 		return timeline.filter((toot) => {
 			const isSelf = toot.accounts?.some(
 				(account) => account.webfingerURI === currentUserWebfinger,
 			);
 			return shouldInvert ? !isSelf : isSelf;
 		});
-	}, [algorithm, currentUserWebfinger, selfTypeFilterEnabled, timeline]);
+	}, [currentUserWebfinger, selfTypeFilterMode, timeline]);
 
 	// Reset all state except for the user and server
 	const reset = async () => {

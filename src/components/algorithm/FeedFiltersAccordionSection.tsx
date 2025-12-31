@@ -14,7 +14,7 @@ import NumericFilters from "./filters/NumericFilters";
  * are trending in the Fediverse.
  */
 export default function FeedFiltersAccordionSection() {
-	const { algorithm, selfTypeFilterEnabled } = useAlgorithm();
+	const { algorithm, selfTypeFilterMode } = useAlgorithm();
 
 	const booleanFiltersCfg = config.filters.boolean.optionsFormatting;
 	// Filter for 'visible' because the APP filters are currently hidden
@@ -23,11 +23,13 @@ export default function FeedFiltersAccordionSection() {
 	);
 	const numericFilters = Object.values(algorithm.filters.numericFilters);
 	const hasActiveBooleanFilter = booleanFilters.some(
-		(f) => f.selectedOptions.length,
+		(f) => f.selectedOptions.length || f.excludedOptions.length,
 	);
 	const hasActiveNumericFilter = numericFilters.some((f) => f.value > 0);
 	const hasAnyActiveFilter =
-		hasActiveNumericFilter || hasActiveBooleanFilter || !!selfTypeFilterEnabled;
+		hasActiveNumericFilter ||
+		hasActiveBooleanFilter ||
+		selfTypeFilterMode !== "none";
 
 	// Sort the filter sections based on configured 'position' value
 	const filterPositions = booleanFilters.reduce(

@@ -19,14 +19,14 @@ import { isEmpty, isFinite as isFiniteNumber } from "lodash";
 
 import { config } from "../../../config";
 import { getLogger } from "../../../helpers/log_helpers";
-import { gridify } from "../../../helpers/ui";
+import { followUri, gridify } from "../../../helpers/ui";
 import { buildGradient } from "../../../helpers/styles";
 import type {
 	CheckboxGradientTooltipConfig,
 	CheckboxTooltipConfig,
 } from "../../../helpers/ui";
 import { useAlgorithm } from "../../../hooks/useAlgorithm";
-import Checkbox, {
+import {
 	FILTER_TOOLTIP_ANCHOR,
 	HIGHLIGHTED_TOOLTIP_ANCHOR,
 } from "../../helpers/Checkbox";
@@ -53,8 +53,8 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 	const {
 		algorithm,
 		alwaysShowFollowed,
-		selfTypeFilterEnabled,
-		setSelfTypeFilterEnabled,
+		selfTypeFilterMode,
+		setSelfTypeFilterMode,
 		showFilterHighlights,
 	} = useAlgorithm();
 	const logger = useMemo(
@@ -209,7 +209,9 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 
 	const optionGrid = (() => {
 		logger.deep(
-			`Rebuilding optionGrid for ${filter.options.length} options (${filter.selectedOptions.length} selected)`,
+			`Rebuilding optionGrid for ${filter.options.length} options (${
+				filter.selectedOptions.length + filter.excludedOptions.length
+			} active)`,
 		);
 
 		let options = sortByCount
@@ -222,45 +224,146 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 
 		const optionCheckboxes = options.objs.map((option) => {
 			const label = option.displayName || option.name;
-
 			const labelExtra = option?.numToots?.toLocaleString();
+			const formattedLabel = optionsFormatCfg?.formatLabel
+				? optionsFormatCfg?.formatLabel(label)
+				: label;
+			const tooltip = findTooltip(option);
+			const highlightColor = tooltip?.highlight?.color;
+			const tooltipAnchor = highlightColor
+				? HIGHLIGHTED_TOOLTIP_ANCHOR
+				: FILTER_TOOLTIP_ANCHOR;
+			const optionState = filter.getOptionState(option.name);
+			const highlightStyle = highlightColor
+				? { backgroundColor: highlightColor }
+				: undefined;
+
+			const setState = (state: "include" | "exclude" | "neutral") => {
+				if (isTypeFilter && state !== "neutral" && selfTypeFilterMode !== "none") {
+					setSelfTypeFilterMode?.("none");
+				}
+				filter.updateOption(option.name, state);
+				algorithm.updateFilters(algorithm.filters);
+			};
+
+			const optionLabel = isTagFilter ? (
+				<a
+					href={algorithm.tagUrl(option.name)}
+					onClick={(e) => followUri(algorithm.tagUrl(option.name), e)}
+					className="underline cursor-pointer text-[color:var(--color-fg)]"
+					rel="noopener noreferrer"
+					target="_blank"
+				>
+					{formattedLabel}
+				</a>
+			) : (
+				<span>{formattedLabel}</span>
+			);
 
 			return (
-				<Checkbox
-					isChecked={filter.isOptionEnabled(option.name)}
+				<div
 					key={option.name}
-					label={
-						optionsFormatCfg?.formatLabel
-							? optionsFormatCfg?.formatLabel(label)
-							: label
-					}
-					labelExtra={labelExtra}
-					onChange={(e) => {
-						if (isTypeFilter && e.target.checked && selfTypeFilterEnabled) {
-							setSelfTypeFilterEnabled?.(false);
-						}
-						filter.updateOption(option.name, e.target.checked, true);
-					}}
-					tooltip={findTooltip(option)}
-					tooltipAnchor={FILTER_TOOLTIP_ANCHOR}
-					highlightedTooltipAnchor={HIGHLIGHTED_TOOLTIP_ANCHOR}
-					updateFilters={true}
-					url={isTagFilter && algorithm.tagUrl(option.name)} // TODO: could add links for users too
-				/>
+					className={`flex flex-wrap items-center justify-between gap-2 p-1 text-[color:var(--color-fg)] ${
+						highlightColor ? "rounded-2xl" : "rounded-md"
+					}`}
+					style={highlightStyle}
+					data-tooltip-id={tooltip?.text ? tooltipAnchor : undefined}
+					data-tooltip-content={tooltip?.text}
+				>
+					<div className="min-w-0 text-sm font-semibold break-words">
+						{optionLabel}
+						{labelExtra && (
+							<span className="text-[color:var(--color-muted-fg)]">
+								{" "}
+								({labelExtra})
+							</span>
+						)}
+					</div>
+					<div className="flex items-center gap-1 text-[11px]">
+						<button
+							type="button"
+							onClick={() => setState("include")}
+							className={`rounded-md border px-2 py-0.5 font-semibold ${
+								optionState === "include"
+									? "border-emerald-300 bg-emerald-50 text-emerald-700"
+									: "border-[color:var(--color-border)] text-[color:var(--color-muted-fg)]"
+							}`}
+						>
+							Include
+						</button>
+						<button
+							type="button"
+							onClick={() => setState("exclude")}
+							className={`rounded-md border px-2 py-0.5 font-semibold ${
+								optionState === "exclude"
+									? "border-red-300 bg-red-50 text-red-700"
+									: "border-[color:var(--color-border)] text-[color:var(--color-muted-fg)]"
+							}`}
+						>
+							Exclude
+						</button>
+						<button
+							type="button"
+							onClick={() => setState("neutral")}
+							className={`rounded-md border px-2 py-0.5 font-semibold ${
+								optionState === "neutral"
+									? "border-[color:var(--color-border)] bg-[color:var(--color-muted)] text-[color:var(--color-fg)]"
+									: "border-[color:var(--color-border)] text-[color:var(--color-muted-fg)]"
+							}`}
+						>
+							Any
+						</button>
+					</div>
+				</div>
 			);
 		});
 
-		if (isTypeFilter && setSelfTypeFilterEnabled) {
+		if (isTypeFilter && setSelfTypeFilterMode) {
+			const selfState = selfTypeFilterMode ?? "none";
 			optionCheckboxes.unshift(
-				<Checkbox
-					isChecked={selfTypeFilterEnabled ?? false}
+				<div
 					key="type-filter-self"
-					label="Me"
-					onChange={(e) => {
-						setSelfTypeFilterEnabled(e.target.checked);
-					}}
-					updateFilters={false}
-				/>,
+					className="flex flex-wrap items-center justify-between gap-2 p-1 rounded-md text-[color:var(--color-fg)]"
+				>
+					<div className="min-w-0 text-sm font-semibold break-words">
+						<span>Me</span>
+					</div>
+					<div className="flex items-center gap-1 text-[11px]">
+						<button
+							type="button"
+							onClick={() => setSelfTypeFilterMode("include")}
+							className={`rounded-md border px-2 py-0.5 font-semibold ${
+								selfState === "include"
+									? "border-emerald-300 bg-emerald-50 text-emerald-700"
+									: "border-[color:var(--color-border)] text-[color:var(--color-muted-fg)]"
+							}`}
+						>
+							Include
+						</button>
+						<button
+							type="button"
+							onClick={() => setSelfTypeFilterMode("exclude")}
+							className={`rounded-md border px-2 py-0.5 font-semibold ${
+								selfState === "exclude"
+									? "border-red-300 bg-red-50 text-red-700"
+									: "border-[color:var(--color-border)] text-[color:var(--color-muted-fg)]"
+							}`}
+						>
+							Exclude
+						</button>
+						<button
+							type="button"
+							onClick={() => setSelfTypeFilterMode("none")}
+							className={`rounded-md border px-2 py-0.5 font-semibold ${
+								selfState === "none"
+									? "border-[color:var(--color-border)] bg-[color:var(--color-muted)] text-[color:var(--color-fg)]"
+									: "border-[color:var(--color-border)] text-[color:var(--color-muted-fg)]"
+							}`}
+						>
+							Any
+						</button>
+					</div>
+				</div>,
 			);
 		}
 

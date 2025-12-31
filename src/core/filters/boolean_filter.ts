@@ -20,6 +20,7 @@ import { type BooleanFilterOption } from "../types";
 
 type TootMatcher = (toot: Toot, selectedOptions: string[]) => boolean;
 type TypeFilter = (toot: Toot) => boolean;
+export type BooleanFilterOptionState = "include" | "exclude" | "neutral";
 
 const SOURCE_FILTER_DESCRIPTION = "Choose what kind of toots are in your feed";
 
@@ -81,6 +82,7 @@ const TOOT_MATCHERS: Record<BooleanFilterName, TootMatcher> = {
 
 export interface BooleanFilterArgs extends Omit<FilterArgs, "description"> {
 	selectedOptions?: string[];
+	excludedOptions?: string[];
 	propertyName: BooleanFilterName;
 }
 
@@ -95,6 +97,7 @@ export interface BooleanFilterArgs extends Omit<FilterArgs, "description"> {
  */
 export default class BooleanFilter extends TootFilter {
 	selectedOptions: string[];
+	excludedOptions: string[];
 	propertyName: BooleanFilterName;
 
 	get options() {
@@ -111,6 +114,12 @@ export default class BooleanFilter extends TootFilter {
 		this.selectedOptions = this.selectedOptions.filter((v) =>
 			optionList.getObj(v),
 		);
+		this.excludedOptions = this.excludedOptions.filter((v) =>
+			optionList.getObj(v),
+		);
+		this.excludedOptions = this.excludedOptions.filter(
+			(option) => !this.selectedOptions.includes(option),
+		);
 	}
 
 	/**
@@ -120,7 +129,8 @@ export default class BooleanFilter extends TootFilter {
 	 * @param {BooleanFilterName} params.propertyName - The property the filter is working with (hashtags/toot type/etc).
 	 */
 	constructor(params: BooleanFilterArgs) {
-		const { invertSelection, propertyName, selectedOptions } = params;
+		const { invertSelection, propertyName, selectedOptions, excludedOptions } =
+			params;
 		const optionInfo = new BooleanFilterOptionList([], propertyName);
 		let description: string;
 
@@ -136,6 +146,16 @@ export default class BooleanFilter extends TootFilter {
 		this._options = optionInfo;
 		this.propertyName = propertyName;
 		this.selectedOptions = selectedOptions ?? [];
+		this.excludedOptions = excludedOptions ?? [];
+		if (
+			this.invertSelection &&
+			!this.excludedOptions.length &&
+			this.selectedOptions.length
+		) {
+			this.excludedOptions = [...this.selectedOptions];
+			this.selectedOptions = [];
+			this.invertSelection = false;
+		}
 	}
 
 	/**
@@ -144,21 +164,40 @@ export default class BooleanFilter extends TootFilter {
 	 * @returns {boolean}
 	 */
 	isAllowed(toot: Toot): boolean {
-		if (!this.selectedOptions.length) return true; // If there's no selectedOptions allow everything
-		const isMatched = TOOT_MATCHERS[this.propertyName](
-			toot,
-			this.selectedOptions,
-		);
-		return this.invertSelection ? !isMatched : isMatched;
+		const includeOptions = this.selectedOptions;
+		const excludeOptions = this.excludedOptions.length
+			? this.excludedOptions
+			: this.invertSelection
+				? this.selectedOptions
+				: [];
+
+		if (
+			includeOptions.length &&
+			!TOOT_MATCHERS[this.propertyName](toot, includeOptions)
+		) {
+			return false;
+		}
+
+		if (
+			excludeOptions.length &&
+			TOOT_MATCHERS[this.propertyName](toot, excludeOptions)
+		) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
-	 * Return true if the option is in {@linkcode this.selectedOptions}.
+	 * Return true if the option is included or excluded.
 	 * @param {string} optionName - The option name.
 	 * @returns {boolean}
 	 */
-	isOptionEnabled(optionName: string): boolean {
-		return this.selectedOptions.includes(optionName);
+	isOptionActive(optionName: string): boolean {
+		return (
+			this.selectedOptions.includes(optionName) ||
+			this.excludedOptions.includes(optionName)
+		);
 	}
 
 	/**
@@ -200,44 +239,40 @@ export default class BooleanFilter extends TootFilter {
 	}
 
 	/**
-	 * Add or remove an option to/remove an option from {@linkcode this.selectedOptions}.
+	 * Set the option to include, exclude, or neutral.
 	 * @param {string} optionName - The option name.
-	 * @param {boolean} isSelected - If true, add the option; if false, remove it.
-	 * @param {boolean} [allowMultiSelect=true] - If false, only one option can be selected at a time.
+	 * @param {BooleanFilterOptionState} state - Desired option state.
 	 */
 	updateOption(
 		optionName: string,
-		isSelected: boolean,
-		allowMultiSelect: boolean = true,
+		state: BooleanFilterOptionState,
 	): void {
 		this.logger.trace(
-			`updateOption(${optionName}, ${isSelected}, ${allowMultiSelect}) invoked`,
+			`updateOption(${optionName}, ${state}) invoked`,
 		);
 
-		if (!allowMultiSelect && isSelected) {
-			this.selectedOptions = [optionName];
-			this.logger.trace(
-				`updateOption with no multiselect so set selectedOptions to`,
-				this.selectedOptions,
-			);
-			return;
-		}
+		this.selectedOptions = this.selectedOptions.filter(
+			(option) => option !== optionName,
+		);
+		this.excludedOptions = this.excludedOptions.filter(
+			(option) => option !== optionName,
+		);
 
-		if (isSelected && !this.isOptionEnabled(optionName)) {
+		if (state === "include") {
 			this.selectedOptions.push(optionName);
-		} else {
-			if (!this.isOptionEnabled(optionName)) {
-				this.logger.warn(
-					`Tried to remove ${optionName} from ${this.propertyName} but it wasn't there`,
-				);
-				return;
-			}
-
-			this.selectedOptions.splice(this.selectedOptions.indexOf(optionName), 1);
+		} else if (state === "exclude") {
+			this.excludedOptions.push(optionName);
 		}
 
 		// Remove duplicates; build new Array object to trigger useMemo() in Demo App  // TODO: not great
 		this.selectedOptions = [...new Set(this.selectedOptions)];
+		this.excludedOptions = [...new Set(this.excludedOptions)];
+	}
+
+	getOptionState(optionName: string): BooleanFilterOptionState {
+		if (this.selectedOptions.includes(optionName)) return "include";
+		if (this.excludedOptions.includes(optionName)) return "exclude";
+		return "neutral";
 	}
 
 	/**
@@ -246,7 +281,9 @@ export default class BooleanFilter extends TootFilter {
 	 */
 	toArgs(): BooleanFilterArgs {
 		const filterArgs = super.toArgs() as BooleanFilterArgs;
+		filterArgs.invertSelection = false;
 		filterArgs.selectedOptions = this.selectedOptions;
+		filterArgs.excludedOptions = this.excludedOptions;
 		return filterArgs;
 	}
 
@@ -267,13 +304,13 @@ export default class BooleanFilter extends TootFilter {
 			const numToots = o.numToots || 0;
 			return (
 				numToots >= minToots ||
-				this.isOptionEnabled(o.name) ||
+				this.isOptionActive(o.name) ||
 				(includeFollowed && o.isFollowed && numToots > 0)
 			);
 		});
 
-		this.selectedOptions.forEach((selected) => {
-			if (!newOptions.some((opt) => opt.name === selected)) {
+		[...this.selectedOptions, ...this.excludedOptions].forEach((selected) => {
+			if (selected && !newOptions.some((opt) => opt.name === selected)) {
 				this.logger.warn(
 					`Selected option "${selected}" not found in options, adding synthetically`,
 				);

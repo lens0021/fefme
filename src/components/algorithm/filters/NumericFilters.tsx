@@ -6,11 +6,9 @@
 import { capitalCase } from "change-case";
 
 import { config } from "../../../config";
-import { SwitchType } from "../../../helpers/styles";
 import { useAlgorithm } from "../../../hooks/useAlgorithm";
 import Accordion from "../../helpers/Accordion";
 import Slider from "./../Slider";
-import HeaderSwitch from "./HeaderSwitch";
 
 export default function NumericFilters(props: { isActive: boolean }) {
 	const { isActive } = props;
@@ -21,20 +19,6 @@ export default function NumericFilters(props: { isActive: boolean }) {
 		<Accordion
 			description={config.filters.numeric.description}
 			isActive={isActive}
-			switchbar={[
-				<HeaderSwitch
-					isChecked={numericFilters.every((filter) => filter.invertSelection)}
-					key={`${SwitchType.INVERT_SELECTION}--numericFilters`}
-					label={SwitchType.INVERT_SELECTION}
-					// TODO: this edits the filter object directly which isn't great
-					onChange={(e) => {
-						for (const filter of numericFilters) {
-							filter.invertSelection = e.target.checked;
-						}
-					}}
-					tooltipText={config.filters.numeric.invertSelectionTooltipTxt}
-				/>,
-			]}
 			title={config.filters.numeric.title}
 		>
 			{Object.entries(algorithm.filters.numericFilters).map(

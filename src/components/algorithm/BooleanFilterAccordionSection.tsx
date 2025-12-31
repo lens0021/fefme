@@ -95,17 +95,7 @@ export default function BooleanFilterAccordionSection(
 	);
 
 	const headerSwitches = useMemo(() => {
-		let _headerSwitches = [
-			<HeaderSwitch
-				isChecked={filter.invertSelection} // TODO: this is modifying the filter directly which isn't great
-				key={SwitchType.INVERT_SELECTION}
-				label={SwitchType.INVERT_SELECTION}
-				onChange={(e) => {
-					filter.invertSelection = e.target.checked;
-				}}
-			/>,
-			makeHeaderSwitch(SwitchType.SORT_BY_COUNT),
-		];
+		let _headerSwitches = [makeHeaderSwitch(SwitchType.SORT_BY_COUNT)];
 
 		// Add a highlights-only switch if there are highlighted tooltips configured for this filter
 		if (highlightTooltips) {
@@ -188,7 +178,10 @@ export default function BooleanFilterAccordionSection(
 		<Accordion
 			description={filter.description}
 			footerSwitches={footerSwitches}
-			isActive={filter.selectedOptions.length > 0}
+			isActive={
+				filter.selectedOptions.length > 0 ||
+				filter.excludedOptions.length > 0
+			}
 			switchbar={headerSwitches}
 			title={filter.propertyName}
 		>
