@@ -149,28 +149,8 @@ export default function Feed() {
 		logout();
 	};
 
-	// Auto-fetch older posts when timeline is empty
-	useEffect(() => {
-		if (
-			!isLoading &&
-			algorithm &&
-			timeline.length > 0 &&
-			visibleTimeline.length === 0 &&
-			lastAutoBackfillSize.current !== 0
-		) {
-			logger.log(
-				"No visible posts after filtering, auto-fetching older posts...",
-			);
-			lastAutoBackfillSize.current = 0;
-			triggerHomeTimelineBackFill?.();
-		}
-	}, [
-		algorithm,
-		isLoading,
-		timeline.length,
-		triggerHomeTimelineBackFill,
-		visibleTimeline.length,
-	]);
+	// Note: Auto-fetch is disabled when visible timeline is empty due to filters
+	// User can manually load using buttons shown in the empty state
 
 	// Show more posts when the user scrolls to bottom of the page
 	// TODO: this triggers twice: once when isbottom changes to true and again because numDisplayedToots
@@ -532,8 +512,26 @@ export default function Feed() {
 									<p>{`${config.timeline.defaultLoadingMsg}...`}</p>
 								</div>
 							) : (
-								<div className="flex min-h-[40vh] items-center justify-center text-lg">
-									<p>{config.timeline.noTootsMsg}</p>
+								<div className="flex min-h-[40vh] flex-col items-center justify-center gap-4">
+									<p className="text-lg">{config.timeline.noTootsMsg}</p>
+									{timeline.length > 0 && (
+										<div className="flex flex-col gap-2 text-sm">
+											<button
+												type="button"
+												onClick={triggerFeedUpdate}
+												className="rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] px-4 py-2 font-semibold text-[color:var(--color-primary)] hover:bg-[color:var(--color-muted)]"
+											>
+												Load new posts
+											</button>
+											<button
+												type="button"
+												onClick={triggerHomeTimelineBackFill}
+												className="rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] px-4 py-2 font-semibold text-[color:var(--color-primary)] hover:bg-[color:var(--color-muted)]"
+											>
+												Load older posts
+											</button>
+										</div>
+									)}
 								</div>
 							))}
 
