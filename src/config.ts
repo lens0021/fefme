@@ -188,7 +188,7 @@ class Config implements ReadonlyConfig {
         accessTokenRevokedMsg: `Your access token expired. Please log in again to continue using the app.`,
         changelogUrl: `https://github.com/michelcrypt4d4mus/fedialgo_demo_app_foryoufeed/releases`,
         createAppParams: {
-            clientName: `${FEDIALGO}Demo`,
+            clientName: `Fefme`,
             scopes: REQUIRED_OAUTH_SCOPES.join(" "),
             website: HOMEPAGE,
         },
