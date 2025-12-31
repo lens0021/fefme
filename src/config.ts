@@ -168,7 +168,6 @@ type TrendingPanelCfg = {
 
 type WeightsConfig = {
 	readonly defaultStepSize: number;
-	readonly presetMenuLabel: string;
 	readonly scalingMultiplier: number;
 };
 
@@ -471,7 +470,6 @@ class Config implements ReadonlyConfig {
 
 	weights: WeightsConfig = {
 		defaultStepSize: 0.02, // Default step size for weight sliders
-		presetMenuLabel: "Preset Algorithm Configurations", // Label for the preset menu in the weights panel
 		scalingMultiplier: 1.2, // Multiplier for scaling weight sliders responsively
 	};
 }
