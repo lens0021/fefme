@@ -224,6 +224,35 @@ export default function Feed() {
 						{algorithm && (
 							<Accordion variant="top" title="Data Loading & History">
 								<div className="flex flex-col gap-3 p-3 text-xs text-[color:var(--color-muted-fg)]">
+									{dataStats && (
+										<div className="rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] p-2 text-[11px] text-[color:var(--color-fg)]">
+											<div>
+												Feed cache: {dataStats.feedTotal.toLocaleString()} posts
+											</div>
+											<div>
+												Home timeline cache:{" "}
+												{dataStats.homeFeedTotal.toLocaleString()} posts
+											</div>
+											<div>
+												Unseen in cache:{" "}
+												{dataStats.unseenTotal.toLocaleString()} posts
+											</div>
+											<div>
+												Visible now:{" "}
+												{visibleTimeline.length.toLocaleString()} posts (
+												{Math.min(numShownToots, visibleTimeline.length).toLocaleString()}{" "}
+												displayed)
+											</div>
+											{!isLoading && <div>{footerMsg}</div>}
+											{TheAlgorithm.isDebugMode && (
+												<div>
+													Displaying {numDisplayedToots} Posts (Scroll:{" "}
+													{scrollPercentage.toFixed(1)}%)
+												</div>
+											)}
+										</div>
+									)}
+
 									<p>
 										Use these tools to pull newer posts, older posts, or more
 										history for scoring. Each action updates the same weighted
@@ -279,28 +308,6 @@ export default function Feed() {
 											This can take a while on large accounts.
 										</span>
 									</div>
-
-									{dataStats && (
-										<div className="rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] p-2 text-[11px] text-[color:var(--color-fg)]">
-											<div>
-												Feed cache: {dataStats.feedTotal.toLocaleString()} posts
-											</div>
-											<div>
-												Home timeline cache:{" "}
-												{dataStats.homeFeedTotal.toLocaleString()} posts
-											</div>
-											<div>
-												Unseen in cache:{" "}
-												{dataStats.unseenTotal.toLocaleString()} posts
-											</div>
-											<div>
-												Visible now:{" "}
-												{visibleTimeline.length.toLocaleString()} posts (
-												{Math.min(numShownToots, visibleTimeline.length).toLocaleString()}{" "}
-												displayed)
-											</div>
-										</div>
-									)}
 								</div>
 							</Accordion>
 						)}
@@ -331,7 +338,6 @@ export default function Feed() {
 								</div>
 							) : (
 								<>
-									<p>{footerMsg}</p>
 									<details className="mt-1 rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-muted)] p-2 text-xs text-[color:var(--color-muted-fg)]">
 										<summary className="cursor-pointer font-semibold">
 											Account & data reset
@@ -388,7 +394,7 @@ export default function Feed() {
 
 							<p>
 								{TheAlgorithm.isDebugMode ? (
-									`Displaying ${numDisplayedToots} Posts (Scroll: ${scrollPercentage.toFixed(1)}%)`
+									""
 								) : (
 									<>
 										Report bugs on{" "}
