@@ -2,7 +2,7 @@
  * @fileoverview Class for retrieving and sorting the user's feed based on their chosen
  * weighting values.
  */
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import TheAlgorithm, {
 	READY_TO_LOAD_MSG,
@@ -38,7 +38,9 @@ export default function Feed() {
 		hideSensitiveCheckbox,
 		isLoading,
 		lastLoadDurationSeconds,
+		currentUserWebfinger,
 		resetAlgorithm,
+		selfTypeFilterEnabled,
 		shouldAutoUpdateCheckbox,
 		timeline,
 		triggerFeedUpdate,
@@ -67,6 +69,14 @@ export default function Feed() {
 		config.timeline.defaultNumDisplayedToots,
 		numDisplayedToots,
 	);
+	const visibleTimeline = useMemo(() => {
+		if (!selfTypeFilterEnabled || !currentUserWebfinger) return timeline;
+		return timeline.filter((toot) =>
+			toot.accounts?.some(
+				(account) => account.webfingerURI === currentUserWebfinger,
+			),
+		);
+	}, [currentUserWebfinger, selfTypeFilterEnabled, timeline]);
 
 	// Reset all state except for the user and server
 	const reset = async () => {
@@ -85,9 +95,11 @@ export default function Feed() {
 	//       is increased, triggering a second evaluation of the block
 	useEffect(() => {
 		const showMoreToots = () => {
-			if (numDisplayedToots < timeline.length) {
+			if (numDisplayedToots < visibleTimeline.length) {
 				const msg = `Showing ${numDisplayedToots} toots, adding ${config.timeline.numTootsToLoadOnScroll}`;
-				logger.log(`${msg} more (${timeline.length} available in feed)`);
+				logger.log(
+					`${msg} more (${visibleTimeline.length} available in feed)`,
+				);
 				setNumDisplayedToots(
 					numDisplayedToots + config.timeline.numTootsToLoadOnScroll,
 				);
@@ -95,10 +107,10 @@ export default function Feed() {
 		};
 
 		// If the user scrolls to the bottom of the page, show more toots
-		if (isBottom && timeline.length) showMoreToots();
+		if (isBottom && visibleTimeline.length) showMoreToots();
 		// If there's less than numDisplayedToots in the feed set numDisplayedToots to the # of toots in the feed
-		if (timeline?.length && timeline.length < numDisplayedToots)
-			setNumDisplayedToots(timeline.length);
+		if (visibleTimeline.length && visibleTimeline.length < numDisplayedToots)
+			setNumDisplayedToots(visibleTimeline.length);
 
 		const handleScroll = () => {
 			const scrollHeight = document.documentElement.scrollHeight; // Total height
@@ -123,10 +135,10 @@ export default function Feed() {
 
 		window.addEventListener("scroll", handleScroll);
 		return () => window.removeEventListener("scroll", handleScroll);
-	}, [isBottom, numDisplayedToots, timeline.length]);
+	}, [isBottom, numDisplayedToots, visibleTimeline.length]);
 
 	// TODO: probably easier to not rely on fedialgo's measurement of the last load time; we can easily track it ourselves.
-	let footerMsg = `Scored ${(timeline?.length || 0).toLocaleString()} toots`;
+	let footerMsg = `Scored ${(visibleTimeline.length || 0).toLocaleString()} toots`;
 	footerMsg += optionalSuffix(
 		lastLoadDurationSeconds,
 		(seconds) => `in ${seconds.toFixed(1)} seconds`,
@@ -344,7 +356,7 @@ export default function Feed() {
 							className="rounded -mx-3 px-2 sm:mx-0 sm:px-0"
 							style={{ backgroundColor: config.theme.feedBackgroundColor }}
 						>
-							{timeline.slice(0, numShownToots).map((toot) => (
+							{visibleTimeline.slice(0, numShownToots).map((toot) => (
 								<StatusComponent
 									isLoadingThread={isLoadingThread}
 									key={toot.uri}
@@ -355,7 +367,7 @@ export default function Feed() {
 								/>
 							))}
 
-							{timeline.length === 0 &&
+							{visibleTimeline.length === 0 &&
 								(isLoading ? (
 									<div className="flex min-h-[40vh] items-center justify-center gap-3">
 										<div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600" />

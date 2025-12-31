@@ -31,6 +31,7 @@ import {
 import { Events } from "../helpers/string_helpers";
 import type { ErrorHandler } from "../types";
 import { useAuthContext } from "./useAuth";
+import { useLocalStorage } from "./useLocalStorage";
 
 const logger = getLogger("AlgorithmProvider");
 const loadLogger = logger.tempLogger("setLoadState");
@@ -61,6 +62,7 @@ interface AlgoContext {
 	alwaysShowFollowed?: boolean;
 	alwaysShowFollowedCheckbox?: ReactElement;
 	api?: mastodon.rest.Client;
+	currentUserWebfinger?: string | null;
 	isGoToSocialUser?: boolean; // Whether the user is on a GoToSocial instance
 	isLoading?: boolean;
 	hideSensitive?: boolean;
@@ -68,6 +70,8 @@ interface AlgoContext {
 	lastLoadDurationSeconds?: number;
 	resetAlgorithm?: () => Promise<void>;
 	serverInfo?: MastodonServer;
+	selfTypeFilterEnabled?: boolean;
+	setSelfTypeFilterEnabled?: (value: boolean) => void;
 	showFilterHighlights?: boolean;
 	showFilterHighlightsCheckbox?: ReactElement;
 	shouldAutoUpdateCheckbox?: ReactElement;
@@ -121,6 +125,18 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 	);
 	const [showFilterHighlights, showFilterHighlightsCheckbox] =
 		persistentCheckbox(GuiCheckboxName.showFilterHighlights);
+	const [selfTypeFilterEnabled, setSelfTypeFilterEnabled] =
+		useLocalStorage<boolean>("type-filter-self", false);
+
+	const currentUserWebfinger = useMemo(() => {
+		if (!user?.username || !user?.server) return null;
+		try {
+			const domain = new URL(user.server).hostname;
+			return `${user.username}@${domain}`.toLowerCase();
+		} catch {
+			return null;
+		}
+	}, [user?.server, user?.username]);
 
 	const loadSavedFilters = useCallback((): SavedFilters | null => {
 		try {
@@ -453,6 +469,7 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		alwaysShowFollowed,
 		alwaysShowFollowedCheckbox,
 		api,
+		currentUserWebfinger,
 		hideSensitive,
 		hideSensitiveCheckbox,
 		isGoToSocialUser,
@@ -460,6 +477,8 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		lastLoadDurationSeconds,
 		resetAlgorithm,
 		serverInfo,
+		selfTypeFilterEnabled,
+		setSelfTypeFilterEnabled,
 		showFilterHighlights,
 		showFilterHighlightsCheckbox,
 		shouldAutoUpdateCheckbox,

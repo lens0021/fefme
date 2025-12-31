@@ -18,6 +18,7 @@ export default function FeedFiltersAccordionSection() {
 		algorithm,
 		allowMultiSelectCheckbox,
 		alwaysShowFollowedCheckbox,
+		selfTypeFilterEnabled,
 		showFilterHighlightsCheckbox,
 	} = useAlgorithm();
 
@@ -31,7 +32,8 @@ export default function FeedFiltersAccordionSection() {
 		(f) => f.selectedOptions.length,
 	);
 	const hasActiveNumericFilter = numericFilters.some((f) => f.value > 0);
-	const hasAnyActiveFilter = hasActiveNumericFilter || hasActiveBooleanFilter;
+	const hasAnyActiveFilter =
+		hasActiveNumericFilter || hasActiveBooleanFilter || !!selfTypeFilterEnabled;
 
 	// Sort the filter sections based on configured 'position' value
 	const filterPositions = booleanFilters.reduce(

@@ -287,7 +287,8 @@ const config: Readonly<ConfigType> = {
 				},
 				[BooleanFilterName.TYPE]: {
 					position: 1,
-					formatLabel: (name: string) => capitalCase(name),
+					formatLabel: (name: string) =>
+						name === "me" ? "Me" : capitalCase(name),
 				},
 				[BooleanFilterName.USER]: {
 					position: 4,

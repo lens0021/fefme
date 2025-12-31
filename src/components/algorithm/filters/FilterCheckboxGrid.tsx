@@ -54,6 +54,8 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 		algorithm,
 		allowMultiSelect,
 		alwaysShowFollowed,
+		selfTypeFilterEnabled,
+		setSelfTypeFilterEnabled,
 		showFilterHighlights,
 	} = useAlgorithm();
 	const logger = useMemo(
@@ -65,6 +67,7 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 		config.filters.boolean.optionsFormatting[filter.propertyName];
 	const tooltipConfig = optionsFormatCfg?.tooltips || {};
 	const isTagFilter = filter.propertyName === BooleanFilterName.HASHTAG;
+	const isTypeFilter = filter.propertyName === BooleanFilterName.TYPE;
 	const isUserFilter = filter.propertyName === BooleanFilterName.USER;
 
 	// Build a dict from FilterOptionDataSource to tooltip objs with the color (or gradient) + base text
@@ -233,9 +236,17 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 							: label
 					}
 					labelExtra={labelExtra}
-					onChange={(e) =>
-						filter.updateOption(option.name, e.target.checked, allowMultiSelect)
-					}
+					onChange={(e) => {
+						if (
+							isTypeFilter &&
+							!allowMultiSelect &&
+							e.target.checked &&
+							selfTypeFilterEnabled
+						) {
+							setSelfTypeFilterEnabled?.(false);
+						}
+						filter.updateOption(option.name, e.target.checked, allowMultiSelect);
+					}}
 					tooltip={findTooltip(option)}
 					tooltipAnchor={FILTER_TOOLTIP_ANCHOR}
 					highlightedTooltipAnchor={HIGHLIGHTED_TOOLTIP_ANCHOR}
@@ -244,6 +255,24 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 				/>
 			);
 		});
+
+		if (isTypeFilter && setSelfTypeFilterEnabled) {
+			optionCheckboxes.unshift(
+				<Checkbox
+					isChecked={selfTypeFilterEnabled ?? false}
+					key="type-filter-self"
+					label="Me"
+					onChange={(e) => {
+						if (e.target.checked && !allowMultiSelect) {
+							filter.selectedOptions = [];
+							algorithm.updateFilters(algorithm.filters);
+						}
+						setSelfTypeFilterEnabled(e.target.checked);
+					}}
+					updateFilters={false}
+				/>,
+			);
+		}
 
 		return gridify(optionCheckboxes);
 	})();
