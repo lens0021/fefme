@@ -405,26 +405,6 @@ export default class Storage {
         return withTimestamp ?? null;
     }
 
-    // Return the seconds from the updatedAt stored at 'key' and now
-    private static async secondsSinceLastUpdated(key: StorageKey): Promise<number | null> {
-        const updatedAt = await this.updatedAt(key);
-        return updatedAt ? AgeIn.seconds(updatedAt) : null;
-    }
-
-    // Return the number of seconds since the most recent toot in the stored timeline   // TODO: unused
-    private static async secondsSinceMostRecentToot(): Promise<number | null> {
-        const timelineToots = await this.get(AlgorithmStorageKey.TIMELINE_TOOTS);
-        if (!timelineToots) return null;
-        const mostRecent = mostRecentTootedAt(timelineToots as Toot[]);
-
-        if (mostRecent) {
-            return AgeIn.seconds(mostRecent.getTime());
-        } else {
-            logger.debug(`No most recent toot found`);
-            return null;
-        }
-    }
-
     /**
      * Serialize objects before storing writing them to browser storage via {@linkcode localForage}.
      * @private
