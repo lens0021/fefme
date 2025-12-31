@@ -12,7 +12,7 @@ export default function Footer(): JSX.Element {
     return (
         <Navbar expand="lg" className="bg-body-tertiary" bg="dark" data-bs-theme="dark" style={footerNav}>
             <Container>
-                <Navbar.Brand style={whiteFont}>FediAlgo</Navbar.Brand>
+                <Navbar.Brand style={whiteFont}>Fefme</Navbar.Brand>
 
                 <Nav className="me-auto">
                     <Nav.Link href={config.app.repoUrl} style={whiteFont}>
@@ -23,29 +23,18 @@ export default function Footer(): JSX.Element {
                             style={elementStyle}
                         />
 
-                        <span className="p-2"> Code on Github</span>
+                        <span className="p-2"> Fefme on Github</span>
                     </Nav.Link>
 
-                    <Nav.Link href={config.app.developerMastodonUrl} style={whiteFont}>
+                    <Nav.Link href="https://github.com/michelcrypt4d4mus/fedialgo" style={whiteFont}>
                         <img
-                            alt="Michel de Cryptadamus Logo"
+                            alt="Github Logo"
                             className="d-inline-block align-top"
-                            src={config.app.headerIconUrl}
+                            src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
                             style={elementStyle}
                         />
 
-                        <span className="p-2"> Follow me on Mastodon</span>
-                    </Nav.Link>
-
-                    <Nav.Link href="https://chaos.social/@pkreissel" style={whiteFont}>
-                        <img
-                            alt="Chaos.social Logo"
-                            className="d-inline-block align-top"
-                            src="https://assets.chaos.social/accounts/avatars/000/242/007/original/97b58ba7002b2c8b.jpg"
-                            style={elementStyle}
-                        />
-
-                        <span className="p-2"> Follow pkreissel on Mastodon</span>
+                        <span className="p-2"> FediAlgo (library)</span>
                     </Nav.Link>
                 </Nav>
             </Container>

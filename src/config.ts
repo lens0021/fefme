@@ -35,7 +35,7 @@ const REQUIRED_OAUTH_SCOPES = [
     "write:statuses",  // Required for retooting and voting in polls
 ];
 
-const HOMEPAGE = process.env.FEDIALGO_HOMEPAGE || "https://michelcrypt4d4mus.github.io/fedialgo_demo_app_foryoufeed";
+const HOMEPAGE = process.env.FEDIALGO_HOMEPAGE || "https://lens0021.github.io/fefme";
 
 
 export enum GuiCheckboxName {
@@ -186,19 +186,19 @@ interface ReadonlyConfig extends Readonly<ConfigType> {};
 class Config implements ReadonlyConfig {
     app: AppConfig = {
         accessTokenRevokedMsg: `Your access token expired. Please log in again to continue using the app.`,
-        changelogUrl: `https://github.com/michelcrypt4d4mus/fedialgo_demo_app_foryoufeed/releases`,
+        changelogUrl: `https://github.com/lens0021/fefme/releases`,
         createAppParams: {
             clientName: `Fefme`,
             scopes: REQUIRED_OAUTH_SCOPES.join(" "),
             website: HOMEPAGE,
         },
-        defaultServer: TheAlgorithm.isDebugMode ? "universeodon.com" : "mastodon.social",
+        defaultServer: "mastodon.social",
         developerMastodonUrl: "https://universeodon.com/@cryptadamist",
         headerIconUrl: "https://media.universeodon.com/accounts/avatars/109/363/179/904/598/380/original/eecdc2393e75e8bf.jpg",
         loadingSpinnerType: "grow",
         repoName: HOMEPAGE ? HOMEPAGE.split("/").pop() : null,
         repoUrl: HOMEPAGE ? HOMEPAGE.replace(/(\w+)\.github\.io/, `github.com/$1`) : HOMEPAGE,
-        showcaseImageUrl: "https://raw.githubusercontent.com/michelcrypt4d4mus/fedialgo_demo_app_foryoufeed/refs/heads/master/public/assets/Showcase.jpg",
+        showcaseImageUrl: "https://raw.githubusercontent.com/lens0021/fefme/refs/heads/main/public/assets/Showcase.jpg",
     }
 
     filters: FilterConfig = {

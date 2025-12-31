@@ -1,8 +1,8 @@
 {
-    "name": "fedialgo-demo-app-foryoufeed",
+    "name": "fefme",
     "version": "1.2.36",
     "private": false,
-    "homepage": "https://michelcrypt4d4mus.github.io/fedialgo_demo_app_foryoufeed",
+    "homepage": "https://lens0021.github.io/fefme",
     "dependencies": {
         "@fortawesome/fontawesome-svg-core": "^6.7.1",
         "@fortawesome/free-solid-svg-icons": "^6.7.1",

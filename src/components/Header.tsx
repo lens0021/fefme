@@ -48,7 +48,7 @@ export default function Header(): JSX.Element {
 
                     <span className={`${ALIGN_MIDDLE} ${TEXT_CENTER_P2}`} style={fedialgoContainer}>
                         <a href={config.app.repoUrl} style={whiteFont} target="_blank">
-                            Fedialgo Demo
+                            Fefme
                         </a>
 
                         {" "}<span style={versionParenthesesStyle}>(

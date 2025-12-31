@@ -33,7 +33,7 @@ export default function CallbackPage() {
     //     clientId: "blahblah",
     //     clientSecret: "blahblahblahblahblahblahblahblah",
     //     id: "519245",
-    //     name: "ForYouFeed",
+    //     name: "Fefme",
     //     redirectUri: "http://localhost:3000/callback",
     //     vapidKey: "blahblahblahblahblahblahblahblahblahblahblahblahblahblahblahblahblahblah",
     //     website: "https://mastodon.social",

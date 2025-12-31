@@ -1,5 +1,5 @@
 /*
- * Webpack configuration for the FediAlgo Demo App.
+ * Webpack configuration for Fefme.
  */
 require("dotenv-flow").config();
 const glob = require("glob");
