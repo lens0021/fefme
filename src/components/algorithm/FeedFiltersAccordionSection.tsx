@@ -16,8 +16,15 @@ import NumericFilters from "./filters/NumericFilters";
 export default function FeedFiltersAccordionSection() {
 	const { algorithm, selfTypeFilterMode } = useAlgorithm();
 
-	// Don't render if algorithm is not loaded yet
-	if (!algorithm) return null;
+	if (!algorithm) {
+		return (
+			<Accordion variant="top" bodyStyle={{ padding: 0 }} title="Feed Filters">
+				<div className="px-4 py-3 text-sm text-[color:var(--color-muted-fg)]">
+					Loading...
+				</div>
+			</Accordion>
+		);
+	}
 
 	const booleanFiltersCfg = config.filters.boolean.optionsFormatting;
 	// Filter for 'visible' because the APP filters are currently hidden

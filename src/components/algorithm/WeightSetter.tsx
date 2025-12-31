@@ -67,9 +67,6 @@ export default function WeightSetter() {
 		[algorithm, logAndSetError],
 	);
 
-	// Don't render if algorithm is not loaded yet
-	if (!algorithm) return null;
-
 	const makeWeightSlider = (weightName: WeightName) => (
 		<WeightSlider
 			key={weightName}
@@ -81,22 +78,30 @@ export default function WeightSetter() {
 
 	return (
 		<Accordion variant="top" title={"Feed Algorithm Control Panel"}>
-			<div className="px-4">
-				{Object.values(NonScoreWeightName).map((weight) =>
-					makeWeightSlider(weight),
-				)}
-			</div>
-			<div className="h-3" />
+			{!algorithm ? (
+				<div className="px-4 py-3 text-sm text-[color:var(--color-muted-fg)]">
+					Loading...
+				</div>
+			) : (
+				<>
+					<div className="px-4">
+						{Object.values(NonScoreWeightName).map((weight) =>
+							makeWeightSlider(weight),
+						)}
+					</div>
+					<div className="h-3" />
 
-			<div className="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-muted)] px-4 pb-3 pt-3">
-				<p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--color-muted-fg)] mt-0 mb-2">
-					Weightings
-				</p>
+					<div className="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-muted)] px-4 pb-3 pt-3">
+						<p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--color-muted-fg)] mt-0 mb-2">
+							Weightings
+						</p>
 
-				{Object.values(ScoreName)
-					.sort()
-					.map((scoreName) => makeWeightSlider(scoreName))}
-			</div>
+						{Object.values(ScoreName)
+							.sort()
+							.map((scoreName) => makeWeightSlider(scoreName))}
+					</div>
+				</>
+			)}
 		</Accordion>
 	);
 }
