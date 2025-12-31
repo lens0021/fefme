@@ -60,7 +60,6 @@ type AppConfig = {
 	readonly issuesUrl: string;
 	readonly repoName: string | null;
 	readonly repoUrl: string;
-	readonly showcaseImageUrl: string;
 };
 
 type FilterTooltipConfigKey =
@@ -197,8 +196,6 @@ class Config implements ReadonlyConfig {
 		repoUrl: HOMEPAGE
 			? HOMEPAGE.replace(/(\w+)\.github\.io/, "github.com/$1")
 			: HOMEPAGE,
-		showcaseImageUrl:
-			"https://raw.githubusercontent.com/lens0021/fefme/refs/heads/main/public/assets/Showcase.jpg",
 	};
 
 	filters: FilterConfig = {
