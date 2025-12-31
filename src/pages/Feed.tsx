@@ -344,16 +344,6 @@ export default function Feed() {
 										</summary>
 										<div className="mt-2 flex flex-col gap-3 text-xs">
 											<div className="flex flex-col gap-1">
-												<span>Reset cached posts and reload the feed.</span>
-												<button
-													type="button"
-													onClick={reset}
-													className="rounded-md border border-red-300 px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
-												>
-													Reset feed data
-												</button>
-											</div>
-											<div className="flex flex-col gap-1">
 												<span>
 													Reset all feed weights and filters to their defaults.
 												</span>
@@ -366,11 +356,21 @@ export default function Feed() {
 												</button>
 											</div>
 											<div className="flex flex-col gap-1">
+												<span>Reset cached posts and reload the feed.</span>
+												<button
+													type="button"
+													onClick={reset}
+													className="rounded-md border border-red-300 px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
+												>
+													Reset feed data
+												</button>
+											</div>
+											<div className="flex flex-col gap-1">
 												<span>Sign out of this session.</span>
 												<button
 													type="button"
 													onClick={handleLogout}
-													className="rounded-md border border-[color:var(--color-border)] px-2 py-1 text-xs font-semibold text-[color:var(--color-primary)]"
+													className="rounded-md border border-red-300 px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
 												>
 													Log out
 												</button>
