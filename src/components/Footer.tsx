@@ -18,18 +18,6 @@ export default function Footer(): JSX.Element {
 					/>
 					<span>Fefme</span>
 				</a>
-
-				<a
-					href="https://github.com/michelcrypt4d4mus/fedialgo"
-					className="flex items-center gap-2 hover:text-gray-300 transition-colors"
-				>
-					<img
-						alt="Github Logo"
-						src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
-						className="h-5 w-5 rounded"
-					/>
-					<span>FediAlgo</span>
-				</a>
 			</div>
 		</footer>
 	);
