@@ -15,7 +15,6 @@ import { Tooltip } from "react-tooltip";
 import ApiErrorsPanel from "../components/ApiErrorsPanel";
 import FeedFiltersAccordionSection from "../components/algorithm/FeedFiltersAccordionSection";
 import WeightSetter from "../components/algorithm/WeightSetter";
-import ExperimentalFeatures from "../components/experimental/ExperimentalFeatures";
 import Accordion from "../components/helpers/Accordion";
 import { persistentCheckbox } from "../components/helpers/Checkbox";
 import { confirm } from "../components/helpers/Confirmation";
@@ -28,8 +27,6 @@ import { booleanIcon } from "../helpers/ui";
 import { useAlgorithm } from "../hooks/useAlgorithm";
 import useOnScreen from "../hooks/useOnScreen";
 
-const LOAD_BUTTON_SEPARATOR = " ● ";
-const LOAD_BUTTON_TOOLTIP_ANCHOR = "tooltipped-link-anchor";
 const logger = getLogger("Feed");
 
 /** Component to display the FediAlgo user's timeline. */
@@ -46,6 +43,7 @@ export default function Feed() {
 		triggerFeedUpdate,
 		triggerHomeTimelineBackFill,
 		triggerMoarData,
+		triggerPullAllUserData,
 	} = useAlgorithm();
 
 	// State variables
@@ -160,6 +158,10 @@ export default function Feed() {
 		lastLoadDurationSeconds,
 		(seconds) => `in ${seconds.toFixed(1)} seconds`,
 	);
+	const dataStats = useMemo(() => {
+		if (!algorithm) return null;
+		return algorithm.getDataStats();
+	}, [algorithm, lastLoadDurationSeconds, numDisplayedToots, timeline.length]);
 
 	return (
 		<div className="flex flex-col gap-4">
@@ -188,7 +190,89 @@ export default function Feed() {
 
 						{algorithm && <WeightSetter />}
 						{algorithm && <FeedFiltersAccordionSection />}
-						{algorithm && <ExperimentalFeatures />}
+						{algorithm && (
+							<Accordion variant="top" title="Data Loading & History">
+								<div className="flex flex-col gap-3 p-3 text-xs text-[color:var(--color-muted-fg)]">
+									<p>
+										Use these tools to pull newer posts, older posts, or more
+										history for scoring. Each action updates the same weighted
+										feed.
+									</p>
+
+									<div className="flex flex-col gap-3 text-xs">
+										<button
+											type="button"
+											onClick={triggerFeedUpdate}
+											className="rounded-md border border-[color:var(--color-border)] px-2 py-1 text-left font-semibold text-[color:var(--color-primary)]"
+										>
+											Load new posts
+										</button>
+										<span>
+											Fetches posts created after your most recent cached post,
+											then re-scores the feed.
+										</span>
+
+										<button
+											type="button"
+											onClick={triggerHomeTimelineBackFill}
+											className="rounded-md border border-[color:var(--color-border)] px-2 py-1 text-left font-semibold text-[color:var(--color-primary)]"
+										>
+											Load older posts
+										</button>
+										<span>
+											Backfills older home-timeline posts starting from your
+											current oldest cached post.
+										</span>
+
+										<button
+											type="button"
+											onClick={triggerMoarData}
+											className="rounded-md border border-[color:var(--color-border)] px-2 py-1 text-left font-semibold text-[color:var(--color-primary)]"
+										>
+											Load more algorithm data
+										</button>
+										<span>
+											Pulls extra user data (recent posts, favourites,
+											notifications) to improve scoring accuracy.
+										</span>
+
+										<button
+											type="button"
+											onClick={triggerPullAllUserData}
+											className="rounded-md border border-[color:var(--color-border)] px-2 py-1 text-left font-semibold text-[color:var(--color-primary)]"
+										>
+											Load complete user history
+										</button>
+										<span>
+											Fetches all your posts and favourites to refine scoring.
+											This can take a while on large accounts.
+										</span>
+									</div>
+
+									{dataStats && (
+										<div className="rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] p-2 text-[11px] text-[color:var(--color-fg)]">
+											<div>
+												Feed cache: {dataStats.feedTotal.toLocaleString()} posts
+											</div>
+											<div>
+												Home timeline cache:{" "}
+												{dataStats.homeFeedTotal.toLocaleString()} posts
+											</div>
+											<div>
+												Unseen in cache:{" "}
+												{dataStats.unseenTotal.toLocaleString()} posts
+											</div>
+											<div>
+												Visible now:{" "}
+												{visibleTimeline.length.toLocaleString()} posts (
+												{Math.min(numShownToots, visibleTimeline.length).toLocaleString()}{" "}
+												displayed)
+											</div>
+										</div>
+									)}
+								</div>
+							</Accordion>
+						)}
 
 						{thread.length > 0 && (
 							<Accordion
@@ -285,89 +369,6 @@ export default function Feed() {
 
 					{/* Feed column */}
 					<div className="flex flex-col gap-3">
-						{algorithm && !isLoading && (
-							<div className="text-center text-xs">
-								<Tooltip
-									border={"solid"}
-									className="text-xs z-[2000] max-w-[calc(100vw-2rem)] whitespace-normal break-words"
-									delayShow={config.timeline.tooltips.defaultTooltipDelayMS}
-									id={LOAD_BUTTON_TOOLTIP_ANCHOR}
-									opacity={0.95}
-									place="bottom"
-									variant="light"
-								/>
-
-								<div className="flex flex-wrap items-center justify-center gap-2">
-									<button
-										type="button"
-										data-tooltip-content={
-											config.timeline.loadTootsButtonLabels.loadNewToots
-												.tooltipText
-										}
-										data-tooltip-id={LOAD_BUTTON_TOOLTIP_ANCHOR}
-										className="cursor-pointer text-[color:var(--color-primary)] font-semibold"
-										onClick={triggerFeedUpdate}
-									>
-										<span
-											style={
-												config.timeline.loadTootsButtonLabels.loadNewToots
-													.labelStyle
-											}
-										>
-											{config.timeline.loadTootsButtonLabels.loadNewToots.label}
-										</span>
-									</button>
-
-									<span>{LOAD_BUTTON_SEPARATOR}</span>
-
-									<button
-										type="button"
-										data-tooltip-content={
-											config.timeline.loadTootsButtonLabels.loadOldToots
-												.tooltipText
-										}
-										data-tooltip-id={LOAD_BUTTON_TOOLTIP_ANCHOR}
-										className="cursor-pointer text-[color:var(--color-primary)] font-semibold"
-										onClick={triggerHomeTimelineBackFill}
-									>
-										<span
-											style={
-												config.timeline.loadTootsButtonLabels.loadOldToots
-													.labelStyle
-											}
-										>
-											{config.timeline.loadTootsButtonLabels.loadOldToots.label}
-										</span>
-									</button>
-
-									<span>{LOAD_BUTTON_SEPARATOR}</span>
-
-									<button
-										type="button"
-										data-tooltip-content={
-											config.timeline.loadTootsButtonLabels
-												.loadUserDataForAlgorithm.tooltipText
-										}
-										data-tooltip-id={LOAD_BUTTON_TOOLTIP_ANCHOR}
-										className="cursor-pointer text-[color:var(--color-primary)] font-semibold"
-										onClick={triggerMoarData}
-									>
-										<span
-											style={
-												config.timeline.loadTootsButtonLabels
-													.loadUserDataForAlgorithm.labelStyle
-											}
-										>
-											{
-												config.timeline.loadTootsButtonLabels
-													.loadUserDataForAlgorithm.label
-											}
-										</span>
-									</button>
-								</div>
-							</div>
-						)}
-
 						{visibleTimeline.slice(0, numShownToots).map((toot) => (
 							<StatusComponent
 								isLoadingThread={isLoadingThread}

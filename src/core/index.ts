@@ -680,6 +680,22 @@ export default class TheAlgorithm {
 		);
 	}
 
+	getDataStats(): {
+		feedTotal: number;
+		homeFeedTotal: number;
+		unseenTotal: number;
+	} {
+		const unseenTotal = this.feed.reduce(
+			(sum, toot) => sum + ((toot.numTimesShown ?? 0) > 0 ? 0 : 1),
+			0,
+		);
+		return {
+			feedTotal: this.feed.length,
+			homeFeedTotal: this.homeFeed.length,
+			unseenTotal,
+		};
+	}
+
 	///////////////////////////////
 	//      Private Methods      //
 	///////////////////////////////
