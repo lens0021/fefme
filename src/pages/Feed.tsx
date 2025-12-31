@@ -393,74 +393,72 @@ export default function Feed() {
 						)}
 
 						<div className="flex flex-col gap-1 text-xs text-[color:var(--color-muted-fg)]">
-							{isLoading ? (
-								<div className="flex items-center gap-3">
+							{isLoading && (
+								<div className="flex items-center gap-3 mb-2">
 									<div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
 									<p>{`${algorithm?.loadingStatus || READY_TO_LOAD_MSG}...`}</p>
 								</div>
-							) : (
-								<>
-									<details className="mt-1 rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-muted)] p-2 text-xs text-[color:var(--color-muted-fg)]">
-										<summary className="cursor-pointer font-semibold">
-											Account & data reset
-										</summary>
-										<div className="mt-2 flex flex-col gap-3 text-xs">
-											<div className="flex flex-col gap-1">
-												<span>Reset all feed weights to their defaults.</span>
-												<button
-													type="button"
-													onClick={resetWeights}
-													className="rounded-md border border-[color:var(--color-border)] px-2 py-1 text-xs font-semibold text-[color:var(--color-primary)]"
-												>
-													Reset weights
-												</button>
-											</div>
-											<div className="flex flex-col gap-1">
-												<span>Reset all filters to their defaults.</span>
-												<button
-													type="button"
-													onClick={resetFilters}
-													className="rounded-md border border-[color:var(--color-border)] px-2 py-1 text-xs font-semibold text-[color:var(--color-primary)]"
-												>
-													Reset filters
-												</button>
-											</div>
-											<div className="flex flex-col gap-1">
-												<span>Reset cached posts and reload the feed.</span>
-												<button
-													type="button"
-													onClick={reset}
-													className="rounded-md border border-red-300 px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
-												>
-													Reset feed data
-												</button>
-											</div>
-											<div className="flex flex-col gap-1">
-												<span>Sign out of this session.</span>
-												<button
-													type="button"
-													onClick={handleLogout}
-													className="rounded-md border border-red-300 px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
-												>
-													Log out
-												</button>
-											</div>
-											<div className="flex flex-col gap-1">
-												<span>
-													Delete all local data, clear the app, and log out.
-												</span>
-												<button
-													type="button"
-													onClick={deleteAllData}
-													className="rounded-md border border-red-300 px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
-												>
-													Delete all data & log out
-												</button>
-											</div>
-										</div>
-									</details>
-								</>
 							)}
+
+							<details className="mt-1 rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-muted)] p-2 text-xs text-[color:var(--color-muted-fg)]">
+								<summary className="cursor-pointer font-semibold">
+									Account & data reset
+								</summary>
+								<div className="mt-2 flex flex-col gap-3 text-xs">
+									<div className="flex flex-col gap-1">
+										<span>Reset all feed weights to their defaults.</span>
+										<button
+											type="button"
+											onClick={resetWeights}
+											className="rounded-md border border-[color:var(--color-border)] px-2 py-1 text-xs font-semibold text-[color:var(--color-primary)]"
+										>
+											Reset weights
+										</button>
+									</div>
+									<div className="flex flex-col gap-1">
+										<span>Reset all filters to their defaults.</span>
+										<button
+											type="button"
+											onClick={resetFilters}
+											className="rounded-md border border-[color:var(--color-border)] px-2 py-1 text-xs font-semibold text-[color:var(--color-primary)]"
+										>
+											Reset filters
+										</button>
+									</div>
+									<div className="flex flex-col gap-1">
+										<span>Reset cached posts and reload the feed.</span>
+										<button
+											type="button"
+											onClick={reset}
+											className="rounded-md border border-red-300 px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
+										>
+											Reset feed data
+										</button>
+									</div>
+									<div className="flex flex-col gap-1">
+										<span>Sign out of this session.</span>
+										<button
+											type="button"
+											onClick={handleLogout}
+											className="rounded-md border border-red-300 px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
+										>
+											Log out
+										</button>
+									</div>
+									<div className="flex flex-col gap-1">
+										<span>
+											Delete all local data, clear the app, and log out.
+										</span>
+										<button
+											type="button"
+											onClick={deleteAllData}
+											className="rounded-md border border-red-300 px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
+										>
+											Delete all data & log out
+										</button>
+									</div>
+								</div>
+							</details>
 						</div>
 
 						{algorithm && <ApiErrorsPanel />}
