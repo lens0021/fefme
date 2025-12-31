@@ -7,11 +7,11 @@ import { ChangeEvent } from "react";
 import { TagTootsCategory } from "fedialgo";
 import { Tooltip } from "react-tooltip";
 
-import FilterCheckbox from "./FilterCheckbox";
+import Checkbox from "../../helpers/Checkbox";
 import { CheckboxTooltipConfig } from "../../../helpers/tooltip_helpers";
 import { config } from "../../../config";
 import { getLogger } from "../../../helpers/log_helpers";
-import { SwitchType, tooltipZIndex } from "../../../helpers/styles";
+import { SwitchType } from "../../../helpers/styles";
 import { useAlgorithm } from "../../../hooks/useAlgorithm";
 
 const HEADER_SWITCH_TOOLTIP_ANCHOR = `header-switch-tooltip-anchor`;
@@ -34,10 +34,10 @@ const logger = getLogger("HeaderSwitch");
 // This must appear somewhere in the component tree for the header switch tooltips to work
 export const HEADER_SWITCH_TOOLTIP = (
 	<Tooltip
+		className="z-[2000]"
 		delayShow={config.filters.headerSwitches.tooltipHoverDelay}
 		id={HEADER_SWITCH_TOOLTIP_ANCHOR}
 		place="top"
-		style={tooltipZIndex}
 	/>
 );
 
@@ -65,13 +65,13 @@ export default function HeaderSwitch(props: HeaderSwitchProps) {
 	};
 
 	return (
-		<FilterCheckbox
+		<Checkbox
 			capitalize={true}
 			disabled={label == SwitchType.HIGHLIGHTS_ONLY && !showFilterHighlights}
 			isChecked={isChecked}
 			label={TAG_HIGHLIGHT_LABELS[label] || label}
 			onChange={onChange}
-			skipUpdateFilters={SKIP_UPDATE_FILTERS_SWITCHES.includes(label)}
+			updateFilters={!SKIP_UPDATE_FILTERS_SWITCHES.includes(label)}
 			tooltip={tooltip}
 		/>
 	);

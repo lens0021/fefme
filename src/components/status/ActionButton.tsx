@@ -2,7 +2,7 @@
  * Render an action button for a status (toot).
  * The action button can be a favourite, reblog, bookmark, reply, or score button.
  */
-import React, { CSSProperties } from "react";
+import React from "react";
 
 import { Account, Toot, isValueInStringEnum } from "fedialgo";
 import { capitalCase } from "change-case";
@@ -270,17 +270,16 @@ export default function ActionButton(props: ActionButtonProps) {
 		});
 	};
 
+	const buttonClassName = isAccountAction(action)
+		? `${className} mt-[5px] translate-y-[2px]`
+		: `${className} text-[18px] h-[23.142857px] leading-[18px] w-auto`;
+
 	return (
 		<button
 			aria-hidden="false"
 			aria-label={label}
-			className={className}
+			className={buttonClassName}
 			onClick={onClick || performAction()}
-			style={
-				isAccountAction(action)
-					? accountActionButtonStyle
-					: tootActionButtonStyle
-			}
 			title={label}
 			type="button"
 		>
@@ -289,24 +288,10 @@ export default function ActionButton(props: ActionButtonProps) {
 			{buttonText && (
 				<span className="icon-button__counter">
 					<span className="animated-number">
-						<span style={{ position: "static" }}>
-							<span>{buttonText}</span>
-						</span>
+						<span>{buttonText}</span>
 					</span>
 				</span>
 			)}
 		</button>
 	);
 }
-
-const accountActionButtonStyle: CSSProperties = {
-	marginTop: "5px",
-	transform: "translate(0px, 2px)",
-};
-
-const tootActionButtonStyle: CSSProperties = {
-	fontSize: 18,
-	height: "23.142857px",
-	lineHeight: "18px",
-	width: "auto",
-};

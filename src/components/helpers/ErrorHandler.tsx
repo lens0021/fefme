@@ -1,5 +1,4 @@
 import {
-	CSSProperties,
 	PropsWithChildren,
 	ReactNode,
 	createContext,
@@ -11,15 +10,6 @@ import { ErrorBoundary } from "react-error-boundary";
 import { isString } from "lodash";
 import { Logger } from "fedialgo";
 
-import BugReportLink from "./BugReportLink";
-import {
-	baseButton,
-	blackBackground,
-	blackBoldFont,
-	blackFont,
-	rawErrorContainer,
-	whiteFont,
-} from "../../helpers/styles";
 import { config } from "../../config";
 import { extractText } from "../../helpers/react_helpers";
 import { getLogger } from "../../helpers/log_helpers";
@@ -66,20 +56,37 @@ export default function ErrorHandler(props: PropsWithChildren) {
 		errorLogger.error(`ErrorHandler: errorPage() called with error: ${error}`);
 
 		return (
-			<div style={errorContainer}>
+			<div
+				className="bg-black text-white p-[100px]"
+				style={{ fontSize: config.theme.errorFontSize }}
+			>
 				<h1>Something went wrong!</h1>
 
-				<p style={{ ...rawErrorInPopup, margin: "50px" }}>
+				<p
+					className="bg-black text-red-500 w-full m-[50px]"
+					style={{ fontSize: config.theme.errorFontSize + 1 }}
+				>
 					Error: {error.message}
 				</p>
 
 				<p>
-					<BugReportLink />
+					<>
+						Report bugs:{" "}
+						<a
+							href={config.app.issuesUrl}
+							className="text-gray-300 no-underline"
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							GitHub Issues
+						</a>
+					</>
 				</p>
 
-				<div style={tryAgainContainer}>
+				<div className="mt-[50px]">
 					<button
-						style={tryAgainButton}
+						className="text-white text-base px-5 py-2.5 rounded-md border-0 cursor-pointer transition-colors"
+						style={{ backgroundColor: config.theme.light.primary }}
 						onClick={() => {
 							resetErrorBoundary();
 							resetErrors();
@@ -151,34 +158,55 @@ export default function ErrorHandler(props: PropsWithChildren) {
 	return (
 		<ErrorBoundary fallbackRender={errorPage}>
 			{showModal && (
-				<div style={modalOverlay} onClick={resetErrors}>
-					<div style={modalDialog} onClick={(e) => e.stopPropagation()}>
-						<div style={modalHeader}>
-							<h3 style={modalTitle}>Error</h3>
+				<div
+					className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1050]"
+					onClick={resetErrors}
+				>
+					<div
+						className="bg-white rounded-lg max-w-[600px] w-[90%] max-h-[90vh] overflow-auto shadow-md"
+						onClick={(e) => e.stopPropagation()}
+					>
+						<div className="flex justify-between items-center px-5 py-4 border-b border-gray-200">
+							<h3 className="m-0 text-xl font-semibold">Error</h3>
 							<button
 								onClick={resetErrors}
-								style={closeButton}
+								className="bg-transparent border-0 text-[28px] cursor-pointer text-gray-500 p-0 w-8 h-8 flex items-center justify-center"
 								aria-label="Close"
 							>
 								×
 							</button>
 						</div>
 
-						<div style={errorModalBody}>
+						<div className="bg-pink-200 flex flex-col py-5 px-10">
 							{errorMsg &&
 								(isString(errorMsg) ? (
-									<p style={errorHeadline}>
+									<p
+										className="text-black font-bold w-full mb-2.5"
+										style={{ fontSize: config.theme.errorFontSize }}
+									>
 										{(errorMsg as string).length ? errorMsg : "No message."}
 									</p>
 								) : (
 									errorMsg
 								))}
 
-							{errorNote && <p style={errorNoteStyle}>{errorNote}</p>}
+							{errorNote && (
+								<p
+									className="text-black"
+									style={{ fontSize: config.theme.errorFontSize - 4 }}
+								>
+									{errorNote}
+								</p>
+							)}
 
 							{errorObj && (
-								<div style={rawErrorContainer}>
-									<p style={rawErrorInPopup}>{errorObj.toString()}</p>
+								<div className="bg-black font-mono rounded-[10px] mt-[15px] min-h-[120px] p-[35px]">
+									<p
+										className="text-red-500 w-full"
+										style={{ fontSize: config.theme.errorFontSize + 1 }}
+									>
+										{errorObj.toString()}
+									</p>
 								</div>
 							)}
 						</div>
@@ -199,102 +227,3 @@ export default function ErrorHandler(props: PropsWithChildren) {
 		</ErrorBoundary>
 	);
 }
-
-const errorContainer: CSSProperties = {
-	...blackBackground,
-	...whiteFont,
-	fontSize: config.theme.errorFontSize,
-	padding: "100px",
-};
-
-const errorHeadline: CSSProperties = {
-	...blackBoldFont,
-	fontSize: config.theme.errorFontSize,
-	marginBottom: "10px",
-	width: "100%",
-};
-
-const errorModalBody: CSSProperties = {
-	backgroundColor: "pink",
-	display: "flex",
-	flexDirection: "column",
-	paddingTop: "20px",
-	paddingBottom: "20px",
-	paddingLeft: "40px",
-	paddingRight: "40px",
-};
-
-const errorNoteStyle: CSSProperties = {
-	...blackFont,
-	fontSize: config.theme.errorFontSize - 4,
-};
-
-const rawErrorInPopup: CSSProperties = {
-	...blackBackground,
-	color: "red",
-	fontSize: config.theme.errorFontSize + 1,
-	width: "100%",
-};
-
-const tryAgainContainer: CSSProperties = {
-	marginTop: "50px",
-};
-
-const tryAgainButton: CSSProperties = {
-	...baseButton,
-	backgroundColor: config.theme.light.primary,
-	color: "white",
-	fontSize: "16px",
-	padding: "10px 20px",
-};
-
-const modalOverlay: CSSProperties = {
-	position: "fixed",
-	top: 0,
-	left: 0,
-	right: 0,
-	bottom: 0,
-	backgroundColor: "rgba(0, 0, 0, 0.5)",
-	display: "flex",
-	alignItems: "center",
-	justifyContent: "center",
-	zIndex: 1050,
-};
-
-const modalDialog: CSSProperties = {
-	backgroundColor: "white",
-	borderRadius: "8px",
-	maxWidth: "600px",
-	width: "90%",
-	maxHeight: "90vh",
-	overflow: "auto",
-	boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-};
-
-const modalHeader: CSSProperties = {
-	display: "flex",
-	justifyContent: "space-between",
-	alignItems: "center",
-	padding: "16px 20px",
-	borderBottom: "1px solid #e5e7eb",
-};
-
-const modalTitle: CSSProperties = {
-	margin: 0,
-	fontSize: "20px",
-	fontWeight: "600",
-};
-
-const closeButton: CSSProperties = {
-	background: "none",
-	border: "none",
-	fontSize: "28px",
-	cursor: "pointer",
-	color: "#6b7280",
-	padding: "0",
-	width: "32px",
-	height: "32px",
-	display: "flex",
-	alignItems: "center",
-	justifyContent: "center",
-};

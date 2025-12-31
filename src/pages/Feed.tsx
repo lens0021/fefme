@@ -2,22 +2,19 @@
  * @fileoverview Class for retrieving and sorting the user's feed based on their chosen
  * weighting values.
  */
-import React, { CSSProperties, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
-import TheAlgorithm, { Toot, optionalSuffix } from "fedialgo";
+import TheAlgorithm, { READY_TO_LOAD_MSG, Toot, optionalSuffix } from "fedialgo";
 import { Tooltip } from "react-tooltip";
 
 import ApiErrorsPanel from "../components/ApiErrorsPanel";
-import BugReportLink from "../components/helpers/BugReportLink";
 import ExperimentalFeatures from "../components/experimental/ExperimentalFeatures";
 import FeedFiltersAccordionSection from "../components/algorithm/FeedFiltersAccordionSection";
-import LoadingSpinner from "../components/helpers/LoadingSpinner";
-import persistentCheckbox from "../components/helpers/persistent_checkbox";
+import { persistentCheckbox } from "../components/helpers/Checkbox";
 import StatusComponent, {
 	TOOLTIP_ACCOUNT_ANCHOR,
 } from "../components/status/Status";
-import TooltippedLink from "../components/helpers/TooltippedLink";
-import TopLevelAccordion from "../components/helpers/TopLevelAccordion";
+import Accordion from "../components/helpers/Accordion";
 import useOnScreen from "../hooks/useOnScreen";
 import WeightSetter from "../components/algorithm/WeightSetter";
 import { booleanIcon } from "../helpers/react_helpers";
@@ -25,16 +22,9 @@ import { confirm } from "../components/helpers/Confirmation";
 import { getLogger } from "../helpers/log_helpers";
 import { GuiCheckboxName, config } from "../config";
 import { useAlgorithm } from "../hooks/useAlgorithm";
-import {
-	loadingMsgStyle,
-	stickySwitchContainer,
-	TEXT_CENTER_P2,
-	tooltipZIndex,
-	verticalContainer,
-	waitOrDefaultCursor,
-} from "../helpers/styles";
 
 const LOAD_BUTTON_SEPARATOR = " ● ";
+const LOAD_BUTTON_TOOLTIP_ANCHOR = "tooltipped-link-anchor";
 const logger = getLogger("Feed");
 
 /** Component to display the FediAlgo user's timeline. */
@@ -142,27 +132,29 @@ export default function Feed() {
 		(seconds) => `in ${seconds.toFixed(1)} seconds`,
 	);
 
-	return (
-		<div style={{ height: "auto" }}>
-			<div style={waitOrDefaultCursor(isLoadingThread)}>
+		return (
+			<div className="h-auto">
+				<div
+					style={{ cursor: isLoadingThread ? "wait" : "default" }}
+				>
 				{/* Tooltip options: https://react-tooltip.com/docs/options */}
 				<Tooltip
 					border={"solid"}
+					className="z-[2000] w-[500px]"
 					clickable={true}
 					delayShow={config.timeline.tooltips.accountTooltipDelayMS}
 					id={TOOLTIP_ACCOUNT_ANCHOR}
 					opacity={0.95}
 					place="left"
-					style={{ ...tooltipZIndex, width: "500px" }}
 					variant="light"
 				/>
 
-				{checkboxTooltip}
+					{checkboxTooltip}
 
 				<div className="w-full">
 					{/* Controls section */}
 					<div>
-						<div style={stickySwitchContainer}>
+						<div className="flex justify-between h-auto px-[2px]">
 							{showLinkPreviewsCheckbox}
 							{hideSensitiveCheckbox}
 							{shouldAutoUpdateCheckbox}
@@ -173,9 +165,10 @@ export default function Feed() {
 						{algorithm && <ExperimentalFeatures />}
 
 						{thread.length > 0 && (
-							<TopLevelAccordion
+							<Accordion
+								variant="top"
 								onExited={() => setThread([])}
-								startOpen={true}
+								defaultOpen={true}
 								title="Thread"
 							>
 								{thread.map((toot) => (
@@ -186,17 +179,22 @@ export default function Feed() {
 										status={toot}
 									/>
 								))}
-							</TopLevelAccordion>
+							</Accordion>
 						)}
 
-						<div style={stickySwitchContainer}>
+						<div className="flex justify-between h-auto px-[2px]">
 							{isLoading ? (
-								<LoadingSpinner
-									message={algorithm?.loadingStatus}
-									style={loadingMsgStyle}
-								/>
+								<div
+									className="flex h-5 items-center mt-1.5"
+									style={{ fontSize: 16, height: "auto", marginTop: "6px" }}
+								>
+									<div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
+									<div className="ml-3">
+										<p>{`${algorithm?.loadingStatus || READY_TO_LOAD_MSG}...`}</p>
+									</div>
+								</div>
 							) : (
-								<p style={loadingMsgStyle}>
+								<p className="text-base h-auto mt-1.5">
 									{footerMsg} (
 									{
 										<a onClick={reset} className="font-bold underline cursor-pointer text-red-600 text-sm">
@@ -211,7 +209,17 @@ export default function Feed() {
 								{TheAlgorithm.isDebugMode ? (
 									`Displaying ${numDisplayedToots} Toots (Scroll: ${scrollPercentage.toFixed(1)}%)`
 								) : (
-									<BugReportLink />
+									<>
+										Report bugs:{" "}
+										<a
+											href={config.app.issuesUrl}
+											className="text-gray-300 no-underline"
+											target="_blank"
+											rel="noopener noreferrer"
+										>
+											GitHub Issues
+										</a>
+									</>
 								)}
 							</p>
 						</div>
@@ -250,34 +258,82 @@ export default function Feed() {
 				<div className="w-full">
 					{algorithm && !isLoading && (
 						<div className="text-base h-auto mt-2 text-center text-[13px]">
-							<TooltippedLink
-								labelAndTooltip={
-									config.timeline.loadTootsButtonLabels.loadNewToots
-								}
-								onClick={triggerFeedUpdate}
+							<Tooltip
+								border={"solid"}
+								className="text-base z-[2000]"
+								delayShow={config.timeline.tooltips.defaultTooltipDelayMS}
+								id={LOAD_BUTTON_TOOLTIP_ANCHOR}
+								opacity={0.95}
+								place="bottom"
+								variant="light"
 							/>
+
+							<a
+								data-tooltip-content={
+									config.timeline.loadTootsButtonLabels.loadNewToots.tooltipText
+								}
+								data-tooltip-id={LOAD_BUTTON_TOOLTIP_ANCHOR}
+							>
+								<span
+									onClick={triggerFeedUpdate}
+									className="cursor-pointer underline"
+									style={
+										config.timeline.loadTootsButtonLabels.loadNewToots.labelStyle
+									}
+								>
+									{config.timeline.loadTootsButtonLabels.loadNewToots.label}
+								</span>
+							</a>
 
 							{LOAD_BUTTON_SEPARATOR}
 
-							<TooltippedLink
-								labelAndTooltip={
-									config.timeline.loadTootsButtonLabels.loadOldToots
+							<a
+								data-tooltip-content={
+									config.timeline.loadTootsButtonLabels.loadOldToots.tooltipText
 								}
-								onClick={triggerHomeTimelineBackFill}
-							/>
+								data-tooltip-id={LOAD_BUTTON_TOOLTIP_ANCHOR}
+							>
+								<span
+									onClick={triggerHomeTimelineBackFill}
+									className="cursor-pointer underline"
+									style={
+										config.timeline.loadTootsButtonLabels.loadOldToots.labelStyle
+									}
+								>
+									{config.timeline.loadTootsButtonLabels.loadOldToots.label}
+								</span>
+							</a>
 
 							{LOAD_BUTTON_SEPARATOR}
 
-							<TooltippedLink
-								labelAndTooltip={
+							<a
+								data-tooltip-content={
 									config.timeline.loadTootsButtonLabels.loadUserDataForAlgorithm
+										.tooltipText
 								}
-								onClick={triggerMoarData}
-							/>
+								data-tooltip-id={LOAD_BUTTON_TOOLTIP_ANCHOR}
+							>
+								<span
+									onClick={triggerMoarData}
+									className="cursor-pointer underline"
+									style={
+										config.timeline.loadTootsButtonLabels.loadUserDataForAlgorithm
+											.labelStyle
+									}
+								>
+									{
+										config.timeline.loadTootsButtonLabels.loadUserDataForAlgorithm
+											.label
+									}
+								</span>
+							</a>
 						</div>
 					)}
 
-					<div className="rounded h-auto" style={{ backgroundColor: config.theme.feedBackgroundColor }}>
+					<div
+						className="rounded h-auto"
+						style={{ backgroundColor: config.theme.feedBackgroundColor }}
+					>
 						{timeline.slice(0, numShownToots).map((toot) => (
 							<StatusComponent
 								isLoadingThread={isLoadingThread}
@@ -291,10 +347,12 @@ export default function Feed() {
 
 						{timeline.length == 0 &&
 							(isLoading ? (
-								<LoadingSpinner
-									isFullPage={true}
-									message={config.timeline.defaultLoadingMsg}
-								/>
+								<div className="flex flex-1 h-screen items-center justify-center">
+									<div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600" />
+									<div className="ml-3">
+										<p>{`${config.timeline.defaultLoadingMsg}...`}</p>
+									</div>
+								</div>
 							) : (
 								<div className="flex flex-1 h-screen items-center justify-center text-xl">
 									<p>{config.timeline.noTootsMsg}</p>
@@ -308,4 +366,3 @@ export default function Feed() {
 		</div>
 	);
 }
-

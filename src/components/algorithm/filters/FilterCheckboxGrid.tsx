@@ -17,7 +17,10 @@ import {
 	type FilterOptionDataSource,
 } from "fedialgo";
 
-import FilterCheckbox from "./FilterCheckbox";
+import Checkbox, {
+	FILTER_TOOLTIP_ANCHOR,
+	HIGHLIGHTED_TOOLTIP_ANCHOR,
+} from "../../helpers/Checkbox";
 import { buildGradient } from "../../../helpers/styles";
 import { config } from "../../../config";
 import { getLogger } from "../../../helpers/log_helpers";
@@ -219,8 +222,10 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 		const optionCheckboxes = options.objs.map((option, i) => {
 			const label = option.displayName || option.name;
 
+			const labelExtra = option?.numToots?.toLocaleString();
+
 			return (
-				<FilterCheckbox
+				<Checkbox
 					isChecked={filter.isOptionEnabled(option.name)}
 					key={`${filter.propertyName}_${option.name}_${i}`}
 					label={
@@ -228,11 +233,14 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 							? optionsFormatCfg?.formatLabel(label)
 							: label
 					}
+					labelExtra={labelExtra}
 					onChange={(e) =>
 						filter.updateOption(option.name, e.target.checked, allowMultiSelect)
 					}
-					option={option}
 					tooltip={findTooltip(option)}
+					tooltipAnchor={FILTER_TOOLTIP_ANCHOR}
+					highlightedTooltipAnchor={HIGHLIGHTED_TOOLTIP_ANCHOR}
+					updateFilters={true}
 					url={isTagFilter && algorithm.tagUrl(option.name)} // TODO: could add links for users too
 				/>
 			);

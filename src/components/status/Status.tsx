@@ -43,11 +43,6 @@ import { config } from "../../config";
 import { executeWithLoadingState } from "../../helpers/async_helpers";
 import { getLogger } from "../../helpers/log_helpers";
 import { formatScore, formatScores } from "../../helpers/number_helpers";
-import {
-	linkCursor,
-	waitOrDefaultCursor,
-	whiteFont,
-} from "../../helpers/styles";
 import { openToot } from "../../helpers/react_helpers";
 import { timestampString } from "../../helpers/string_helpers";
 import { useAlgorithm } from "../../hooks/useAlgorithm";
@@ -205,9 +200,14 @@ export default function StatusComponent(props: StatusComponentProps) {
 				}
 			}
 
-			const style = color ? { ...baseIconStyle, color: color } : baseIconStyle;
+			const style = color ? { color } : undefined;
 			return (
-				<FontAwesomeIcon icon={iconInfo.icon} style={style} title={title} />
+				<FontAwesomeIcon
+					className="mr-[3px]"
+					icon={iconInfo.icon}
+					style={style}
+					title={title}
+				/>
 			);
 		},
 		[toot, toot.editedAt, toot.followedTags, toot.trendingTags],
@@ -237,7 +237,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 					<ul>
 						<li>
 							{"Poster:"}{" "}
-							<span style={{ fontWeight: 500 }}>{parse(authorNameHTML)}</span>
+							<span className="font-medium">{parse(authorNameHTML)}</span>
 						</li>
 						<li>
 							{"Final Score:"} <code>{formatScore(toot.scoreInfo.score)}</code>
@@ -281,14 +281,11 @@ export default function StatusComponent(props: StatusComponentProps) {
 					</div>
 				)}
 
-				<div className="status" style={isReblog ? { paddingTop: "10px" } : {}}>
+				<div className={`status ${isReblog ? "pt-[10px]" : ""}`}>
 					{/* Top bar with account and info icons */}
 					<div className="status__info">
 						{/* Top right icons + timestamp that link to the toot */}
-						<div
-							className="status__relative-time"
-							style={{ display: "inline-block" }}
-						>
+						<div className="status__relative-time inline-block">
 							<NewTabLink
 								className="status__relative-time-icons"
 								href={toot.realURL}
@@ -325,7 +322,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 									e.preventDefault();
 									setShowTootModal(true);
 								}}
-								style={openRawJson}
+								className="ml-[10px] cursor-pointer"
 							>
 								{infoIcon(InfoIconType.ShowToot)}
 							</span>
@@ -343,10 +340,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 								)}
 							>
 								<div className="status__avatar">
-									<div
-										className="account__avatar"
-										style={{ height: "46px", width: "46px" }}
-									>
+									<div className="account__avatar h-[46px] w-[46px]">
 										<LazyLoadImage
 											src={toot.account.avatar}
 											alt={`${toot.account.webfingerURI}`}
@@ -360,7 +354,8 @@ export default function StatusComponent(props: StatusComponentProps) {
 									<strong key="internalBDI" className="display-name__html">
 										<NewTabLink
 											href={toot.account.localServerUrl}
-											style={{ ...accountLink, ...fontStyle }}
+											className="text-white no-underline"
+											style={fontStyle}
 										>
 											{parse(
 												toot.account.displayNameWithEmojis(
@@ -373,9 +368,8 @@ export default function StatusComponent(props: StatusComponentProps) {
 											.filter((f) => f.verifiedAt)
 											.map((f, i) => (
 												<span
-													className="verified-badge"
+													className="verified-badge text-sky-300 px-[5px]"
 													key={`${f.name}_${i}`}
-													style={verifiedBadgeStyle}
 													title={f.value.replace(/<[^>]*>?/gm, "")}
 												>
 													<FontAwesomeIcon
@@ -389,7 +383,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 
 								<span key="acctdisplay" className="display-name__account">
 									@{toot.account.webfingerURI}
-									<span style={{ width: "5px" }}> </span>
+									<span className="inline-block w-[5px]"> </span>
 									{buildActionButton(AccountAction.Follow)}
 									{buildActionButton(AccountAction.Mute)}
 								</span>
@@ -418,8 +412,11 @@ export default function StatusComponent(props: StatusComponentProps) {
 
 					{/* Tags in smaller font, if they make up the entirety of the last paragraph */}
 					{toot.contentTagsParagraph && (
-						<div className={contentClass} style={{ paddingTop: "12px" }}>
-							<span style={tagFontStyle}>
+						<div className={`${contentClass} pt-[12px]`}>
+							<span
+								className="text-[#636f7a]"
+								style={{ fontSize: config.theme.footerHashtagsFontSize }}
+							>
 								{parse(toot.contentTagsParagraph)}
 							</span>
 						</div>
@@ -427,7 +424,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 
 					{setThread &&
 						(toot.repliesCount > 0 || !!toot.inReplyToAccountId) && (
-							<p style={{ paddingTop: "8px" }}>
+							<p className="pt-2">
 								<a
 									onClick={async () => {
 										logger.debug(
@@ -440,9 +437,9 @@ export default function StatusComponent(props: StatusComponentProps) {
 										);
 										setThread(toots);
 									}}
+									className="text-gray-500 text-[11px]"
 									style={{
-										...viewThreadStyle,
-										...waitOrDefaultCursor(isLoadingThread, "pointer"),
+										cursor: isLoadingThread ? "wait" : "pointer",
 									}}
 								>
 									⇇ View the Thread
@@ -464,39 +461,10 @@ export default function StatusComponent(props: StatusComponentProps) {
 	);
 }
 
-const accountLink: CSSProperties = {
-	...whiteFont,
-	textDecoration: "none",
-};
-
-const baseIconStyle: CSSProperties = {
-	marginRight: "3px",
-};
-
-const openRawJson: CSSProperties = {
-	...linkCursor,
-	marginLeft: "10px",
-};
-
 const rawTootJson: CSSProperties = {
 	fontSize: 13,
 };
 
 const scoreJsonStyle: CSSProperties = {
 	fontSize: 16,
-};
-
-const tagFontStyle: CSSProperties = {
-	fontSize: config.theme.footerHashtagsFontSize,
-	color: "#636f7a",
-};
-
-const verifiedBadgeStyle: CSSProperties = {
-	color: "lightblue",
-	padding: "0px 5px",
-};
-
-const viewThreadStyle: CSSProperties = {
-	color: "grey",
-	fontSize: 11,
 };

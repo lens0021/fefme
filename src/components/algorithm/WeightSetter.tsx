@@ -3,7 +3,7 @@
  * Things like how much to prefer people you favorite a lot or how much to posts that
  * are trending in the Fedivers.
  */
-import React, { CSSProperties, useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 
 import TheAlgorithm, {
 	NonScoreWeightName,
@@ -12,17 +12,11 @@ import TheAlgorithm, {
 	type Weights,
 } from "fedialgo";
 
-import TopLevelAccordion from "../helpers/TopLevelAccordion";
+import Accordion from "../helpers/Accordion";
 import WeightSlider from "./WeightSlider";
 import { confirm } from "../helpers/Confirmation";
 import { getLogger } from "../../helpers/log_helpers";
 import { config } from "../../config";
-import {
-	baseButton,
-	roundedBox,
-	titleStyle,
-	verticalSpacer,
-} from "../../helpers/styles";
 import { useAlgorithm } from "../../hooks/useAlgorithm";
 import { useError } from "../helpers/ErrorHandler";
 
@@ -108,9 +102,13 @@ export default function WeightSetter() {
 	);
 
 	return (
-		<TopLevelAccordion title={"Feed Algorithm Control Panel"}>
-			<div style={resetButtonContainer}>
-				<button onClick={resetToDefaults} style={resetButton}>
+		<Accordion variant="top" title={"Feed Algorithm Control Panel"}>
+			<div className="flex justify-center mb-4">
+				<button
+					onClick={resetToDefaults}
+					className="rounded-md cursor-pointer px-4 py-2 text-sm font-medium border-0 transition-colors text-white"
+					style={{ backgroundColor: config.theme.light.danger }}
+				>
 					Reset to Defaults
 				</button>
 			</div>
@@ -118,32 +116,17 @@ export default function WeightSetter() {
 			{Object.values(NonScoreWeightName).map((weight) =>
 				makeWeightSlider(weight),
 			)}
-			<div style={verticalSpacer("12px")} />
+			<div className="h-3" />
 
-			<div style={roundedBox}>
-				<p style={weightingsStyle}>Weightings</p>
+			<div className="rounded-[20px] bg-[#d3d3d3] pl-[25px] pr-[20px] pb-[13px] pt-[15px]">
+				<p className="font-bold text-[17px] mt-0 mb-[10px] ml-[5px] underline font-[Tahoma,Geneva,sans-serif] text-black">
+					Weightings
+				</p>
 
 				{Object.values(ScoreName)
 					.sort()
 					.map((scoreName) => makeWeightSlider(scoreName))}
 			</div>
-		</TopLevelAccordion>
+		</Accordion>
 	);
 }
-
-const resetButtonContainer: CSSProperties = {
-	display: "flex",
-	justifyContent: "center",
-	marginBottom: "16px",
-};
-
-const resetButton: CSSProperties = {
-	...baseButton,
-	backgroundColor: config.theme.light.danger,
-	color: "white",
-};
-
-const weightingsStyle: CSSProperties = {
-	...titleStyle,
-	marginBottom: "10px",
-};

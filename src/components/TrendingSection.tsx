@@ -1,4 +1,4 @@
-import React, { CSSProperties, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 
 import { capitalCase } from "change-case";
 import {
@@ -9,28 +9,17 @@ import {
 	type TagWithUsageCounts,
 	type TrendingObj,
 } from "fedialgo";
+import { Tooltip } from "react-tooltip";
 
-import FilterAccordionSection from "./algorithm/FilterAccordionSection";
-import MinTootsSlider, { computeDefaultValue } from "./helpers/MinTootsSlider";
+import Accordion from "./helpers/Accordion";
 import NewTabLink from "./helpers/NewTabLink";
-import SubAccordion from "./helpers/SubAccordion";
 import { config } from "../config";
 import {
-	boldTagLinkStyle,
-	colStyle,
-	descriptionStyle,
-	footerContainer,
-	footerLinkText,
-	infoTxtStyle,
-	linkFont,
-	listItemStyle,
-	listStyle,
-	trendingListContainer,
-	singleColumn,
-	singleColumnPadded,
-} from "./TrendingSection.styles";
+	computeMinTootsDefaultValue,
+	computeMinTootsMaxValue,
+} from "../helpers/min_toots";
 import { getLogger } from "../helpers/log_helpers";
-import { gridify, verticalSpacer } from "../helpers/react_helpers";
+import { gridify } from "../helpers/react_helpers";
 import { useAlgorithm } from "../hooks/useAlgorithm";
 
 export type TrendingListObj = TrendingObj | string;
@@ -100,9 +89,17 @@ export default function TrendingSection(props: TrendingProps) {
 	const minTootsSliderDefaultValue: number = useMemo(
 		() =>
 			tagList
-				? computeDefaultValue(tagList, panelType, panelCfg.initialNumShown)
+				? computeMinTootsDefaultValue(
+						tagList,
+						panelType,
+						panelCfg.initialNumShown,
+					)
 				: 0,
-		[tagList],
+		[panelCfg.initialNumShown, panelType, tagList],
+	);
+	const minTootsMaxValue = useMemo(
+		() => (tagList ? computeMinTootsMaxValue(tagList, panelType) : 0),
+		[panelType, tagList],
 	);
 
 	const minTootsState = useState<number>(minTootsSliderDefaultValue);
@@ -114,7 +111,7 @@ export default function TrendingSection(props: TrendingProps) {
 
 	// Memoize because react profiler says trending panels are most expensive to render
 	const footer: React.ReactNode = useMemo(() => {
-		// TagList uses the MinTootsSlider; other displays have a link to show all vs. show initialNumShown
+		// TagList uses the min-toots slider; other displays have a link to show all vs. show initialNumShown
 		if (tagList || trendingObjs.length <= panelCfg.initialNumShown) return null;
 
 		const toggleShown = () => {
@@ -126,10 +123,14 @@ export default function TrendingSection(props: TrendingProps) {
 		};
 
 		return (
-			<div key={`footer-${title}`} style={footerContainer}>
-				<div style={{ width: "40%" }}>
+			<div key={`footer-${title}`} className="flex justify-around w-full mb-[5px]">
+				<div className="w-[40%]">
 					{"("}
-					<a onClick={toggleShown} style={footerLinkText}>
+					<a
+						onClick={toggleShown}
+						className="font-bold underline cursor-pointer font-mono text-[#1b5b61]"
+						style={{ fontSize: config.theme.trendingObjFontSize - 1 }}
+					>
 						{numShown == panelCfg.initialNumShown
 							? `show all ${trendingObjs.length} ${objTypeLabel}`
 							: `show fewer ${objTypeLabel}`}
@@ -153,7 +154,7 @@ export default function TrendingSection(props: TrendingProps) {
 		let objs: TrendingListObj[] = trendObjs;
 		logger.trace(`Rerendering list of ${objs.length} trending items...`);
 
-		// TagList uses the MinTootsSlider; other displays have a link to show all vs. show initialNumShown
+		// TagList uses the min-toots slider; other displays have a link to show all vs. show initialNumShown
 		if (tagList) {
 			if (minTootsState[0] > 0) {
 				objs = trendObjs.filter(
@@ -169,7 +170,7 @@ export default function TrendingSection(props: TrendingProps) {
 			return (
 				<>
 					{objs.map(objRenderer)}
-					{verticalSpacer(20, `trending-footer-${panelType}`)}
+					<div key={`trending-footer-${panelType}`} className="h-5 w-full" />
 					{footer}
 				</>
 			);
@@ -191,38 +192,67 @@ export default function TrendingSection(props: TrendingProps) {
 		logger.trace(
 			`Rebuilding trendingItemList, longest label="${longestLabel}" (len=${maxLength}, isSingleCol=${isSingleCol})`,
 		);
-		let containerStyle: CSSProperties;
+		let containerClassName: string;
 
 		if (panelCfg.hasCustomStyle) {
-			containerStyle = singleColumn;
+			containerClassName =
+				"rounded-[20px] bg-[#d3d3d3] pl-[22px] pr-[20px] pt-[20px] pb-[13px]";
 		} else if (isSingleCol) {
-			containerStyle = singleColumnPadded;
+			containerClassName =
+				"rounded-[20px] bg-[#d3d3d3] pl-[40px] pr-[20px] pt-[20px] pb-[13px]";
 		} else {
-			containerStyle = trendingListContainer;
+			containerClassName =
+				"rounded-[20px] bg-[#d3d3d3] pl-[25px] pr-[20px] pt-[20px] pb-[13px]";
 		}
 
 		const elements = objs.map((obj, i) => (
-			<li key={`${title}-${i}-list-item`} style={listItemStyle}>
+			<li key={`${title}-${i}-list-item`} className="mb-[4px]">
 				<NewTabLink
 					href={linkUrl(obj)}
 					onClick={(e) => onClick(obj, e)}
-					style={panelCfg.hasCustomStyle ? linkFont : boldTagLinkStyle}
+					className={
+						panelCfg.hasCustomStyle
+							? "text-black font-[Tahoma,Geneva,sans-serif]"
+							: "font-bold text-black font-[Tahoma,Geneva,sans-serif]"
+					}
+					style={{
+						fontSize: panelCfg.hasCustomStyle
+							? config.theme.trendingObjFontSize - 1
+							: config.theme.trendingObjFontSize - 2,
+					}}
 				>
 					{linkLabel(obj)}
 				</NewTabLink>
 
-				{infoTxt && <span style={infoTxtStyle}>({infoTxt(obj)})</span>}
+				{infoTxt && (
+					<span
+						className="ml-[6px]"
+						style={{ fontSize: config.theme.trendingObjFontSize - 4 }}
+					>
+						({infoTxt(obj)})
+					</span>
+				)}
 			</li>
 		));
 
 		return (
-			<div style={containerStyle}>
+			<div className={containerClassName}>
 				{panelCfg.description && (
-					<p style={descriptionStyle}>{panelCfg.description}</p>
+					<p
+						className="text-black font-[Tahoma,Geneva,sans-serif] mt-[3px] mb-[18px]"
+						style={{ fontSize: config.theme.trendingObjFontSize }}
+					>
+						{panelCfg.description}
+					</p>
 				)}
 
-				<ol style={listStyle}>
-					{isSingleCol ? elements : gridify(elements, 2, colStyle)}
+				<ol
+					className="list-decimal pb-[10px] pl-[25px]"
+					style={{ fontSize: config.theme.trendingObjFontSize }}
+				>
+					{isSingleCol
+						? elements
+						: gridify(elements, 2, { marginLeft: "1px", marginRight: "1px" })}
 				</ol>
 
 				{footer}
@@ -242,34 +272,62 @@ export default function TrendingSection(props: TrendingProps) {
 	const slider = useMemo(() => {
 		if (!tagList) return null;
 
+		const tooltipAnchor = `${panelType}-min-toots-slider-tooltip`;
+		const pluralizedPanelTitle = title.toLowerCase();
+
 		return (
-			<MinTootsSlider
-				key={`${panelType}-minTootsSlider`}
-				minTootsState={minTootsState}
-				panelTitle={title}
-				pluralizedPanelTitle={title}
-				showLongTitle={false} // TODO: This fucks up the layout if set to true
-				objList={tagList}
-			/>
+			<div key={`${panelType}-minTootsSlider`} className="w-[23%]">
+				<Tooltip
+					className="font-normal z-[2000]"
+					delayShow={config.filters.boolean.minTootsSlider.tooltipHoverDelay}
+					id={tooltipAnchor}
+					place="bottom"
+				/>
+
+				<a
+					data-tooltip-id={tooltipAnchor}
+					data-tooltip-content={`Hide ${pluralizedPanelTitle} with less than ${minTootsState[0]} toots`}
+				>
+					<div className="me-2">
+						<div className="flex flex-row items-center text-sm justify-between whitespace-nowrap">
+							<div className="flex flex-row justify-end">
+								<input
+									type="range"
+									className="custom-slider"
+									min={1}
+									max={minTootsMaxValue}
+									onChange={(e) =>
+										minTootsState[1](parseInt(e.target.value, 10))
+									}
+									step={1}
+									style={{ width: "80%" }}
+									value={minTootsState[0]}
+								/>
+							</div>
+
+							<div className="flex flex-row items-center text-sm justify-between whitespace-nowrap">
+								<span>
+									<span className="font-bold mr-1">Minimum</span>
+								</span>
+							</div>
+						</div>
+					</div>
+				</a>
+			</div>
 		);
-	}, [minTootsState[0], tagList]);
+	}, [minTootsMaxValue, minTootsState[0], panelType, tagList, title]);
 
 	if (tagList) {
 		return (
-			<FilterAccordionSection
-				isActive={false}
-				switchbar={[slider]}
-				title={title}
-			>
+			<Accordion isActive={false} switchbar={[slider]} title={title}>
 				{trendingItemList}
-			</FilterAccordionSection>
+			</Accordion>
 		);
 	} else {
 		return (
-			<SubAccordion key={panelType} title={title}>
+			<Accordion key={panelType} title={title}>
 				{trendingItemList}
-			</SubAccordion>
+			</Accordion>
 		);
 	}
 }
-

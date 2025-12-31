@@ -1,8 +1,7 @@
-import React, { CSSProperties, useState } from "react";
+import React, { useState } from "react";
 
 import { config } from "../config";
 import { useAlgorithm } from "../hooks/useAlgorithm";
-import { verticalContainer } from "../helpers/styles";
 
 /**
  * The footer that appears on the login screen when API errors and warnings were encountered
@@ -17,12 +16,12 @@ export default function ApiErrorsPanel(): JSX.Element {
 	}
 
 	return (
-		<div style={accordionStyle}>
-			<div style={accordionStyle}>
-				<div style={headerStyle}>
+		<div className="bg-[#4f4f42] mt-[35px] font-[Tahoma,Geneva,sans-serif] rounded overflow-hidden">
+			<div className="bg-[#4f4f42]">
+				<div className="bg-[#4f4f42]">
 					<button
 						type="button"
-						style={buttonStyle}
+						className="bg-[#4f4f42] border-0 text-[#a4a477] w-full p-3 cursor-pointer text-left"
 						onClick={() => setIsExpanded(!isExpanded)}
 					>
 						{algorithm.apiErrorMsgs.length}{" "}
@@ -31,10 +30,10 @@ export default function ApiErrorsPanel(): JSX.Element {
 				</div>
 
 				{isExpanded && (
-					<div style={bodyStyle}>
-						<ul style={errorList}>
+					<div className="bg-[#4f4f42] p-3">
+						<ul className="list-decimal pl-[25px]">
 							{algorithm.apiErrorMsgs.map((msg, i) => (
-								<li key={`${msg}_${i}`} style={errorItem}>
+								<li key={`${msg}_${i}`} className="text-[#c6d000] text-xs mt-[2px]">
 									{msg}
 								</li>
 							))}
@@ -45,46 +44,3 @@ export default function ApiErrorsPanel(): JSX.Element {
 		</div>
 	);
 }
-
-const accordionHeaderStyle: CSSProperties = {
-	backgroundColor: "#4f4f42ff",
-};
-
-const accordionStyle: CSSProperties = {
-	...accordionHeaderStyle,
-	...verticalContainer,
-	fontFamily: "Tahoma, Geneva, sans-serif",
-	marginBottom: verticalContainer.marginTop,
-	borderRadius: "4px",
-	overflow: "hidden",
-};
-
-const headerStyle: CSSProperties = {
-	...accordionHeaderStyle,
-};
-
-const bodyStyle: CSSProperties = {
-	...accordionHeaderStyle,
-	padding: "12px",
-};
-
-const buttonStyle: CSSProperties = {
-	...accordionHeaderStyle,
-	borderWidth: "0px",
-	color: "#a4a477ff",
-	width: "100%",
-	padding: "12px",
-	cursor: "pointer",
-	textAlign: "left",
-};
-
-const errorItem: CSSProperties = {
-	color: "#c6d000ff",
-	fontSize: 12,
-	marginTop: "2px",
-};
-
-const errorList: CSSProperties = {
-	listStyle: "numeric",
-	paddingLeft: "25px",
-};

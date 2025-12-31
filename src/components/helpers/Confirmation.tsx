@@ -3,7 +3,6 @@
  */
 import { ConfirmDialog, confirmable, createConfirmation } from "react-confirm";
 
-import { blackFont } from "../../helpers/styles";
 
 interface ConfirmationProps {
 	okLabel?: string;
@@ -34,8 +33,7 @@ const Confirmation = (props: ConfirmationProps) => {
 			onClick={enableEscape ? () => proceed(false) : undefined}
 		>
 			<div
-				className="bg-white rounded-lg shadow-lg max-w-md w-full mx-4"
-				style={blackFont}
+				className="bg-white text-black rounded-lg shadow-lg max-w-md w-full mx-4"
 				onClick={(e) => e.stopPropagation()}
 			>
 				<div className="p-4 border-b">

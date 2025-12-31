@@ -5,7 +5,6 @@ import { useEffect } from "react";
 
 import { MediaCategory, Toot, VIDEO_TYPES } from "fedialgo";
 
-import { blackFont } from "../../helpers/styles";
 import { getLogger } from "../../helpers/log_helpers";
 
 const logger = getLogger("AttachmentsModal");
@@ -82,7 +81,7 @@ export default function AttachmentsModal(props: AttachmentsModalProps) {
 				onClick={(e) => e.stopPropagation()}
 			>
 				<div className="p-4 border-b flex justify-between items-center">
-					<h3 className="text-lg font-semibold" style={blackFont}>
+					<h3 className="text-lg font-semibold text-black">
 						{toot.contentShortened()}
 					</h3>
 					<button

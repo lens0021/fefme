@@ -1,17 +1,9 @@
 /*
  * WIP: Component for displaying the trending hashtags in the Fediverse.
  */
-import { CSSProperties } from "react";
-
 import { FEDIALGO } from "fedialgo";
 
-import TopLevelAccordion from "../helpers/TopLevelAccordion";
-import {
-	accordionSubheader,
-	centerAlignedFlexRow,
-	roundedBox,
-	TEXT_CENTER_P2,
-} from "../../helpers/styles";
+import Accordion from "../helpers/Accordion";
 import { confirm } from "../helpers/Confirmation";
 import { useAlgorithm } from "../../hooks/useAlgorithm";
 import { useAuthContext } from "../../hooks/useAuth";
@@ -63,28 +55,27 @@ export default function ExperimentalFeatures() {
 			: "bg-blue-600 hover:bg-blue-700 text-white";
 
 		return (
-			<li key={label} style={buttonListItem}>
+			<li key={label} className="flex flex-row items-center text-[18px] mb-[2px]">
 				<button
-					className={`${buttonClass} px-3 py-1.5 text-sm rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-center`}
+					className={`${buttonClass} px-3 py-1.5 text-sm rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-center flex-[2] my-[5px]`}
 					disabled={isLoading}
 					onClick={onClick}
-					style={buttonStyle}
 				>
 					{isLoading ? "Loading..." : label}
 				</button>
 
-				<div style={buttonDescription}>{BUTTON_TEXT[label]}</div>
+				<div className="flex-[4] text-sm ml-[10px]">
+					{BUTTON_TEXT[label]}
+				</div>
 			</li>
 		);
 	};
 
 	return (
-		<TopLevelAccordion title="Experimental Features">
-			<p style={{ ...accordionSubheader, paddingTop: "2px" }}>
-				Use with caution.
-			</p>
+		<Accordion variant="top" title="Experimental Features">
+			<p className="ml-[7px] p-[7px] pt-[2px]">Use with caution.</p>
 
-			<div style={container}>
+			<div className="rounded-[20px] bg-[#d3d3d3] pl-[20px] pr-[20px] pt-[15px] pb-[20px]">
 				<ul>
 					{makeLabeledButton(
 						LOAD_COMPLETE_USER_HISTORY,
@@ -94,30 +85,6 @@ export default function ExperimentalFeatures() {
 					{makeLabeledButton(DELETE_ALL, wipeAll, "danger")}
 				</ul>
 			</div>
-		</TopLevelAccordion>
+		</Accordion>
 	);
 }
-
-const buttonDescription: CSSProperties = {
-	flex: 4,
-	fontSize: 14,
-	marginLeft: "10px",
-};
-
-const buttonListItem: CSSProperties = {
-	...centerAlignedFlexRow,
-	fontSize: 18,
-	marginBottom: "2px",
-};
-
-const buttonStyle: CSSProperties = {
-	flex: 2,
-	marginBottom: "5px",
-	marginTop: "5px",
-};
-
-const container: CSSProperties = {
-	...roundedBox,
-	paddingBottom: "20px",
-	paddingLeft: "20px",
-};

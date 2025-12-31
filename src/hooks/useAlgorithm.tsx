@@ -19,7 +19,7 @@ import TheAlgorithm, {
 import { createRestAPIClient, mastodon } from "masto";
 import { useError } from "../components/helpers/ErrorHandler";
 
-import persistentCheckbox from "../components/helpers/persistent_checkbox";
+import { persistentCheckbox } from "../components/helpers/Checkbox";
 import {
 	addMimeExtensionsToServer,
 	type MastodonServer,

@@ -5,7 +5,7 @@
  */
 import { capitalCase } from "change-case";
 
-import FilterAccordionSection from "../FilterAccordionSection";
+import Accordion from "../../helpers/Accordion";
 import HeaderSwitch from "./HeaderSwitch";
 import Slider from "./../Slider";
 import { config } from "../../../config";
@@ -18,7 +18,7 @@ export default function NumericFilters(props: { isActive: boolean }) {
 	const numericFilters = Object.values(algorithm.filters.numericFilters);
 
 	return (
-		<FilterAccordionSection
+		<Accordion
 			description={config.filters.numeric.description}
 			isActive={isActive}
 			switchbar={[
@@ -55,6 +55,6 @@ export default function NumericFilters(props: { isActive: boolean }) {
 					/>
 				),
 			)}
-		</FilterAccordionSection>
+		</Accordion>
 	);
 }

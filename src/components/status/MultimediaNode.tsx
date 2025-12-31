@@ -1,4 +1,4 @@
-import React, { CSSProperties, useCallback, useState } from "react";
+import React, { useCallback, useState } from "react";
 
 import "react-lazy-load-image-component/src/effects/blur.css"; // For blur effect
 import { GIFV, MediaCategory, Toot } from "fedialgo";
@@ -6,7 +6,6 @@ import { LazyLoadImage } from "react-lazy-load-image-component";
 import { mastodon } from "masto";
 
 import AttachmentsModal from "./AttachmentsModal";
-import { blackBackground, roundedCorners } from "../../helpers/styles";
 import { config } from "../../config";
 import { getLogger } from "../../helpers/log_helpers";
 import { isEmptyStr } from "../../helpers/string_helpers";
@@ -87,13 +86,9 @@ export default function MultimediaNode(
 	const makeImage = useCallback(
 		(image: mastodon.v1.MediaAttachment, idx: number): React.ReactElement => (
 			<div
-				className="media-gallery__item"
+				className="media-gallery__item h-full inset-auto"
 				key={image.previewUrl}
-				style={{
-					height: "100%",
-					inset: "auto",
-					width: (1 / images.length) * 100 + "%",
-				}}
+				style={{ width: (1 / images.length) * 100 + "%" }}
 			>
 				{HIDDEN_CANVAS}
 				{removeMediaAttachment && (
@@ -119,9 +114,9 @@ export default function MultimediaNode(
 					src={image.previewUrl}
 					style={{
 						...filterStyle,
-						...imageStyle,
 						cursor: removeMediaAttachment ? "default" : "pointer",
 					}}
+					className="h-full w-full bg-black rounded-[15px] object-contain object-top"
 					title={showContent ? image.description : spoilerText}
 					wrapperProps={{ style: { position: "static" } }} // Required to center properly with blur
 				/>
@@ -149,13 +144,12 @@ export default function MultimediaNode(
 				)}
 
 				<div
-					className="media-gallery"
+					className="media-gallery overflow-hidden"
 					style={{
 						height:
 							images.length > 1 || imageHeight < 200
 								? "100%"
 								: `${imageHeight}px`,
-						...style,
 					}}
 				>
 					{images.map((image, i) => makeImage(image, i))}
@@ -165,14 +159,14 @@ export default function MultimediaNode(
 	} else if (videos.length > 0) {
 		return (
 			<div
-				className="media-gallery"
-				style={{ height: `${VIDEO_HEIGHT}px`, ...style }}
+				className="media-gallery overflow-hidden"
+				style={{ height: `${VIDEO_HEIGHT}px` }}
 			>
 				{videos.map((video, i) => {
 					const sourceTag = (
 						<source src={video?.remoteUrl || video?.url} type="video/mp4" />
 					);
-					const videoStyle = { ...filterStyle, ...videoEmbedStyle };
+					const videoStyle = { ...filterStyle };
 					let videoTag: React.ReactElement;
 
 					// GIFs autoplay play in a loop; mp4s are controlled by the user.
@@ -184,20 +178,30 @@ export default function MultimediaNode(
 								loop
 								playsInline
 								style={videoStyle}
+								className="block mx-auto"
 							>
 								{sourceTag}
 							</video>
 						);
 					} else {
 						videoTag = (
-							<video controls height={"100%"} playsInline style={videoStyle}>
+							<video
+								controls
+								height={"100%"}
+								playsInline
+								style={videoStyle}
+								className="block mx-auto"
+							>
 								{sourceTag}
 							</video>
 						);
 					}
 
 					return (
-						<div className="media-gallery__item" key={i} style={videoContainer}>
+						<div
+							className="media-gallery__item h-full w-full bg-black rounded-[15px] inset-auto"
+							key={i}
+						>
 							{HIDDEN_CANVAS}
 							{videoTag}
 						</div>
@@ -208,10 +212,10 @@ export default function MultimediaNode(
 	} else if (audios.length > 0) {
 		return (
 			<div
-				className="media-gallery"
-				style={{ height: `${imageHeight / 4}px`, ...style }}
+				className="media-gallery overflow-hidden"
+				style={{ height: `${imageHeight / 4}px` }}
 			>
-				<audio controls style={{ width: "100%" }}>
+				<audio controls className="w-full">
 					<source src={audios[0].remoteUrl} type="audio/mpeg" />
 				</audio>
 			</div>
@@ -225,39 +229,3 @@ export default function MultimediaNode(
 		);
 	}
 }
-
-const fullSize: CSSProperties = {
-	height: "100%",
-	width: "100%",
-};
-
-const mediaItem: CSSProperties = {
-	...blackBackground,
-	...roundedCorners,
-};
-
-const imageStyle: CSSProperties = {
-	...fullSize,
-	...mediaItem,
-	// failed attempt at fake border
-	// filter: "drop-shadow(0 -5px 0 gray) drop-shadow(0 5px 0 gray) drop-shadow(-5px 0 0 gray) drop-shadow(5px 0 0 gray)",
-	objectFit: "contain",
-	objectPosition: "top",
-};
-
-const style: CSSProperties = {
-	overflow: "hidden",
-};
-
-const videoContainer: CSSProperties = {
-	...fullSize,
-	...mediaItem,
-	inset: "auto",
-};
-
-const videoEmbedStyle: CSSProperties = {
-	display: "block",
-	margin: "auto",
-	marginLeft: "auto",
-	marginRight: "auto",
-};

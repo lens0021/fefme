@@ -20,12 +20,7 @@ import LabeledDropdownButton from "../helpers/LabeledDropdownButton";
 import { config } from "../../config";
 import { formatScore } from "../../helpers/number_helpers";
 import { ModalProps } from "../../types";
-import {
-	RECHARTS_COLORS,
-	blackBackground,
-	blackFont,
-	roundedCorners,
-} from "../../helpers/styles";
+import { RECHARTS_COLORS } from "../../helpers/styles";
 import { useAlgorithm } from "../../hooks/useAlgorithm";
 
 const SCORE_TYPES: (keyof ScoreStats)[] = ["raw", "weighted"];
@@ -73,7 +68,7 @@ export default function StatsModal(props: ModalProps) {
 				className={`bg-white rounded-lg shadow-lg ${sizeClass} w-full mx-4 max-h-[90vh] overflow-y-auto`}
 				onClick={(e) => e.stopPropagation()}
 			>
-				<div className="p-4 border-b flex justify-between items-center" style={blackFont}>
+				<div className="p-4 border-b flex justify-between items-center text-black">
 					<h3 className="text-lg font-semibold">{title}</h3>
 					<button
 						onClick={() => setShow(false)}
@@ -85,70 +80,70 @@ export default function StatsModal(props: ModalProps) {
 				</div>
 
 				<div className="p-4">
-				<LabeledDropdownButton
-					initialLabel={"Raw or Weighted"}
-					onClick={(value) => setScoreType(value as keyof ScoreStats)}
-					options={SCORE_TYPES}
-					style={buttonStyle}
-				/>
+					<LabeledDropdownButton
+						initialLabel={"Raw or Weighted"}
+						onClick={(value) => setScoreType(value as keyof ScoreStats)}
+						options={SCORE_TYPES}
+						style={buttonStyle}
+					/>
 
-				<LabeledDropdownButton
-					initialLabel={"Value Type"}
-					onClick={(value) => setValueType(value as keyof MinMaxAvgScore)}
-					options={VALUE_TYPES}
-					style={buttonStyle}
-				/>
+					<LabeledDropdownButton
+						initialLabel={"Value Type"}
+						onClick={(value) => setValueType(value as keyof MinMaxAvgScore)}
+						options={VALUE_TYPES}
+						style={buttonStyle}
+					/>
 
-				<ResponsiveContainer height={600} width="100%">
-					<LineChart
-						data={data}
-						height={900}
-						width={1000}
-						margin={{
-							top: 5,
-							right: 30,
-							left: 20,
-							bottom: 5,
-						}}
-						style={charStyle}
-					>
-						{/* <CartesianGrid strokeDasharray="3 3" /> */}
-						<XAxis dataKey="segment" />
-						<YAxis />
+					<ResponsiveContainer height={600} width="100%">
+						<LineChart
+							data={data}
+							height={900}
+							width={1000}
+							margin={{
+								top: 5,
+								right: 30,
+								left: 20,
+								bottom: 5,
+							}}
+							style={charStyle}
+						>
+							{/* <CartesianGrid strokeDasharray="3 3" /> */}
+							<XAxis dataKey="segment" />
+							<YAxis />
 
-						<Tooltip
-							formatter={(value, name) => [
-								formatScore(Number(value)),
-								(name as string).split("_")[0],
-							]}
-							contentStyle={blackBackground}
-							labelStyle={tooltipStyle}
-						/>
+							<Tooltip
+								formatter={(value, name) => [
+									formatScore(Number(value)),
+									(name as string).split("_")[0],
+								]}
+								contentStyle={{ backgroundColor: "black" }}
+								labelStyle={tooltipStyle}
+							/>
 
-						<Legend
-							formatter={(value, entry, i) => value.split("_")[0]}
-							onClick={(props) => handleLegendClick(props.dataKey)}
-						/>
+							<Legend
+								formatter={(value, entry, i) => value.split("_")[0]}
+								onClick={(props) => handleLegendClick(props.dataKey)}
+							/>
 
-						{Object.values(ScoreName).map((scoreName, i) => {
-							const key = `${scoreName}_${scoreType}_${valueType}`;
+							{Object.values(ScoreName).map((scoreName, i) => {
+								const key = `${scoreName}_${scoreType}_${valueType}`;
 
-							return (
-								<Line
-									animationDuration={config.stats.animationDuration}
-									dataKey={key}
-									hide={hiddenLines.includes(key)}
-									key={key}
-									legendType="line"
-									stroke={RECHARTS_COLORS[i]}
-									strokeWidth={2}
-								/>
-							);
-						})}
-					</LineChart>
-				</ResponsiveContainer>
+								return (
+									<Line
+										animationDuration={config.stats.animationDuration}
+										dataKey={key}
+										hide={hiddenLines.includes(key)}
+										key={key}
+										legendType="line"
+										stroke={RECHARTS_COLORS[i]}
+										strokeWidth={2}
+									/>
+								);
+							})}
+						</LineChart>
+					</ResponsiveContainer>
+				</div>
 			</div>
-		</div>
 		</div>
 	);
 }
@@ -160,7 +155,7 @@ const buttonStyle: CSSProperties = {
 };
 
 const charStyle: CSSProperties = {
-	...roundedCorners,
+	borderRadius: 15,
 	backgroundColor: config.theme.feedBackgroundColor,
 };
 

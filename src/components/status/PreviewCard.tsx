@@ -2,7 +2,7 @@
  * React component to display preview cards for links.
  * https://docs.joinmastodon.org/entities/PreviewCard/
  */
-import React, { CSSProperties } from "react";
+import React from "react";
 
 import parse from "html-react-parser";
 import { extractDomain } from "fedialgo";
@@ -25,7 +25,7 @@ export default function PreviewCard(
 
 	const headline = (
 		<>
-			<span style={providerName}>
+			<span className="text-[#4b427a]">
 				[{card.providerName || extractDomain(card.url)}]
 			</span>{" "}
 			<span>{parse(card.title)}</span>
@@ -35,11 +35,7 @@ export default function PreviewCard(
 	// If link previews are disabled just return a link with the headline
 	if (!showLinkPreviews) {
 		return (
-			<NewTabLink
-				className="status-card compact"
-				href={card.url}
-				style={linkOnlyStyle}
-			>
+			<NewTabLink className="status-card compact py-1.5 px-2.5 underline" href={card.url}>
 				{headline}
 			</NewTabLink>
 		);
@@ -57,9 +53,8 @@ export default function PreviewCard(
 
 				<LazyLoadImage
 					alt={altText}
-					className="status-card__image-image"
+					className="status-card__image-image max-h-[40vh] object-top"
 					src={card.image}
-					style={cardImage}
 					title={altText}
 				/>
 			</div>
@@ -67,27 +62,10 @@ export default function PreviewCard(
 			<div className="status-card__content">
 				{headline}
 
-				<p className="status-card__description" style={{ marginTop: "2px" }}>
+				<p className="status-card__description mt-[2px]">
 					{card.description.slice(0, config.toots.maxPreviewCardLength)}
 				</p>
 			</div>
 		</NewTabLink>
 	);
 }
-
-const cardImage: CSSProperties = {
-	maxHeight: "40vh",
-	objectPosition: "top",
-};
-
-const providerName: CSSProperties = {
-	color: "#4b427a",
-};
-
-const linkOnlyStyle: CSSProperties = {
-	paddingBottom: "6px",
-	paddingTop: "6px",
-	paddingLeft: "10px",
-	paddingRight: "10px",
-	textDecoration: "underline",
-};

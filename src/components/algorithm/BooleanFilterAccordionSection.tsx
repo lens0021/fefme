@@ -5,12 +5,16 @@
 import { ReactElement, useMemo, useState } from "react";
 
 import { BooleanFilter, BooleanFilterName, TagTootsCategory } from "fedialgo";
+import { Tooltip } from "react-tooltip";
 
-import FilterAccordionSection from "./FilterAccordionSection";
+import Accordion from "../helpers/Accordion";
 import FilterCheckboxGrid from "./filters/FilterCheckboxGrid";
 import HeaderSwitch from "./filters/HeaderSwitch";
-import MinTootsSlider, { computeDefaultValue } from "../helpers/MinTootsSlider";
 import { config } from "../../config";
+import {
+	computeMinTootsDefaultValue,
+	computeMinTootsMaxValue,
+} from "../../helpers/min_toots";
 import { createSwitchFactory } from "../../helpers/react_helpers";
 import { getLogger } from "../../helpers/log_helpers";
 import { SwitchType } from "../../helpers/styles";
@@ -59,7 +63,11 @@ export default function BooleanFilterAccordionSection(
 	let footerSwitches: ReactElement[] | null = null;
 
 	const minTootsSliderDefaultValue: number = useMemo(
-		() => computeDefaultValue(filter.options, filter.propertyName),
+		() => computeMinTootsDefaultValue(filter.options, filter.propertyName),
+		[filter.options, filter.options.objs],
+	);
+	const minTootsMaxValue = useMemo(
+		() => computeMinTootsMaxValue(filter.options, filter.propertyName),
 		[filter.options, filter.options.objs],
 	);
 
@@ -98,13 +106,47 @@ export default function BooleanFilterAccordionSection(
 
 		// Add a slider and tooltip for minimum # of toots if there's enough options in the panel to justify it
 		if (minTootsSliderDefaultValue > 0) {
+			const tooltipAnchor = `${filter.propertyName}-min-toots-slider-tooltip`;
+			const pluralizedPanelTitle = `${filter.propertyName}s`.toLowerCase();
 			_headerSwitches = _headerSwitches.concat(
-				<MinTootsSlider
-					key={`${filter.propertyName}-minTootsSlider`}
-					minTootsState={minTootsState}
-					panelTitle={filter.propertyName}
-					objList={filter.options}
-				/>,
+				<div key={`${filter.propertyName}-minTootsSlider`} className="w-[23%]">
+					<Tooltip
+						className="font-normal z-[2000]"
+						delayShow={booleanFiltersConfig.minTootsSlider.tooltipHoverDelay}
+						id={tooltipAnchor}
+						place="bottom"
+					/>
+
+					<a
+						data-tooltip-id={tooltipAnchor}
+						data-tooltip-content={`Hide ${pluralizedPanelTitle} with less than ${minTootsState[0]} toots`}
+					>
+						<div className="me-2">
+							<div className="flex flex-row items-center text-sm justify-between whitespace-nowrap">
+								<div className="flex flex-row justify-end">
+									<input
+										type="range"
+										className="custom-slider"
+										min={1}
+										max={minTootsMaxValue}
+										onChange={(e) =>
+											minTootsState[1](parseInt(e.target.value, 10))
+										}
+										step={1}
+										style={{ width: "80%" }}
+										value={minTootsState[0]}
+									/>
+								</div>
+
+								<div className="flex flex-row items-center text-sm justify-between whitespace-nowrap">
+									<span>
+										<span className="font-bold mr-1">Minimum</span>
+									</span>
+								</div>
+							</div>
+						</div>
+					</a>
+				</div>,
 			);
 		}
 
@@ -115,6 +157,7 @@ export default function BooleanFilterAccordionSection(
 		filter.options,
 		switchState[SwitchType.HIGHLIGHTS_ONLY],
 		switchState[SwitchType.SORT_BY_COUNT],
+		minTootsMaxValue,
 		minTootsSliderDefaultValue,
 		minTootsState[0],
 	]);
@@ -132,7 +175,7 @@ export default function BooleanFilterAccordionSection(
 	}
 
 	return (
-		<FilterAccordionSection
+		<Accordion
 			description={filter.description}
 			footerSwitches={footerSwitches}
 			isActive={filter.selectedOptions.length > 0}
@@ -146,6 +189,6 @@ export default function BooleanFilterAccordionSection(
 				sortByCount={switchState[SwitchType.SORT_BY_COUNT]}
 				tagSwitchState={tagSwitchState}
 			/>
-		</FilterAccordionSection>
+		</Accordion>
 	);
 }

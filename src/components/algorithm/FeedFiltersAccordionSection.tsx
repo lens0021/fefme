@@ -1,12 +1,11 @@
-import React, { CSSProperties } from "react";
+import React from "react";
 
 import BooleanFilterAccordionSection from "./BooleanFilterAccordionSection";
 import NumericFilters from "./filters/NumericFilters";
-import TopLevelAccordion from "../helpers/TopLevelAccordion";
+import Accordion from "../helpers/Accordion";
 import { config } from "../../config";
 import { HEADER_SWITCH_TOOLTIP } from "./filters/HeaderSwitch";
-import { HIGHLIGHTED_TOOLTIP } from "./filters/FilterCheckbox";
-import { noPadding, stickySwitchContainer } from "../../helpers/styles";
+import { HIGHLIGHTED_TOOLTIP } from "../helpers/Checkbox";
 import { useAlgorithm } from "../../hooks/useAlgorithm";
 
 /**
@@ -51,8 +50,9 @@ export default function FeedFiltersAccordionSection() {
 	);
 
 	return (
-		<TopLevelAccordion
-			bodyStyle={noPadding}
+		<Accordion
+			variant="top"
+			bodyStyle={{ padding: 0 }}
 			isActive={hasAnyActiveFilter}
 			title="Feed Filters"
 		>
@@ -60,7 +60,7 @@ export default function FeedFiltersAccordionSection() {
 			{HIGHLIGHTED_TOOLTIP}
 
 			<div>
-				<div style={filterSwitchContainer}>
+				<div className="flex justify-around h-auto px-[2px] pt-[4.5px] text-base font-bold">
 					{allowMultiSelectCheckbox}
 					{showFilterHighlightsCheckbox}
 					{alwaysShowFollowedCheckbox}
@@ -70,14 +70,6 @@ export default function FeedFiltersAccordionSection() {
 					.sort()
 					.map((position) => filterPositions[position])}
 			</div>
-		</TopLevelAccordion>
+		</Accordion>
 	);
 }
-
-const filterSwitchContainer: CSSProperties = {
-	...stickySwitchContainer,
-	fontSize: 16,
-	fontWeight: "bold",
-	justifyContent: "space-around",
-	paddingTop: "4.5px",
-};

@@ -6,11 +6,6 @@ import React, { CSSProperties, ReactNode } from "react";
 
 import ReactJsonView from "@microlink/react-json-view";
 
-import {
-	blackFont,
-	globalFont,
-	roundedCorners,
-} from "../../helpers/styles";
 import { ModalProps } from "../../types";
 
 type ReactJsonViewProps = typeof ReactJsonView.defaultProps;
@@ -67,7 +62,7 @@ export default function JsonModal(props: JsonModalProps) {
 				className={`bg-white rounded-lg shadow-lg ${sizeClass} w-full mx-4 max-h-[90vh] overflow-y-auto`}
 				onClick={(e) => e.stopPropagation()}
 			>
-				<div className="p-4 border-b flex justify-between items-center" style={blackFont}>
+				<div className="p-4 border-b flex justify-between items-center text-black">
 					<h3 className="text-lg font-semibold">{title}</h3>
 					<button
 						onClick={() => setShow(false)}
@@ -80,8 +75,12 @@ export default function JsonModal(props: JsonModalProps) {
 
 				<div className="p-4">
 					{(subtitle || infoTxt) && (
-						<div style={{ ...blackFont, marginBottom: "5px" }}>
-							{subtitle && <div style={headerFont}>{subtitle}</div>}
+						<div className="text-black mb-[5px]">
+							{subtitle && (
+								<div className="text-[14px] font-bold font-[Tahoma,Geneva,sans-serif] mb-[5px]">
+									{subtitle}
+								</div>
+							)}
 							{infoTxt && <div>{infoTxt}</div>}
 						</div>
 					)}
@@ -93,14 +92,7 @@ export default function JsonModal(props: JsonModalProps) {
 	);
 }
 
-const headerFont: CSSProperties = {
-	...globalFont,
-	fontSize: 14,
-	fontWeight: 700,
-	marginBottom: "5px",
-};
-
 const jsonViewStyle: CSSProperties = {
-	...roundedCorners,
+	borderRadius: 15,
 	padding: "20px",
 };

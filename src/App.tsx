@@ -1,4 +1,4 @@
-import React, { CSSProperties, useEffect } from "react";
+import React, { useEffect } from "react";
 import { Buffer } from "buffer"; // Required for class-transformer to work (maybe???)
 (window as any).Buffer = Buffer;
 // NOTE: Using CDN to get boostrap instead of importing bootstrap.min.css (see index.html)
@@ -17,7 +17,6 @@ import Footer from "./components/Footer";
 import Header from "./components/Header";
 import LoginPage from "./pages/LoginPage";
 import ProtectedRoute from "./components/ProtectedRoute";
-import { centerAlignedFlexCol } from "./helpers/styles";
 import { getLogger, logLocaleInfo } from "./helpers/log_helpers";
 import { useTheme } from "./hooks/useTheme";
 
@@ -61,7 +60,10 @@ export default function App(): React.ReactElement {
 
 	return (
 		<HashRouter>
-			<div className="w-full min-h-screen px-4" style={containerStyle}>
+			<div
+				className="w-full min-h-screen px-4 flex flex-col items-center"
+				style={{ backgroundColor: "var(--color-bg)", color: "var(--color-fg)" }}
+			>
 				<ErrorHandler>
 					<AuthProvider>
 						<Header />
@@ -90,13 +92,6 @@ export default function App(): React.ReactElement {
 		</HashRouter>
 	);
 }
-
-const containerStyle: CSSProperties = {
-	...centerAlignedFlexCol,
-	backgroundColor: "var(--color-bg)",
-	color: "var(--color-fg)",
-	height: "auto",
-};
 
 function NotFoundPage() {
 	const navigate = useNavigate();
