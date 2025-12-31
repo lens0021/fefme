@@ -1,5 +1,8 @@
 {
 	"compilerOptions": {
+		"baseUrl": ".",
+		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true,
 		"allowJs": true,
 		"allowSyntheticDefaultImports": true,
 		"esModuleInterop": true,
@@ -13,7 +16,11 @@
 		"resolveJsonModule": true,
 		"skipLibCheck": true,
 		"strict": false,
-		"target": "ES2016"
+		"target": "ES2016",
+		"paths": {
+			"fedialgo": ["src/fedialgo/index.ts"],
+			"fedialgo/*": ["src/fedialgo/*"]
+		}
 	},
 	"include": ["src"],
 	"exclude": ["node_modules"]

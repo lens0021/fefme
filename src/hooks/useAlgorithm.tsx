@@ -17,7 +17,6 @@ import TheAlgorithm, {
 	AgeIn,
 	type Toot,
 	isAccessTokenRevokedError,
-	Logger as FedialgoLogger,
 } from "fedialgo";
 import { createRestAPIClient, type mastodon } from "masto";
 import { useError } from "../components/helpers/ErrorHandler";
@@ -36,8 +35,6 @@ import { useLocalStorage } from "./useLocalStorage";
 const logger = getLogger("AlgorithmProvider");
 const loadLogger = logger.tempLogger("setLoadState");
 const FILTERS_STORAGE_KEY = "fefme_user_filters_v1";
-const FEDERATED_SOURCE = "FederatedTimeline";
-const FEDERATED_TIMELINE_LIMIT = 40;
 
 type SavedFilters = {
 	version: 1;
@@ -267,49 +264,23 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		[logAndShowError, setLoadState, triggerLoadFxn],
 	);
 
-	const mergeFederatedTimeline = useCallback(async () => {
-		if (!algorithm || !api) return;
-		try {
-			const statuses = await api.v1.timelines.public.list({
-				local: false,
-				limit: FEDERATED_TIMELINE_LIMIT,
-			});
-			if (!statuses?.length) return;
-
-			const federatedToots = await Toot.buildToots(
-				statuses,
-				FEDERATED_SOURCE as unknown as any,
-			);
-			const mergeToFeed = (algorithm as unknown as any).lockedMergeToFeed;
-			if (typeof mergeToFeed !== "function") {
-				logger.warn("Federated merge skipped: mergeToFeed is unavailable.");
-				return;
-			}
-
-			const mergeLogger = new FedialgoLogger(FEDERATED_SOURCE);
-			await mergeToFeed.call(algorithm, federatedToots, mergeLogger);
-		} catch (error) {
-			logger.warn("Failed to merge federated timeline posts:", error);
-		}
-	}, [algorithm, api]);
-
 	const triggerFeedUpdate = useCallback(
 		() =>
 			algorithm &&
 			trigger(async () => {
 				await algorithm.triggerFeedUpdate();
-				await mergeFederatedTimeline();
+				await algorithm.triggerFederatedTimelineMerge();
 			}),
-		[algorithm, mergeFederatedTimeline, trigger],
+		[algorithm, trigger],
 	);
 	const triggerHomeTimelineBackFill = useCallback(
 		() =>
 			algorithm &&
 			trigger(async () => {
 				await algorithm.triggerHomeTimelineBackFill();
-				await mergeFederatedTimeline();
+				await algorithm.triggerFederatedTimelineMerge();
 			}),
-		[algorithm, mergeFederatedTimeline, trigger],
+		[algorithm, trigger],
 	);
 	const triggerMoarData = useCallback(
 		() => algorithm && trigger(() => algorithm.triggerMoarData()),
