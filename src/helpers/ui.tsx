@@ -2,20 +2,12 @@
  * UI helpers and tooltip types.
  */
 import type React from "react";
-import {
-	Children,
-	type CSSProperties,
-	type MouseEvent,
-	type ReactElement,
-	type ReactNode,
-	isValidElement,
-} from "react";
+import { type CSSProperties, type MouseEvent, type ReactElement } from "react";
 
-import { type Toot, type TrendingWithHistory, makeChunks } from "../core/index";
+import { type Toot, makeChunks } from "../core/index";
 import type tinycolor from "tinycolor2";
 
 import { appLogger } from "./log_helpers";
-import { isEmptyStr } from "./string_helpers";
 import type { GradientEndpoints } from "./styles";
 
 ////////////////////////
@@ -36,60 +28,14 @@ export async function openToot(
 	isGoToSocialUser?: boolean,
 ): Promise<boolean> {
 	e.preventDefault();
-appLogger.log("openPost() called with:", toot);
+	appLogger.log("openPost() called with:", toot);
 	const resolvedURL = isGoToSocialUser ? toot.url : await toot.localServerUrl();
 	return followUri(resolvedURL, e);
-}
-
-// Open the url property of a TrendingLink or TagWithUsageCounts
-export function openTrendingLink(
-	obj: TrendingWithHistory,
-	e: MouseEvent,
-): boolean {
-	return followUri(obj.url, e);
 }
 
 ///////////////////////
 // Component Helpers //
 ///////////////////////
-
-// Returns array of strings extracted from component hierarchy
-// Inspired by https://github.com/fernandopasik/react-children-utilities/blob/main/src/lib/onlyText.ts
-export function extractText(children: ReactNode | ReactNode[]): string[] {
-	appLogger.debug("extractText() called with children:", children);
-
-	if (!Array.isArray(children) && !isValidElement(children)) {
-		const str = nodeToString(children);
-		return isEmptyStr(str) ? [] : [str];
-	}
-
-	// TODO: something is really wrong with the type checker here - only with all this forcible casting
-	// would it accept that the "elements" accumulator in reduce() is a string array.
-	const nodeStrings: string[] = [];
-
-	for (const child of Children.toArray(children)) {
-		if (hasChildren(child)) {
-			nodeStrings.push(...extractText(child.props.children));
-		} else if (isValidElement(child)) {
-			// newText = '';
-		} else {
-			const str = nodeToString(child);
-
-			if (!isEmptyStr(str)) {
-				nodeStrings.push(str);
-			}
-		}
-	}
-
-	const filteredNodeStrings = nodeStrings.filter((s) => !isEmptyStr(s));
-	appLogger.trace(
-		"extractText() called with children:",
-		children,
-		"\nresulting in:",
-		filteredNodeStrings,
-	);
-	return filteredNodeStrings;
-}
 
 // Create a grid of numCols columns. If numCols is not provided either 2 or 3 columns
 // will be created based on the number of 'elements' provided.
@@ -153,29 +99,6 @@ export function createSwitchFactory<T extends Record<string, boolean>>(
 		);
 	};
 }
-
-function nodeToString(child?: ReactNode): string | null {
-	if (
-		typeof child === "undefined" ||
-		child === null ||
-		typeof child === "boolean"
-	) {
-		return null;
-	}
-
-	if (JSON.stringify(child) === "{}") {
-		return null;
-	}
-
-	return child.toString();
-}
-
-// From https://github.com/fernandopasik/react-children-utilities/blob/main/src/lib/hasChildren.ts
-const hasChildren = (
-	elem: ReactNode,
-): elem is ReactElement<{ children: ReactNode | ReactNode[] }> =>
-	isValidElement<{ children?: ReactNode[] }>(elem) &&
-	Boolean(elem.props.children);
 
 ///////////////////////
 //   Style Helpers   //

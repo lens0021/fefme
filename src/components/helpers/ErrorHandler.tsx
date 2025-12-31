@@ -12,7 +12,6 @@ import { ErrorBoundary } from "react-error-boundary";
 
 import { config } from "../../config";
 import { getLogger } from "../../helpers/log_helpers";
-import { extractText } from "../../helpers/ui";
 import { isEmptyStr } from "../../helpers/string_helpers";
 
 const errorLogger = getLogger("ErrorHandler");
@@ -160,7 +159,7 @@ export default function ErrorHandler(props: PropsWithChildren) {
 
 		// Handle writing to console log, which means putting errorObj first for Logger
 		normalizedArgs = errorObj ? [errorObj, ...normalizedArgs] : normalizedArgs;
-		let logMsg = isString(msg) ? msg : (extractText(msg) as string[]).join(" "); // TODO: why use extractText() here?
+		let logMsg = isString(msg) ? msg : String(msg);
 		logMsg += isEmptyStr(note) ? "" : `\n(note: ${note})`;
 		(logger || errorLogger).error(logMsg, ...normalizedArgs);
 	};
