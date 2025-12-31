@@ -3,16 +3,18 @@ import { Navigate } from "react-router-dom";
 
 import { useAuthContext } from "../hooks/useAuth";
 
-
 /**
  * Redirect to /login if the user is not authenticated.
  */
-export default function ProtectedRoute(props: { children: ReactElement }): ReactElement {
-    const { user } = useAuthContext();
+export default function ProtectedRoute(props: {
+	children: ReactElement;
+}): ReactElement {
+	const { user } = useAuthContext();
 
-    if (!user) {  // then user is not authenticated
-        return <Navigate to="/login" />;
-    }
+	if (!user) {
+		// then user is not authenticated
+		return <Navigate to="/login" />;
+	}
 
-    return props.children;
-};
+	return props.children;
+}

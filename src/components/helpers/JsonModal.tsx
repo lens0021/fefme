@@ -7,72 +7,81 @@ import { Modal } from "react-bootstrap";
 
 import ReactJsonView from "@microlink/react-json-view";
 
-import { blackFont, globalFont, roundedCorners } from "../../helpers/style_helpers";
+import {
+	blackFont,
+	globalFont,
+	roundedCorners,
+} from "../../helpers/style_helpers";
 import { ModalProps } from "../../types";
 
 type ReactJsonViewProps = typeof ReactJsonView.defaultProps;
 
 // Props documentation: https://github.com/microlinkhq/react-json-view?tab=readme-ov-file#api
 const DEFAULT_JSON_VIEW_PROPS: ReactJsonViewProps = {
-    collapsed: 1,
-    displayArrayKey: false,
-    displayDataTypes: false,
-    displayObjectSize: false,
-    enableClipboard: false,
-    quotesOnKeys: false,
-    sortKeys: true,
-    style: { padding: "20px" },
-    theme: "rjv-default", // "apathy:inverted",
+	collapsed: 1,
+	displayArrayKey: false,
+	displayDataTypes: false,
+	displayObjectSize: false,
+	enableClipboard: false,
+	quotesOnKeys: false,
+	sortKeys: true,
+	style: { padding: "20px" },
+	theme: "rjv-default", // "apathy:inverted",
 };
 
 interface JsonModalProps extends ModalProps {
-    infoTxt?: ReactNode,
-    json: object,
-    jsonViewProps?: ReactJsonViewProps,
-};
-
+	infoTxt?: ReactNode;
+	json: object;
+	jsonViewProps?: ReactJsonViewProps;
+}
 
 export default function JsonModal(props: JsonModalProps) {
-    let { dialogClassName, infoTxt, json, jsonViewProps, show, setShow, subtitle, title } = props;
-    jsonViewProps = {...DEFAULT_JSON_VIEW_PROPS, ...(jsonViewProps || {})};
-    jsonViewProps.style = {...jsonViewStyle, ...(jsonViewProps.style || {})};
-    json ??= {};
+	let {
+		dialogClassName,
+		infoTxt,
+		json,
+		jsonViewProps,
+		show,
+		setShow,
+		subtitle,
+		title,
+	} = props;
+	jsonViewProps = { ...DEFAULT_JSON_VIEW_PROPS, ...(jsonViewProps || {}) };
+	jsonViewProps.style = { ...jsonViewStyle, ...(jsonViewProps.style || {}) };
+	json ??= {};
 
-    return (
-        <Modal
-            dialogClassName={dialogClassName}
-            onHide={() => setShow(false)}
-            show={show}
-        >
-            <Modal.Header closeButton style={blackFont}>
-                <Modal.Title>{title}</Modal.Title>
-            </Modal.Header>
+	return (
+		<Modal
+			dialogClassName={dialogClassName}
+			onHide={() => setShow(false)}
+			show={show}
+		>
+			<Modal.Header closeButton style={blackFont}>
+				<Modal.Title>{title}</Modal.Title>
+			</Modal.Header>
 
-            <Modal.Body >
-                {(subtitle || infoTxt) &&
-                    <div style={{...blackFont, marginBottom: "5px"}}>
-                        {subtitle && <div style={headerFont}>{subtitle}</div>}
-                        {infoTxt && <div>{infoTxt}</div>}
-                    </div>}
+			<Modal.Body>
+				{(subtitle || infoTxt) && (
+					<div style={{ ...blackFont, marginBottom: "5px" }}>
+						{subtitle && <div style={headerFont}>{subtitle}</div>}
+						{infoTxt && <div>{infoTxt}</div>}
+					</div>
+				)}
 
-                <ReactJsonView
-                    {...jsonViewProps}
-                    src={json || {}}
-                />
-            </Modal.Body>
-        </Modal>
-    );
-};
-
+				<ReactJsonView {...jsonViewProps} src={json || {}} />
+			</Modal.Body>
+		</Modal>
+	);
+}
 
 const headerFont: CSSProperties = {
-    ...globalFont,
-    fontSize: 14,
-    fontWeight: 700,
-    marginBottom: "5px",
+	...globalFont,
+	fontSize: 14,
+	fontWeight: 700,
+	marginBottom: "5px",
 };
 
 const jsonViewStyle: CSSProperties = {
-    ...roundedCorners,
-    padding: "20px",
+	...roundedCorners,
+	padding: "20px",
 };

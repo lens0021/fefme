@@ -11,7 +11,14 @@ import { type BooleanFilterOption } from "fedialgo";
 import { CheckboxTooltipConfig } from "../../../helpers/tooltip_helpers";
 import { config } from "../../../config";
 import { followUri } from "../../../helpers/react_helpers";
-import { THEME, blackFont, boldFont, linkesque, roundedCorners, tooltipZIndex } from "../../../helpers/style_helpers";
+import {
+	THEME,
+	blackFont,
+	boldFont,
+	linkesque,
+	roundedCorners,
+	tooltipZIndex,
+} from "../../../helpers/style_helpers";
 import { useAlgorithm } from "../../../hooks/useAlgorithm";
 
 const HASHTAG_ANCHOR = "user-hashtag-anchor";
@@ -19,81 +26,105 @@ const HIGHLIGHT = "highlighted";
 const HIGHLIGHTED_TOOLTIP_ANCHOR = `${HASHTAG_ANCHOR}-${HIGHLIGHT}`;
 
 export const HIGHLIGHTED_TOOLTIP = (
-    <Tooltip id={HIGHLIGHTED_TOOLTIP_ANCHOR} place="top" style={tooltipZIndex} />
+	<Tooltip id={HIGHLIGHTED_TOOLTIP_ANCHOR} place="top" style={tooltipZIndex} />
 );
 
 interface FilterCheckboxProps {
-    capitalize?: boolean,
-    disabled?: boolean,
-    isChecked: boolean,
-    label: string,
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void,
-    option?: BooleanFilterOption,
-    skipUpdateFilters?: boolean,
-    tooltip?: CheckboxTooltipConfig,
-    url?: string,
-};
-
+	capitalize?: boolean;
+	disabled?: boolean;
+	isChecked: boolean;
+	label: string;
+	onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+	option?: BooleanFilterOption;
+	skipUpdateFilters?: boolean;
+	tooltip?: CheckboxTooltipConfig;
+	url?: string;
+}
 
 export default function FilterCheckbox(props: FilterCheckboxProps) {
-    let { capitalize, disabled, isChecked, label, option, onChange, skipUpdateFilters, tooltip, url } = props;
-    const { algorithm } = useAlgorithm();
+	let {
+		capitalize,
+		disabled,
+		isChecked,
+		label,
+		option,
+		onChange,
+		skipUpdateFilters,
+		tooltip,
+		url,
+	} = props;
+	const { algorithm } = useAlgorithm();
 
-    const labelExtra = option?.numToots?.toLocaleString();
-    const labelStyle: CSSProperties = {...boldFont};
-    let style: CSSProperties = {...blackFont};
-    let tooltipAnchor = tooltip?.anchor || HASHTAG_ANCHOR;
+	const labelExtra = option?.numToots?.toLocaleString();
+	const labelStyle: CSSProperties = { ...boldFont };
+	let style: CSSProperties = { ...blackFont };
+	let tooltipAnchor = tooltip?.anchor || HASHTAG_ANCHOR;
 
-    if (tooltip?.highlight?.color) {
-        style = {...highlightedCheckboxStyle, ...style, backgroundColor: tooltip.highlight.color};
-        tooltipAnchor = HIGHLIGHTED_TOOLTIP_ANCHOR;
-    }
+	if (tooltip?.highlight?.color) {
+		style = {
+			...highlightedCheckboxStyle,
+			...style,
+			backgroundColor: tooltip.highlight.color,
+		};
+		tooltipAnchor = HIGHLIGHTED_TOOLTIP_ANCHOR;
+	}
 
-    if (capitalize) {
-        label = capitalCase(label);
-        labelStyle.fontSize = "14px";
-    }
+	if (capitalize) {
+		label = capitalCase(label);
+		labelStyle.fontSize = "14px";
+	}
 
-    if (label.length > config.filters.boolean.maxLabelLength) {
-        label = `${label.slice(0, config.filters.boolean.maxLabelLength)}...`;
-    }
+	if (label.length > config.filters.boolean.maxLabelLength) {
+		label = `${label.slice(0, config.filters.boolean.maxLabelLength)}...`;
+	}
 
-    let labelNode = <span style={labelStyle}>{label}</span>;
+	let labelNode = <span style={labelStyle}>{label}</span>;
 
-    if (url) {
-        // Use a span because you can't use an <a> tag inside the <a> tag we need for the tooltip
-        labelNode = (
-            <span onClick={(e) => followUri(url, e)} style={{...labelStyle, ...hashtagLink}}>
-                {label}
-            </span>
-        );
-    }
+	if (url) {
+		// Use a span because you can't use an <a> tag inside the <a> tag we need for the tooltip
+		labelNode = (
+			<span
+				onClick={(e) => followUri(url, e)}
+				style={{ ...labelStyle, ...hashtagLink }}
+			>
+				{label}
+			</span>
+		);
+	}
 
-    return (
-        <a data-tooltip-id={tooltipAnchor} data-tooltip-content={tooltip?.text} key={label}>
-            <Form.Switch
-                checked={isChecked}
-                disabled={disabled}
-                id={label}
-                key={label + "_switch"}
-                label={<>{labelNode}{labelExtra && ` (${labelExtra})`}</>}
-                onChange={(e) => {
-                    onChange(e);
-                    !skipUpdateFilters && algorithm?.updateFilters(algorithm.filters);
-                }}
-                style={{...style}}
-            />
-        </a>
-    );
-};
-
+	return (
+		<a
+			data-tooltip-id={tooltipAnchor}
+			data-tooltip-content={tooltip?.text}
+			key={label}
+		>
+			<Form.Switch
+				checked={isChecked}
+				disabled={disabled}
+				id={label}
+				key={label + "_switch"}
+				label={
+					<>
+						{labelNode}
+						{labelExtra && ` (${labelExtra})`}
+					</>
+				}
+				onChange={(e) => {
+					onChange(e);
+					!skipUpdateFilters && algorithm?.updateFilters(algorithm.filters);
+				}}
+				style={{ ...style }}
+			/>
+		</a>
+	);
+}
 
 const hashtagLink: CSSProperties = {
-    ...blackFont,
-    ...linkesque,
+	...blackFont,
+	...linkesque,
 };
 
 const highlightedCheckboxStyle: CSSProperties = {
-    ...roundedCorners,
-    backgroundColor: THEME.followedTagColor,
+	...roundedCorners,
+	backgroundColor: THEME.followedTagColor,
 };

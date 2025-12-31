@@ -10,45 +10,45 @@ import { centerAlignedFlexRow } from "../../helpers/style_helpers";
 import { config } from "../../config";
 
 interface LoadingSpinnerProps {
-    isFullPage?: boolean,
-    message?: string,
-    style?: CSSProperties,
-};
-
+	isFullPage?: boolean;
+	message?: string;
+	style?: CSSProperties;
+}
 
 export default function LoadingSpinner(props: LoadingSpinnerProps) {
-    const { isFullPage, message, style } = props;
-    const spinnerStyle = isFullPage ? fullPageCenteredSpinner : inlineSpinner;
+	const { isFullPage, message, style } = props;
+	const spinnerStyle = isFullPage ? fullPageCenteredSpinner : inlineSpinner;
 
-    return (
-        <div style={{...spinnerStyle, ...(style || {})}}>
-            {isFullPage
-                ? <Spinner animation={config.app.loadingSpinnerType} />
-                : <Spinner animation={config.app.loadingSpinnerType} size="sm" />}
+	return (
+		<div style={{ ...spinnerStyle, ...(style || {}) }}>
+			{isFullPage ? (
+				<Spinner animation={config.app.loadingSpinnerType} />
+			) : (
+				<Spinner animation={config.app.loadingSpinnerType} size="sm" />
+			)}
 
-            <div style={{marginLeft: "12px"}}>
-                <p>{`${message || READY_TO_LOAD_MSG}...`}</p>
-            </div>
-        </div>
-    );
-};
-
+			<div style={{ marginLeft: "12px" }}>
+				<p>{`${message || READY_TO_LOAD_MSG}...`}</p>
+			</div>
+		</div>
+	);
+}
 
 const centeredSpinner: CSSProperties = {
-    ...centerAlignedFlexRow,
-    justifyContent: "center",
-    verticalAlign: "center",
+	...centerAlignedFlexRow,
+	justifyContent: "center",
+	verticalAlign: "center",
 };
 
 export const fullPageCenteredSpinner: CSSProperties = {
-    ...centeredSpinner,
-    flex: 1,
-    height: "100vh",
+	...centeredSpinner,
+	flex: 1,
+	height: "100vh",
 };
 
 const inlineSpinner: CSSProperties = {
-    ...centeredSpinner,
-    height: "20px",
-    justifyContent: "start",
-    marginTop: "5px",
+	...centeredSpinner,
+	height: "20px",
+	justifyContent: "start",
+	marginTop: "5px",
 };
