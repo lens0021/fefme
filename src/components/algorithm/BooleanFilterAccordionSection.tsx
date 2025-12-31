@@ -119,7 +119,7 @@ export default function BooleanFilterAccordionSection(
 			const tooltipAnchor = `${filter.propertyName}-min-toots-slider-tooltip`;
 			const pluralizedPanelTitle = `${filter.propertyName}s`.toLowerCase();
 			_headerSwitches = _headerSwitches.concat(
-				<div key={`${filter.propertyName}-minTootsSlider`} className="w-[23%]">
+				<div key={`${filter.propertyName}-minTootsSlider`} className="w-full">
 					<Tooltip
 						className="font-normal z-[2000]"
 						delayShow={minTootsTooltipDelay}
@@ -129,28 +129,27 @@ export default function BooleanFilterAccordionSection(
 
 					<button
 						type="button"
-						className="text-left"
+						className="text-left w-full"
 						data-tooltip-id={tooltipAnchor}
 						data-tooltip-content={`Hide ${pluralizedPanelTitle} with less than ${minTootsState[0]} posts`}
 					>
 						<div className="me-2">
-							<div className="flex flex-row items-center text-sm justify-between whitespace-nowrap">
-								<div className="flex flex-row justify-end">
+							<div className="flex flex-col gap-2 text-xs">
+								<div className="w-full">
 									<input
 										type="range"
-										className="custom-slider"
+										className="custom-slider w-full"
 										min={1}
 										max={minTootsMaxValue}
 										onChange={(e) =>
 											minTootsState[1](Number.parseInt(e.target.value, 10))
 										}
 										step={1}
-										style={{ width: "80%" }}
 										value={minTootsState[0]}
 									/>
 								</div>
 
-								<div className="flex flex-row items-center text-sm justify-between whitespace-nowrap">
+								<div className="flex items-center justify-between text-xs">
 									<span>
 										<span className="font-bold mr-1">Minimum</span>
 									</span>

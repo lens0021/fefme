@@ -47,26 +47,28 @@ export default function Accordion(props: AccordionProps) {
 	const shouldWrapBody = hasSwitches || footerSwitches?.length;
 
 	if (variant === "top") {
-		const titleClassName = `font-bold text-[17px] mt-0 mb-[5px] ml-[5px] underline font-[Tahoma,Geneva,sans-serif] ${
-			isActive ? "text-white" : "text-black"
-		}`;
-		const activeClassName = isActive ? "filterHeader--rounded" : "";
+		const titleClassName = "font-semibold text-sm";
+		const activeClassName = isActive
+			? "text-[color:var(--color-primary)]"
+			: "text-[color:var(--color-fg)]";
 
 		return (
-			<div className="border border-gray-200 rounded mb-2">
+			<div className="border border-[color:var(--color-border)] rounded-lg mb-2 bg-[color:var(--color-card-bg)]">
 				<button
 					type="button"
 					onClick={toggleOpen}
-					className="w-full text-left bg-gray-50 hover:bg-gray-100 transition-colors flex justify-between items-center p-0"
+					className="w-full text-left bg-[color:var(--color-muted)] hover:bg-[color:var(--color-light-shade)] transition-colors flex justify-between items-center px-3 py-2"
 				>
 					<span className={`${activeClassName} ${titleClassName}`}>
 						{title}
 					</span>
-					<span className="text-gray-500">{isOpen ? "−" : "+"}</span>
+					<span className="text-[color:var(--color-muted-fg)]">
+						{isOpen ? "−" : "+"}
+					</span>
 				</button>
 
 				{isOpen && (
-					<div className="bg-[#b2bfd4]" style={bodyStyle}>
+					<div className="bg-[color:var(--color-muted)]" style={bodyStyle}>
 						{children}
 					</div>
 				)}
@@ -75,15 +77,19 @@ export default function Accordion(props: AccordionProps) {
 	}
 
 	return (
-		<div className="border-b border-gray-200" key={title}>
+		<div className="border-b border-[color:var(--color-border)]" key={title}>
 			<button
 				type="button"
 				onClick={toggleOpen}
-				className="w-full text-left py-2 hover:bg-gray-50 transition-colors flex justify-between items-center"
+				className="w-full text-left py-2 hover:bg-[color:var(--color-light-shade)] transition-colors flex justify-between items-center"
 			>
 				<span className="cursor-pointer my-[-5px]">
 					<span
-						className={`filterHeader ${isActive ? "filterHeader--active" : ""}`}
+						className={`text-sm font-semibold ${
+							isActive
+								? "text-[color:var(--color-primary)]"
+								: "text-[color:var(--color-fg)]"
+						}`}
 						key={1}
 					>
 						{hasAnyCapitalLetters(title) ? title : capitalCase(title)}
@@ -91,36 +97,36 @@ export default function Accordion(props: AccordionProps) {
 
 					{description && (
 						<span
-							className="text-[13px] font-medium text-black font-[Tahoma,Geneva,sans-serif]"
+							className="text-xs font-medium text-[color:var(--color-muted-fg)]"
 							key={2}
 						>
 							{"  "}({description})
 						</span>
 					)}
 				</span>
-				<span className="text-gray-500 px-2">{isOpen ? "−" : "+"}</span>
+				<span className="text-[color:var(--color-muted-fg)] px-2">
+					{isOpen ? "−" : "+"}
+				</span>
 			</button>
 
 			{isOpen && (
-				<div className="bg-[#b2bfd4] pt-[7px]">
+				<div className="bg-[color:var(--color-muted)] pt-2">
 					{hasSwitches && (
-						<div className="flex flex-row items-center justify-around font-bold text-base h-[25px] mb-[3px]">
+						<div className="flex flex-wrap items-center gap-2 px-3 py-2 text-xs font-semibold">
 							{switchbar}
 						</div>
 					)}
 
 					{shouldWrapBody ? (
-						<div className="rounded-[20px] bg-[#d3d3d3] pl-[25px] pr-[15px] pt-[10px] pb-[5px]">
-							<div className="mb-1">
-								<div className="mb-1">{children}</div>
-							</div>
+						<div className="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] px-4 py-3">
+							{children}
 						</div>
 					) : (
 						children
 					)}
 
 					{footerSwitches && (
-						<div className="flex flex-row items-center justify-around font-bold text-base h-[25px] mt-[7px] mb-[-10px]">
+						<div className="flex flex-wrap items-center gap-2 px-3 pb-3 text-xs font-semibold">
 							{footerSwitches}
 						</div>
 					)}

@@ -104,8 +104,7 @@ export default function WeightSetter() {
 				<button
 					type="button"
 					onClick={resetToDefaults}
-					className="rounded-md cursor-pointer px-4 py-2 text-sm font-medium border-0 transition-colors text-white"
-					style={{ backgroundColor: config.theme.light.danger }}
+					className="rounded-md cursor-pointer px-3 py-1.5 text-xs font-semibold border border-red-300 text-red-600 hover:bg-red-50"
 				>
 					Reset to Defaults
 				</button>
@@ -116,8 +115,8 @@ export default function WeightSetter() {
 			)}
 			<div className="h-3" />
 
-			<div className="rounded-[20px] bg-[#d3d3d3] pl-[25px] pr-[20px] pb-[13px] pt-[15px]">
-				<p className="font-bold text-[17px] mt-0 mb-[10px] ml-[5px] underline font-[Tahoma,Geneva,sans-serif] text-black">
+			<div className="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-muted)] px-4 pb-3 pt-3">
+				<p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--color-muted-fg)] mt-0 mb-2">
 					Weightings
 				</p>
 

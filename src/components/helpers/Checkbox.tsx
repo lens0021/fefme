@@ -53,8 +53,8 @@ export default function Checkbox(props: CheckboxProps) {
 	} = props;
 	const { algorithm } = useAlgorithm();
 
-	let labelClasses = "font-bold";
-	let checkboxClasses = "text-black";
+	let labelClasses = "font-semibold max-w-full";
+	let checkboxClasses = "text-[color:var(--color-fg)]";
 	let highlightStyle: CSSProperties = {};
 
 	const highlightColor = tooltip?.highlight?.color;
@@ -88,7 +88,7 @@ export default function Checkbox(props: CheckboxProps) {
 				href={url}
 				target="_blank"
 				rel="noopener noreferrer"
-				className={`${labelClasses} underline cursor-pointer text-black`}
+				className={`${labelClasses} underline cursor-pointer text-[color:var(--color-fg)]`}
 				onClick={(e) => followUri(url, e)}
 			>
 				{label}
@@ -98,7 +98,7 @@ export default function Checkbox(props: CheckboxProps) {
 
 	const checkbox = (
 		<label
-			className={`flex flex-wrap items-center gap-2 cursor-pointer p-1 ${checkboxClasses}`}
+			className={`flex flex-wrap items-start gap-2 cursor-pointer p-1 ${checkboxClasses}`}
 			style={highlightStyle}
 		>
 			<input

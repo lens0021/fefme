@@ -61,7 +61,7 @@ export default function FeedFiltersAccordionSection() {
 			{HIGHLIGHTED_TOOLTIP}
 
 			<div>
-				<div className="flex justify-around h-auto px-[2px] pt-[4.5px] text-base font-bold">
+				<div className="flex flex-wrap items-center gap-2 px-3 py-2 text-xs font-semibold">
 					{showFilterHighlightsCheckbox}
 					{alwaysShowFollowedCheckbox}
 				</div>

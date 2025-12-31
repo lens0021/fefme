@@ -14,7 +14,6 @@ interface SliderProps {
 	onChange: (e: ChangeEvent<HTMLInputElement>) => Promise<void>;
 	stepSize?: number;
 	value: number;
-	width?: string;
 }
 
 export default function Slider(props: SliderProps) {
@@ -27,7 +26,6 @@ export default function Slider(props: SliderProps) {
 		onChange,
 		stepSize,
 		value,
-		width,
 	} = props;
 	if (!value && value !== 0) return;
 
@@ -48,10 +46,7 @@ export default function Slider(props: SliderProps) {
 			className="flex flex-wrap items-center gap-2 text-sm"
 		>
 			{!hideValueBox && (
-				<div
-					className="rounded bg-white self-end border border-black mr-2.5 pl-2 pr-2 pt-0.5"
-					id="innerest_doop"
-				>
+				<div className="rounded bg-[color:var(--color-card-bg)] self-end border border-[color:var(--color-border)] mr-2.5 px-2 pt-0.5">
 					<span className="font-mono text-xs">{value?.toFixed(decimals)}</span>
 				</div>
 			)}
@@ -63,16 +58,15 @@ export default function Slider(props: SliderProps) {
 			</span>
 		</div>,
 
-		<div key={`${label}_slider`} className="flex w-full justify-end">
+		<div key={`${label}_slider`} className="w-full">
 			<input
 				type="range"
-				className="custom-slider"
+				className="custom-slider w-full"
 				id={label}
 				min={minValue}
 				max={maxValue}
 				onChange={onChange}
 				step={step}
-				style={{ width: width || "100%" }}
 				value={value}
 			/>
 		</div>,
@@ -80,7 +74,7 @@ export default function Slider(props: SliderProps) {
 
 	return (
 		<div className="me-2" key={`${label}_sliderForm`}>
-			<div className="flex flex-col gap-1 text-sm sm:flex-row sm:items-center sm:justify-between">
+			<div className="flex flex-col gap-2 text-sm">
 				{hideValueBox ? divs.reverse() : divs}
 			</div>
 		</div>

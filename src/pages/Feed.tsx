@@ -167,8 +167,8 @@ export default function Feed() {
 
 				<div className="flex flex-col gap-4">
 					{/* Controls section */}
-					<div className="flex flex-col gap-2">
-						<div className="flex flex-col gap-2 text-sm">
+					<div className="flex flex-col gap-3 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] p-3">
+						<div className="flex flex-col gap-2 text-xs">
 							{showLinkPreviewsCheckbox}
 							{hideSensitiveCheckbox}
 						</div>
@@ -195,7 +195,7 @@ export default function Feed() {
 							</Accordion>
 						)}
 
-						<div className="flex flex-col gap-1 text-sm text-gray-500">
+						<div className="flex flex-col gap-1 text-xs text-[color:var(--color-muted-fg)]">
 							{isLoading ? (
 								<div className="flex items-center gap-3">
 									<div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
@@ -204,7 +204,7 @@ export default function Feed() {
 							) : (
 								<>
 									<p>{footerMsg}</p>
-									<details className="mt-1 rounded-md border border-red-200 bg-red-50 p-2 text-xs text-red-700">
+									<details className="mt-1 rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-muted)] p-2 text-xs text-[color:var(--color-muted-fg)]">
 										<summary className="cursor-pointer font-semibold">
 											Reset feed data
 										</summary>
@@ -213,7 +213,7 @@ export default function Feed() {
 											<button
 												type="button"
 												onClick={reset}
-												className="rounded-md border border-red-300 px-2 py-1 text-xs font-semibold text-red-700"
+												className="rounded-md border border-red-300 px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
 											>
 												Reset
 											</button>
@@ -230,7 +230,7 @@ export default function Feed() {
 										Report bugs:{" "}
 										<a
 											href={config.app.issuesUrl}
-											className="text-gray-400 no-underline"
+											className="text-[color:var(--color-primary)] no-underline"
 											target="_blank"
 											rel="noopener noreferrer"
 										>
@@ -292,7 +292,7 @@ export default function Feed() {
 												.tooltipText
 										}
 										data-tooltip-id={LOAD_BUTTON_TOOLTIP_ANCHOR}
-										className="cursor-pointer underline"
+										className="cursor-pointer text-[color:var(--color-primary)] font-semibold"
 										onClick={triggerFeedUpdate}
 									>
 										<span
@@ -314,7 +314,7 @@ export default function Feed() {
 												.tooltipText
 										}
 										data-tooltip-id={LOAD_BUTTON_TOOLTIP_ANCHOR}
-										className="cursor-pointer underline"
+										className="cursor-pointer text-[color:var(--color-primary)] font-semibold"
 										onClick={triggerHomeTimelineBackFill}
 									>
 										<span
@@ -336,7 +336,7 @@ export default function Feed() {
 												.loadUserDataForAlgorithm.tooltipText
 										}
 										data-tooltip-id={LOAD_BUTTON_TOOLTIP_ANCHOR}
-										className="cursor-pointer underline"
+										className="cursor-pointer text-[color:var(--color-primary)] font-semibold"
 										onClick={triggerMoarData}
 									>
 										<span
@@ -355,10 +355,7 @@ export default function Feed() {
 							</div>
 						)}
 
-						<div
-							className="rounded -mx-3 px-2 sm:mx-0 sm:px-0"
-							style={{ backgroundColor: config.theme.feedBackgroundColor }}
-						>
+						<div className="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] p-2">
 							{visibleTimeline.slice(0, numShownToots).map((toot) => (
 								<StatusComponent
 									isLoadingThread={isLoadingThread}
