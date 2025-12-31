@@ -244,14 +244,14 @@ export default function Feed() {
 									`Displaying ${numDisplayedToots} Posts (Scroll: ${scrollPercentage.toFixed(1)}%)`
 								) : (
 									<>
-										Report bugs:{" "}
+										Report bugs on{" "}
 										<a
 											href={config.app.issuesUrl}
 											className="text-[color:var(--color-primary)] no-underline"
 											target="_blank"
 											rel="noopener noreferrer"
 										>
-											GitHub Issues
+											GitHub
 										</a>
 									</>
 								)}
