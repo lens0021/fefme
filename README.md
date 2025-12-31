@@ -15,13 +15,8 @@ Each incoming post in your recent timeline will be scored based on a variety of 
 
 1. Click on the link to [the demo](https://lens0021.github.io/fefme/). It's deployed on GitHub Pages so there is no server - everything is handled in your browser.
 1. Specify the Mastodon server your account lives on and click "Login". If you're already logged in with that browser you won't have to enter a password. (Note: passwords and tokens are never sent to FediAlgo! Your login in strictly between you and your Mastodon server. Once authenticated your Mastodon server gives your browser a temporary token FediAlgo uses to read your timeline, the same as any other Mastodon client app.)
-   <p align="center">
-     <img src="doc/login_screen.png" alt="OAuth Permissions Request" width="600">
-   </p>
 1. After you've logged in to your Mastodon server (or if you're already logged into that server in the browser you're using) your browser will request that you give `fedialgo` permission to access your Mastodon account. If you don't accept this the app will not work.
-   <p align="center">
-     <img src="doc/permissions_request.png" alt="OAuth Permissions Request" width="300">
-   </p>
+   You should see a permissions prompt that lists the OAuth scopes for reading your timeline, notifications, and posting interactions.
 1. Wait for the magic. The first time you load the page it can take a while because it has to collect a bunch of federated data: things like trending posts on other servers, toots from accounts you follow, your notifications, and your recent Mastodon history so it can tell which users you interact with the most (which is by default an important part of the algorithm).
 1. Have fun.
 1. Profit.
@@ -38,24 +33,17 @@ One thing that's kind of a gotcha is the way the `topPosts - Favor posts that ar
 
 You can filter based on hashtag, source (accounts you follow, hashtags you follow, various kinds of trending posts), language, application, and various numerical metrics like minimum number of replies, minimum number of boosts, etc.
 
-<p align="center">
-    <img src="doc/source_and_language_filters.png" hspace="20" width="300">
-    <img src="doc/hashtag_filters.png" hspace="20" width="300">
-</p>
+The filter panels include source, language, and hashtag options, plus numeric thresholds for replies, boosts, and similar activity signals.
 
 ## Investigating A Post's Score
 
 Clicking the ⚖️ in the GUI will bring up a popup that will show you the gorey details of how a toot measured up.
 
-<p align="center">
-    <img src="doc/click_the_i_for_score_info.png" alt="click_the_i_for_score_info" width="600">
-</p>
+The score inspector shows the raw scoring inputs and the final weighted score for a toot.
 
 Here's an example of the elements that go into scoring a post:
 
-<p align="center">
-    <img src="doc/toot_score_modal.png" alt="An example of the way a toot is weighted." width="600">
-</p>
+This modal breaks down each factor (recency, engagement, follow status, etc.) and shows how the weights contribute to the final result.
 
 ## Boosting And Favoriting
 
