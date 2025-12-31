@@ -1,13 +1,28 @@
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
+import pkg from "./package.json";
 import { defineConfig, loadEnv } from "vite";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), "");
+	let base = "/";
+
+	if (mode === "production" && pkg.homepage) {
+		try {
+			base = new URL(pkg.homepage).pathname;
+		} catch {
+			base = "/";
+		}
+
+		if (!base.endsWith("/")) {
+			base = `${base}/`;
+		}
+	}
 
 	return {
 		plugins: [react(), tailwindcss()],
+		base,
 
 		build: {
 			outDir: env.BUILD_DIR || "docs",
