@@ -10,7 +10,7 @@ import React, {
 
 import { faCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { isAccessTokenRevokedError, timeString } from "fedialgo";
+import { isAccessTokenRevokedError, timeString } from "../../core/index";
 import type { mastodon } from "masto";
 
 import { useError } from "../../components/helpers/ErrorHandler";

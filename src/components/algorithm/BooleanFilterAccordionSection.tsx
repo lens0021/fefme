@@ -8,7 +8,7 @@ import {
 	type BooleanFilter,
 	BooleanFilterName,
 	TagTootsCategory,
-} from "fedialgo";
+} from "../../core/index";
 import { Tooltip } from "react-tooltip";
 
 import { config } from "../../config";

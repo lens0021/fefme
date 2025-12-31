@@ -11,7 +11,7 @@ import {
 	isValidElement,
 } from "react";
 
-import { type Toot, type TrendingWithHistory, makeChunks } from "fedialgo";
+import { type Toot, type TrendingWithHistory, makeChunks } from "../core/index";
 import type tinycolor from "tinycolor2";
 
 import { appLogger } from "./log_helpers";

@@ -1,7 +1,7 @@
 /*
  * String manipulation helpers.
  */
-import { AgeIn } from "fedialgo";
+import { AgeIn } from "../core/index";
 import { isEmpty, isNil } from "lodash";
 
 import { config } from "../config";

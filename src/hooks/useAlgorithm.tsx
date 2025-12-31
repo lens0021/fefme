@@ -17,7 +17,7 @@ import TheAlgorithm, {
 	AgeIn,
 	type Toot,
 	isAccessTokenRevokedError,
-} from "fedialgo";
+} from "../core/index";
 import { createRestAPIClient, type mastodon } from "masto";
 import { useError } from "../components/helpers/ErrorHandler";
 

@@ -13,7 +13,7 @@ import TheAlgorithm, {
 	TypeFilterName,
 	optionalSuffix,
 	type FilterOptionDataSource,
-} from "fedialgo";
+} from "./core/index";
 import type { mastodon } from "masto";
 
 import type { TrendingPanelName } from "./components/TrendingSection";

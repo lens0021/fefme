@@ -1,4 +1,4 @@
-import { DEFAULT_FONT_SIZE } from "fedialgo";
+import { DEFAULT_FONT_SIZE } from "../../core/index";
 /**
  * Theme configuration and color palettes for light/dark modes
  */

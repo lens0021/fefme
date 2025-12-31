@@ -9,7 +9,7 @@ import {
 	type TrendingObj,
 	type TrendingType,
 	optionalSuffix,
-} from "fedialgo";
+} from "../core/index";
 import { Tooltip } from "react-tooltip";
 
 import { config } from "../config";

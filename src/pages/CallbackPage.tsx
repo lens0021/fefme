@@ -3,7 +3,7 @@
  */
 import React, { useCallback, useEffect } from "react";
 
-import { FEDIALGO } from "fedialgo";
+import { FEDIALGO } from "../core/index";
 import { createRestAPIClient } from "masto";
 import { useSearchParams } from "react-router-dom";
 

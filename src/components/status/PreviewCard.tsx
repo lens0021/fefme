@@ -4,7 +4,7 @@
  */
 import type React from "react";
 
-import { extractDomain } from "fedialgo";
+import { extractDomain } from "../../core/index";
 import parse from "html-react-parser";
 import type { mastodon } from "masto";
 import { LazyLoadImage } from "react-lazy-load-image-component";

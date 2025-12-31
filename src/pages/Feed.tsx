@@ -9,7 +9,7 @@ import TheAlgorithm, {
 	BooleanFilterName,
 	type Toot,
 	optionalSuffix,
-} from "fedialgo";
+} from "../core/index";
 import { Tooltip } from "react-tooltip";
 
 import ApiErrorsPanel from "../components/ApiErrorsPanel";

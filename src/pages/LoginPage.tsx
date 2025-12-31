@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { FEDIALGO } from "fedialgo";
+import { FEDIALGO } from "../core/index";
 import { createRestAPIClient } from "masto";
 import { stringifyQuery } from "ufo";
 

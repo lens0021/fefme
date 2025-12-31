@@ -24,7 +24,7 @@ import {
 	faUpRightFromSquare,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import type { Toot } from "fedialgo";
+import type { Toot } from "../../core/index";
 import parse from "html-react-parser";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 

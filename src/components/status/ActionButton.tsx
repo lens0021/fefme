@@ -17,7 +17,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { capitalCase } from "change-case";
-import { type Account, type Toot, isValueInStringEnum } from "fedialgo";
+import { type Account, type Toot, isValueInStringEnum } from "../../core/index";
 
 import { config } from "../../config";
 import { getLogger } from "../../helpers/log_helpers";

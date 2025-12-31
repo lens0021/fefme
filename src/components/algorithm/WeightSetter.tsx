@@ -10,7 +10,7 @@ import TheAlgorithm, {
 	ScoreName,
 	type WeightName,
 	type Weights,
-} from "fedialgo";
+} from "../../core/index";
 
 import { config } from "../../config";
 import { getLogger } from "../../helpers/log_helpers";

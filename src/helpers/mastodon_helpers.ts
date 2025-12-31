@@ -1,4 +1,4 @@
-import { MediaCategory } from "fedialgo";
+import { MediaCategory } from "../core/index";
 /*
  * Functions for dealing with Mastodon API and data structures.
  */

@@ -4,7 +4,7 @@
  */
 import type { ChangeEvent } from "react";
 
-import { TagTootsCategory } from "fedialgo";
+import { TagTootsCategory } from "../../../core/index";
 import { Tooltip } from "react-tooltip";
 
 import { config } from "../../../config";

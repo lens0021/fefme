@@ -1,7 +1,7 @@
 /*
  * Logging helpers.
  */
-import TheAlgorithm, { Logger } from "fedialgo";
+import TheAlgorithm, { Logger } from "../core/index";
 
 import {
 	browserCountry,

@@ -14,7 +14,7 @@ import {
 	ScoreName,
 	TagTootsCategory,
 	TypeFilterName,
-} from "fedialgo";
+} from "../../../core/index";
 import { isEmpty, isFinite as isFiniteNumber } from "lodash";
 
 import { config } from "../../../config";

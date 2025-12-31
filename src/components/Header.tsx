@@ -1,6 +1,6 @@
 import React from "react";
 
-import { FEDIALGO } from "fedialgo";
+import { FEDIALGO } from "../core/index";
 
 import { useAuthContext } from "../hooks/useAuth";
 

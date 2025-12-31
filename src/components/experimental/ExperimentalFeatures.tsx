@@ -1,7 +1,7 @@
 /*
  * WIP: Component for displaying the trending hashtags in the Fediverse.
  */
-import { FEDIALGO } from "fedialgo";
+import { FEDIALGO } from "../../core/index";
 
 import { useAlgorithm } from "../../hooks/useAlgorithm";
 import { useAuthContext } from "../../hooks/useAuth";

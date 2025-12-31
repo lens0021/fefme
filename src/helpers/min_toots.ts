@@ -1,4 +1,4 @@
-import type { ObjList } from "fedialgo";
+import type { ObjList } from "../core/index";
 
 import { config } from "../config";
 import { getLogger } from "./log_helpers";

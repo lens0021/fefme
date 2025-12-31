@@ -6,7 +6,7 @@ import {
 	useState,
 } from "react";
 
-import { Logger } from "fedialgo";
+import { Logger } from "../../core/index";
 import { isString } from "lodash";
 import { ErrorBoundary } from "react-error-boundary";
 

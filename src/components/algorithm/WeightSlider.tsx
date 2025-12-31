@@ -1,4 +1,4 @@
-import type { StringNumberDict, WeightName } from "fedialgo";
+import type { StringNumberDict, WeightName } from "../../core/index";
 /*
  * Slider that sets a weight for the algorithm.
  */
