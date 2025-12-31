@@ -110,16 +110,25 @@ export default function Feed() {
 		setNumDisplayedToots(config.timeline.defaultNumDisplayedToots);
 		resetAlgorithm();
 	};
-	const resetToDefaults = async () => {
+	const resetWeights = async () => {
 		if (
 			!(await confirm(
-				"Reset weights and filters to defaults? Your cached posts will stay.",
+				"Reset all feed weights to defaults? Your filters and cached posts will stay.",
 			))
 		)
 			return;
 		localStorage.removeItem("fefme_user_weights");
-		localStorage.removeItem("type-filter-self");
 		await algorithm?.updateUserWeightsToPreset("default");
+	};
+
+	const resetFilters = async () => {
+		if (
+			!(await confirm(
+				"Reset all filters to defaults? Your weights and cached posts will stay.",
+			))
+		)
+			return;
+		localStorage.removeItem("type-filter-self");
 		algorithm?.updateFilters(buildNewFilterSettings());
 		setSelfTypeFilterMode?.("none");
 	};
@@ -365,15 +374,23 @@ export default function Feed() {
 										</summary>
 										<div className="mt-2 flex flex-col gap-3 text-xs">
 											<div className="flex flex-col gap-1">
-												<span>
-													Reset all feed weights and filters to their defaults.
-												</span>
+												<span>Reset all feed weights to their defaults.</span>
 												<button
 													type="button"
-													onClick={resetToDefaults}
+													onClick={resetWeights}
 													className="rounded-md border border-[color:var(--color-border)] px-2 py-1 text-xs font-semibold text-[color:var(--color-primary)]"
 												>
-													Reset to defaults
+													Reset weights
+												</button>
+											</div>
+											<div className="flex flex-col gap-1">
+												<span>Reset all filters to their defaults.</span>
+												<button
+													type="button"
+													onClick={resetFilters}
+													className="rounded-md border border-[color:var(--color-border)] px-2 py-1 text-xs font-semibold text-[color:var(--color-primary)]"
+												>
+													Reset filters
 												</button>
 											</div>
 											<div className="flex flex-col gap-1">
