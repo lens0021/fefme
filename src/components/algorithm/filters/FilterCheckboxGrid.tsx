@@ -126,6 +126,7 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 	const {
 		algorithm,
 		alwaysShowFollowed,
+		currentUserWebfinger,
 		selfTypeFilterMode,
 		setSelfTypeFilterMode,
 		showFilterHighlights,
@@ -280,6 +281,16 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 		return tooltip;
 	};
 
+	// Count the number of posts from the current user
+	const selfPostCount = useMemo(() => {
+		if (!algorithm?.timeline || !currentUserWebfinger) return 0;
+		return algorithm.timeline.filter((toot) =>
+			toot.accounts?.some(
+				(account) => account.webfingerURI === currentUserWebfinger,
+			),
+		).length;
+	}, [algorithm?.timeline, currentUserWebfinger]);
+
 	const optionGrid = (() => {
 		logger.deep(
 			`Rebuilding optionGrid for ${filter.options.length} options (${
@@ -374,6 +385,12 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 				>
 					<div className="min-w-0 text-sm font-semibold break-words">
 						<span>Me</span>
+						{selfPostCount > 0 && (
+							<span className="text-[color:var(--color-muted-fg)]">
+								{" "}
+								({selfPostCount.toLocaleString()})
+							</span>
+						)}
 					</div>
 					<FilterStateButtons
 						state={selfState}
