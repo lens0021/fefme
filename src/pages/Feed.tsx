@@ -55,6 +55,7 @@ export default function Feed() {
 	);
 	const [scrollPercentage, setScrollPercentage] = useState(0);
 	const [thread, setThread] = useState<Toot[]>([]);
+	const lastAutoBackfillSize = useRef<number | null>(null);
 
 	// Checkboxes for persistent user settings state variables
 	// TODO: the returned checkboxTooltip is shared by all tooltips which kind of sucks
@@ -112,6 +113,16 @@ export default function Feed() {
 
 		// If the user scrolls to the bottom of the page, show more posts
 		if (isBottom && visibleTimeline.length) showMoreToots();
+		if (
+			isBottom &&
+			!isLoading &&
+			visibleTimeline.length &&
+			numDisplayedToots >= visibleTimeline.length &&
+			lastAutoBackfillSize.current !== visibleTimeline.length
+		) {
+			lastAutoBackfillSize.current = visibleTimeline.length;
+			triggerHomeTimelineBackFill?.();
+		}
 		// If there's less than numDisplayedToots in the feed set numDisplayedToots to the # of posts in the feed
 		if (visibleTimeline.length && visibleTimeline.length < numDisplayedToots)
 			setNumDisplayedToots(visibleTimeline.length);
@@ -139,7 +150,13 @@ export default function Feed() {
 
 		window.addEventListener("scroll", handleScroll);
 		return () => window.removeEventListener("scroll", handleScroll);
-	}, [isBottom, numDisplayedToots, visibleTimeline.length]);
+	}, [
+		isBottom,
+		isLoading,
+		numDisplayedToots,
+		triggerHomeTimelineBackFill,
+		visibleTimeline.length,
+	]);
 
 	// TODO: probably easier to not rely on fedialgo's measurement of the last load time; we can easily track it ourselves.
 	let footerMsg = `Scored ${(visibleTimeline.length || 0).toLocaleString()} posts`;
