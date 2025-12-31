@@ -25,7 +25,7 @@ import {
 	faUpRightFromSquare,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import type { Toot } from "../../core/index";
+import { AgeIn, timeString, type Toot } from "../../core/index";
 import parse from "html-react-parser";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 
@@ -34,7 +34,6 @@ import { executeWithLoadingState } from "../../helpers/async_helpers";
 import { getLogger } from "../../helpers/log_helpers";
 import { formatScore, formatScores } from "../../helpers/number_helpers";
 import { openToot } from "../../helpers/ui";
-import { timestampString } from "../../helpers/string_helpers";
 import { useAlgorithm } from "../../hooks/useAlgorithm";
 import useOnScreen from "../../hooks/useOnScreen";
 import { useError } from "../helpers/ErrorHandler";
@@ -90,6 +89,24 @@ const INFO_ICONS: Record<InfoIconType, IconInfo> = {
 		icon: faFireFlameCurved,
 		color: config.theme.trendingTagColor,
 	},
+};
+
+const formatRelativeTime = (timestamp: string): string => {
+	const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+	const seconds = Math.round(AgeIn.seconds(new Date(timestamp)));
+	const absSeconds = Math.abs(seconds);
+
+	if (absSeconds < 60) return rtf.format(-seconds, "second");
+	const minutes = Math.round(seconds / 60);
+	if (Math.abs(minutes) < 60) return rtf.format(-minutes, "minute");
+	const hours = Math.round(minutes / 60);
+	if (Math.abs(hours) < 24) return rtf.format(-hours, "hour");
+	const days = Math.round(hours / 24);
+	if (Math.abs(days) < 30) return rtf.format(-days, "day");
+	const months = Math.round(days / 30);
+	if (Math.abs(months) < 12) return rtf.format(-months, "month");
+	const years = Math.round(months / 12);
+	return rtf.format(-years, "year");
 };
 
 interface StatusComponentProps {
@@ -197,7 +214,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 			let color = iconInfo.color;
 
 			if (iconType === InfoIconType.Edited) {
-				title += ` ${timestampString(toot.editedAt)}`;
+				title += ` ${timeString(toot.editedAt)}`;
 			} else if (iconType === InfoIconType.Hashtags) {
 				title = toot.containsTagsMsg();
 
@@ -291,9 +308,23 @@ export default function StatusComponent(props: StatusComponentProps) {
 					<div className="flex flex-wrap items-start justify-between gap-3">
 						{/* Top right icons + timestamp that link to the post */}
 						<div className="flex items-center gap-2 text-xs text-[color:var(--color-muted-fg)]">
-							<NewTabLink
+							<span className="inline-flex items-center gap-1">
+								{toot.editedAt && infoIcon(InfoIconType.Edited)}
+								{(toot.numTimesShown || 0) > 0 && infoIcon(InfoIconType.Read)}
+								{toot.inReplyToAccountId && infoIcon(InfoIconType.Reply)}
+								{(toot.trendingRank || 0) > 0 &&
+									infoIcon(InfoIconType.TrendingToot)}
+								{(toot.trendingLinks?.length || 0) > 0 &&
+									infoIcon(InfoIconType.TrendingLink)}
+								{toot.containsUserMention() && infoIcon(InfoIconType.Mention)}
+								{toot.containsTagsMsg() && infoIcon(InfoIconType.Hashtags)}
+								{toot.isDM && infoIcon(InfoIconType.DM)}
+								{toot.account.bot && infoIcon(InfoIconType.Bot)}
+							</span>
+
+							<button
+								type="button"
 								className="inline-flex items-center gap-2 hover:text-[color:var(--color-fg)]"
-								href={toot.realURL}
 								onClick={(e) => {
 									openToot(toot, e, isGoToSocialUser).catch((err) => {
 										logAndSetFormattedError({
@@ -303,25 +334,15 @@ export default function StatusComponent(props: StatusComponentProps) {
 										});
 									});
 								}}
+								title={timeString(toot.createdAt)}
 							>
-								<span className="inline-flex items-center gap-1">
-									{toot.editedAt && infoIcon(InfoIconType.Edited)}
-									{(toot.numTimesShown || 0) > 0 && infoIcon(InfoIconType.Read)}
-									{toot.inReplyToAccountId && infoIcon(InfoIconType.Reply)}
-									{(toot.trendingRank || 0) > 0 &&
-										infoIcon(InfoIconType.TrendingToot)}
-									{(toot.trendingLinks?.length || 0) > 0 &&
-										infoIcon(InfoIconType.TrendingLink)}
-									{toot.containsUserMention() && infoIcon(InfoIconType.Mention)}
-									{toot.containsTagsMsg() && infoIcon(InfoIconType.Hashtags)}
-									{toot.isDM && infoIcon(InfoIconType.DM)}
-									{toot.account.bot && infoIcon(InfoIconType.Bot)}
-								</span>
-
-								<time dateTime={toot.createdAt} title={toot.createdAt}>
-									{timestampString(toot.createdAt)}
+								<time dateTime={toot.createdAt}>
+									{timeString(toot.createdAt)}
 								</time>
-							</NewTabLink>
+								<span className="text-[color:var(--color-muted-fg)]">
+									({formatRelativeTime(toot.createdAt)})
+								</span>
+							</button>
 
 							<button
 								type="button"
