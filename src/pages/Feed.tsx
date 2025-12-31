@@ -187,19 +187,24 @@ export default function Feed() {
 									<p>{`${algorithm?.loadingStatus || READY_TO_LOAD_MSG}...`}</p>
 								</div>
 							) : (
-								<p>
-									{footerMsg} (
-									{
-										<button
-											type="button"
-											onClick={reset}
-											className="font-semibold underline text-red-600"
-										>
-											Reset Feed Data
-										</button>
-									}
-									)
-								</p>
+								<>
+									<p>{footerMsg}</p>
+									<details className="mt-1 rounded-md border border-red-200 bg-red-50 p-2 text-xs text-red-700">
+										<summary className="cursor-pointer font-semibold">
+											Reset feed data
+										</summary>
+										<div className="mt-2 flex items-center justify-between gap-2">
+											<span>Clears cached timeline data and reloads.</span>
+											<button
+												type="button"
+												onClick={reset}
+												className="rounded-md border border-red-300 px-2 py-1 text-xs font-semibold text-red-700"
+											>
+												Reset
+											</button>
+										</div>
+									</details>
+								</>
 							)}
 
 							<p>

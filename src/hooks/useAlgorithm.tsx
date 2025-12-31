@@ -34,6 +34,25 @@ import { useAuthContext } from "./useAuth";
 
 const logger = getLogger("AlgorithmProvider");
 const loadLogger = logger.tempLogger("setLoadState");
+const FILTERS_STORAGE_KEY = "fefme_user_filters_v1";
+
+type SavedFilters = {
+	version: 1;
+	boolean: Record<
+		string,
+		{
+			invertSelection?: boolean;
+			selectedOptions?: string[];
+		}
+	>;
+	numeric: Record<
+		string,
+		{
+			invertSelection?: boolean;
+			value?: number;
+		}
+	>;
+};
 
 interface AlgoContext {
 	algorithm?: TheAlgorithm;
@@ -102,6 +121,68 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 	);
 	const [showFilterHighlights, showFilterHighlightsCheckbox] =
 		persistentCheckbox(GuiCheckboxName.showFilterHighlights);
+
+	const loadSavedFilters = useCallback((): SavedFilters | null => {
+		try {
+			const raw = localStorage.getItem(FILTERS_STORAGE_KEY);
+			if (!raw) return null;
+			const parsed = JSON.parse(raw) as SavedFilters;
+			if (parsed?.version !== 1) return null;
+			return parsed;
+		} catch (error) {
+			logger.warn("Failed to load saved filters:", error);
+			return null;
+		}
+	}, []);
+
+	const saveFilters = useCallback((filters: TheAlgorithm["filters"]) => {
+		const saved: SavedFilters = {
+			version: 1,
+			boolean: Object.values(filters.booleanFilters || {}).reduce(
+				(acc, filter) => {
+					acc[filter.propertyName] = {
+						invertSelection: filter.invertSelection,
+						selectedOptions: filter.selectedOptions,
+					};
+					return acc;
+				},
+				{} as SavedFilters["boolean"],
+			),
+			numeric: Object.values(filters.numericFilters || {}).reduce(
+				(acc, filter) => {
+					acc[filter.propertyName] = {
+						invertSelection: filter.invertSelection,
+						value: filter.value,
+					};
+					return acc;
+				},
+				{} as SavedFilters["numeric"],
+			),
+		};
+
+		localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(saved));
+	}, []);
+
+	const applySavedFilters = useCallback(
+		(algo: TheAlgorithm, saved: SavedFilters | null) => {
+			if (!saved) return;
+
+			for (const [name, state] of Object.entries(saved.boolean)) {
+				const filter = algo.filters.booleanFilters[name];
+				if (!filter) continue;
+				filter.invertSelection = state.invertSelection ?? false;
+				filter.selectedOptions = state.selectedOptions ?? [];
+			}
+
+			for (const [name, state] of Object.entries(saved.numeric)) {
+				const filter = algo.filters.numericFilters[name];
+				if (!filter) continue;
+				filter.invertSelection = state.invertSelection ?? false;
+				filter.value = state.value ?? 0;
+			}
+		},
+		[],
+	);
 
 	// Pass startedLoadAt as an arg every time because managing the react state of the last load is tricky
 	const setLoadState = useCallback(
@@ -199,8 +280,16 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		if (!algorithm) return;
 		setIsLoading(true);
 		await algorithm.reset();
+		applySavedFilters(algorithm, loadSavedFilters());
+		algorithm.updateFilters(algorithm.filters);
 		triggerFeedUpdate();
-	}, [algorithm, resetErrors, triggerFeedUpdate]);
+	}, [
+		algorithm,
+		applySavedFilters,
+		loadSavedFilters,
+		resetErrors,
+		triggerFeedUpdate,
+	]);
 
 	// Initial load of the feed
 	useEffect(() => {
@@ -240,6 +329,17 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 				setTimelineInApp: setTimeline,
 				locale: navigator?.language,
 			});
+
+			const originalUpdateFilters = algo.updateFilters.bind(algo);
+			algo.updateFilters = (filters) => {
+				const result = originalUpdateFilters(filters);
+				saveFilters(filters);
+				return result;
+			};
+
+			const savedFilters = loadSavedFilters();
+			applySavedFilters(algo, savedFilters);
+			algo.updateFilters(algo.filters);
 
 			if (await algo.isGoToSocialUser()) {
 				logger.warn(
@@ -293,8 +393,11 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 	}, [
 		algorithm,
 		api,
+		applySavedFilters,
+		loadSavedFilters,
 		logAndShowError,
 		logout,
+		saveFilters,
 		setLoadState,
 		timeline.length,
 		triggerLoadFxn,
