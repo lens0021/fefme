@@ -40,7 +40,6 @@ import { useError } from "../helpers/ErrorHandler";
 import JsonModal from "../helpers/JsonModal";
 import NewTabLink from "../helpers/NewTabLink";
 import ActionButton, {
-	AccountAction,
 	type ButtonAction,
 	TootAction,
 } from "./ActionButton";
@@ -417,9 +416,6 @@ export default function StatusComponent(props: StatusComponentProps) {
 									className="flex flex-wrap items-center gap-2 text-xs text-[color:var(--color-muted-fg)]"
 								>
 									@{toot.account.webfingerURI}
-									<span className="inline-block w-[5px]"> </span>
-									{buildActionButton(AccountAction.Follow)}
-									{buildActionButton(AccountAction.Mute)}
 								</span>
 							</span>
 						</div>
