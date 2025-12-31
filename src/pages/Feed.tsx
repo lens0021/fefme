@@ -87,17 +87,20 @@ export default function Feed() {
 	// Calculate timestamps for most recent and oldest cached posts
 	const { mostRecentCachedTime, oldestCachedTime } = useMemo(() => {
 		if (!timeline || timeline.length === 0) {
-			return { mostRecentCachedTime: null, oldestCachedTime: null };
+			return { mostRecentCachedTime: "N/A", oldestCachedTime: "N/A" };
 		}
-		const mostRecent = algorithm?.mostRecentHomeTootAt();
-		const oldest = timeline
-			.map((toot) => new Date(toot.createdAt))
-			.reduce((earliest, current) => (current < earliest ? current : earliest));
+		const dates = timeline.map((toot) => new Date(toot.createdAt));
+		const mostRecent = dates.reduce((latest, current) =>
+			current > latest ? current : latest,
+		);
+		const oldest = dates.reduce((earliest, current) =>
+			current < earliest ? current : earliest,
+		);
 		return {
-			mostRecentCachedTime: mostRecent ? timeString(mostRecent) : null,
+			mostRecentCachedTime: timeString(mostRecent),
 			oldestCachedTime: timeString(oldest),
 		};
-	}, [algorithm, timeline]);
+	}, [timeline]);
 
 	// Reset all state except for the user and server
 	const reset = async () => {
@@ -296,9 +299,8 @@ export default function Feed() {
 											Load new posts
 										</button>
 										<span>
-											Fetches posts created after your most recent cached post
-											{mostRecentCachedTime && ` (${mostRecentCachedTime})`}, then
-											re-scores the feed.
+											Fetches posts created after your most recent cached post (
+											{mostRecentCachedTime}), then re-scores the feed.
 										</span>
 
 										<button
@@ -310,8 +312,7 @@ export default function Feed() {
 										</button>
 										<span>
 											Backfills older home-timeline posts starting from your
-											current oldest cached post
-											{oldestCachedTime && ` (${oldestCachedTime})`}.
+											current oldest cached post ({oldestCachedTime}).
 										</span>
 
 										<button
