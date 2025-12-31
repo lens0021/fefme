@@ -318,11 +318,8 @@ export default class MastoApi {
             if (minMaxId) maxId = minMaxId.min;  // Use the min ID in the cache as the maxId for the MOAR request
             logger.log(`Fetching more old toots (found min ID ${maxId})`);
         } else {
-            // Look back additional lookbackForUpdatesMinutes minutes to catch new updates and edits to toots
             const maxTootedAt = mostRecentTootedAt(homeTimelineToots);
-            const lookbackSeconds = config.api.data[cacheKey]?.lookbackForUpdatesMinutes! * 60;
-            cutoffAt = maxTootedAt ? subtractSeconds(maxTootedAt, lookbackSeconds) : timelineCutoffAt();
-            cutoffAt = mostRecent(timelineCutoffAt(), cutoffAt)!;
+            cutoffAt = maxTootedAt ? mostRecent(timelineCutoffAt(), maxTootedAt)! : timelineCutoffAt();
             logger.debug(`maxTootedAt: ${quotedISOFmt(maxTootedAt)}, maxId: ${maxId}, cutoffAt: ${quotedISOFmt(cutoffAt)}`);
         }
 

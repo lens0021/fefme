@@ -93,7 +93,7 @@ export default class BooleanFilter extends TootFilter {
      */
     public set options(optionList: BooleanFilterOptionList) {
         this._options = optionList;
-        this.selectedOptions = this.selectedOptions.filter((v) => !optionList.getObj(v));
+        this.selectedOptions = this.selectedOptions.filter((v) => optionList.getObj(v));
     }
 
     /**
