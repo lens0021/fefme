@@ -817,21 +817,3 @@ export async function zipPromiseCalls<T>(
     );
 };
 
-
-// TODO: unused stuff below here
-// From https://dev.to/nikosanif/create-promises-with-timeout-error-in-typescript-fmm
-function _promiseWithTimeout<T>(
-    promise: Promise<T>,
-    milliseconds: number,
-    timeoutError = new Error('Promise timed out')
-): Promise<T> {
-    // create a promise that rejects in milliseconds
-    const timeout = new Promise<never>((_, reject) => {
-        setTimeout(() => {
-            reject(timeoutError);
-        }, milliseconds);
-    });
-
-    // returns a race between timeout and the passed promise
-    return Promise.race<T>([promise, timeout]);
-};
