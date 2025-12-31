@@ -46,6 +46,79 @@ interface FilterCheckboxGridProps extends HeaderSwitchState {
 	tagSwitchState?: TagHighlightSwitchState;
 }
 
+// Filter state button configurations
+const FILTER_STATES = [
+	{
+		value: "include" as const,
+		label: "Include",
+		activeClass: "border-emerald-300 bg-emerald-50 text-emerald-700",
+	},
+	{
+		value: "exclude" as const,
+		label: "Exclude",
+		activeClass: "border-red-300 bg-red-50 text-red-700",
+	},
+	{
+		value: "neutral" as const,
+		label: "Any",
+		activeClass:
+			"border-[color:var(--color-border)] bg-[color:var(--color-muted)] text-[color:var(--color-fg)]",
+	},
+];
+
+const SELF_FILTER_STATES = [
+	{
+		value: "include" as const,
+		label: "Include",
+		activeClass: "border-emerald-300 bg-emerald-50 text-emerald-700",
+	},
+	{
+		value: "exclude" as const,
+		label: "Exclude",
+		activeClass: "border-red-300 bg-red-50 text-red-700",
+	},
+	{
+		value: "none" as const,
+		label: "Any",
+		activeClass:
+			"border-[color:var(--color-border)] bg-[color:var(--color-muted)] text-[color:var(--color-fg)]",
+	},
+];
+
+// Helper component for filter state buttons
+function FilterStateButtons<T extends string>({
+	state,
+	setState,
+	states,
+}: {
+	state: T;
+	setState: (state: T) => void;
+	states: Array<{
+		value: T;
+		label: string;
+		activeClass: string;
+	}>;
+}) {
+	return (
+		<div className="flex items-center gap-1 text-[11px]">
+			{states.map(({ value, label, activeClass }) => (
+				<button
+					key={value}
+					type="button"
+					onClick={() => setState(value)}
+					className={`rounded-md border px-2 py-0.5 font-semibold ${
+						state === value
+							? activeClass
+							: "border-[color:var(--color-border)] text-[color:var(--color-muted-fg)]"
+					}`}
+				>
+					{label}
+				</button>
+			))}
+		</div>
+	);
+}
+
 // TODO: maybe rename this BooleanFilterCheckboxGrid?
 export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 	const { filter, highlightsOnly, minToots, sortByCount, tagSwitchState } =
@@ -279,41 +352,11 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 							</span>
 						)}
 					</div>
-					<div className="flex items-center gap-1 text-[11px]">
-						<button
-							type="button"
-							onClick={() => setState("include")}
-							className={`rounded-md border px-2 py-0.5 font-semibold ${
-								optionState === "include"
-									? "border-emerald-300 bg-emerald-50 text-emerald-700"
-									: "border-[color:var(--color-border)] text-[color:var(--color-muted-fg)]"
-							}`}
-						>
-							Include
-						</button>
-						<button
-							type="button"
-							onClick={() => setState("exclude")}
-							className={`rounded-md border px-2 py-0.5 font-semibold ${
-								optionState === "exclude"
-									? "border-red-300 bg-red-50 text-red-700"
-									: "border-[color:var(--color-border)] text-[color:var(--color-muted-fg)]"
-							}`}
-						>
-							Exclude
-						</button>
-						<button
-							type="button"
-							onClick={() => setState("neutral")}
-							className={`rounded-md border px-2 py-0.5 font-semibold ${
-								optionState === "neutral"
-									? "border-[color:var(--color-border)] bg-[color:var(--color-muted)] text-[color:var(--color-fg)]"
-									: "border-[color:var(--color-border)] text-[color:var(--color-muted-fg)]"
-							}`}
-						>
-							Any
-						</button>
-					</div>
+					<FilterStateButtons
+						state={optionState}
+						setState={setState}
+						states={FILTER_STATES}
+					/>
 				</div>
 			);
 		});
@@ -328,41 +371,11 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 					<div className="min-w-0 text-sm font-semibold break-words">
 						<span>Me</span>
 					</div>
-					<div className="flex items-center gap-1 text-[11px]">
-						<button
-							type="button"
-							onClick={() => setSelfTypeFilterMode("include")}
-							className={`rounded-md border px-2 py-0.5 font-semibold ${
-								selfState === "include"
-									? "border-emerald-300 bg-emerald-50 text-emerald-700"
-									: "border-[color:var(--color-border)] text-[color:var(--color-muted-fg)]"
-							}`}
-						>
-							Include
-						</button>
-						<button
-							type="button"
-							onClick={() => setSelfTypeFilterMode("exclude")}
-							className={`rounded-md border px-2 py-0.5 font-semibold ${
-								selfState === "exclude"
-									? "border-red-300 bg-red-50 text-red-700"
-									: "border-[color:var(--color-border)] text-[color:var(--color-muted-fg)]"
-							}`}
-						>
-							Exclude
-						</button>
-						<button
-							type="button"
-							onClick={() => setSelfTypeFilterMode("none")}
-							className={`rounded-md border px-2 py-0.5 font-semibold ${
-								selfState === "none"
-									? "border-[color:var(--color-border)] bg-[color:var(--color-muted)] text-[color:var(--color-fg)]"
-									: "border-[color:var(--color-border)] text-[color:var(--color-muted-fg)]"
-							}`}
-						>
-							Any
-						</button>
-					</div>
+					<FilterStateButtons
+						state={selfState}
+						setState={setSelfTypeFilterMode}
+						states={SELF_FILTER_STATES}
+					/>
 				</div>,
 			);
 		}
