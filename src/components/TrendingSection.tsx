@@ -14,15 +14,21 @@ import FilterAccordionSection from "./algorithm/FilterAccordionSection";
 import MinTootsSlider, { computeDefaultValue } from "./helpers/MinTootsSlider";
 import NewTabLink from "./helpers/NewTabLink";
 import SubAccordion from "./helpers/SubAccordion";
-import {
-	boldFont,
-	flexSpaceAround,
-	globalFont,
-	linkesque,
-	monoFont,
-	roundedBox,
-} from "../helpers/styles";
 import { config } from "../config";
+import {
+	boldTagLinkStyle,
+	colStyle,
+	descriptionStyle,
+	footerContainer,
+	footerLinkText,
+	infoTxtStyle,
+	linkFont,
+	listItemStyle,
+	listStyle,
+	trendingListContainer,
+	singleColumn,
+	singleColumnPadded,
+} from "./TrendingSection.styles";
 import { getLogger } from "../helpers/log_helpers";
 import { gridify, verticalSpacer } from "../helpers/react_helpers";
 import { useAlgorithm } from "../hooks/useAlgorithm";
@@ -267,70 +273,3 @@ export default function TrendingSection(props: TrendingProps) {
 	}
 }
 
-const boldTagLinkStyle: CSSProperties = {
-	...boldFont,
-	...globalFont,
-	fontSize: config.theme.trendingObjFontSize - 2,
-};
-
-const colStyle: CSSProperties = {
-	marginLeft: "1px",
-	marginRight: "1px",
-};
-
-const descriptionStyle: CSSProperties = {
-	...globalFont,
-	fontSize: config.theme.trendingObjFontSize,
-	marginBottom: "18px",
-	marginTop: "3px",
-};
-
-const footerContainer: CSSProperties = {
-	...flexSpaceAround,
-	marginBottom: "5px",
-	width: "100%",
-};
-
-const footerLinkText: CSSProperties = {
-	...boldFont,
-	...linkesque,
-	...monoFont,
-	color: "#1b5b61",
-	fontSize: config.theme.trendingObjFontSize - 1,
-};
-
-const infoTxtStyle: CSSProperties = {
-	fontSize: config.theme.trendingObjFontSize - 4,
-	marginLeft: "6px",
-};
-
-const linkFont: CSSProperties = {
-	...globalFont,
-	fontSize: config.theme.trendingObjFontSize - 1,
-};
-
-const listItemStyle: CSSProperties = {
-	marginBottom: "4px",
-};
-
-const listStyle: CSSProperties = {
-	fontSize: config.theme.trendingObjFontSize,
-	listStyle: "numeric",
-	paddingBottom: "10px",
-	paddingLeft: "25px",
-};
-
-const trendingListContainer: CSSProperties = {
-	...roundedBox,
-	paddingTop: "20px",
-};
-
-const singleColumn: CSSProperties = {
-	...trendingListContainer,
-	paddingLeft: "22px",
-};
-
-const singleColumnPadded: CSSProperties = {
-	...singleColumn,
-	paddingLeft: "40px",
-};

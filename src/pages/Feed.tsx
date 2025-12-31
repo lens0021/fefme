@@ -26,18 +26,22 @@ import { getLogger } from "../helpers/log_helpers";
 import { GuiCheckboxName, config } from "../config";
 import { useAlgorithm } from "../hooks/useAlgorithm";
 import {
-	boldFont,
-	linkesque,
 	loadingMsgStyle,
-	mildlyRoundedCorners,
-	monoFont,
-	roundedCorners,
 	stickySwitchContainer,
 	TEXT_CENTER_P2,
-	tooltipZIndex,
 	verticalContainer,
 	waitOrDefaultCursor,
 } from "../helpers/styles";
+import {
+	accountTooltipStyle,
+	bottomRefSpacer,
+	envVarDebugPanel,
+	loadNewTootsText,
+	noTootsMsgStyle,
+	resetLinkStyle,
+	scrollStatusMsg,
+	statusesColStyle,
+} from "./Feed.styles";
 
 const LOAD_BUTTON_SEPARATOR = " ● ";
 const logger = getLogger("Feed");
@@ -314,55 +318,3 @@ export default function Feed() {
 	);
 }
 
-const accountTooltipStyle: CSSProperties = {
-	...tooltipZIndex,
-	width: "500px",
-};
-
-const bottomRefSpacer: CSSProperties = {
-	marginTop: "10px",
-};
-
-const envVarDebugPanel: CSSProperties = {
-	...monoFont,
-	...roundedCorners,
-	color: "white",
-	fontSize: 16,
-	marginTop: "28px",
-	paddingLeft: "60px",
-};
-
-const loadNewTootsText: CSSProperties = {
-	...loadingMsgStyle,
-	fontSize: 13,
-	marginTop: "8px",
-	textAlign: "center",
-};
-
-
-const noTootsMsgStyle: CSSProperties = {
-	display: "flex",
-	flex: 1,
-	height: "100vh",
-	alignItems: "center",
-	justifyContent: "center",
-	fontSize: 20,
-};
-
-const resetLinkStyle: CSSProperties = {
-	...boldFont,
-	...linkesque,
-	color: "red",
-	fontSize: 14,
-};
-
-const scrollStatusMsg: CSSProperties = {
-	...loadingMsgStyle,
-	color: "grey",
-};
-
-const statusesColStyle: CSSProperties = {
-	...mildlyRoundedCorners,
-	backgroundColor: config.theme.feedBackgroundColor,
-	height: "auto",
-};
