@@ -13,7 +13,6 @@ import ExperimentalFeatures from "../components/experimental/ExperimentalFeature
 import FeedFiltersAccordionSection from "../components/algorithm/FeedFiltersAccordionSection";
 import LoadingSpinner from "../components/helpers/LoadingSpinner";
 import persistentCheckbox from "../components/helpers/persistent_checkbox";
-import ReplyModal from "../components/status/ReplyModal";
 import StatusComponent, {
 	TOOLTIP_ACCOUNT_ANCHOR,
 } from "../components/status/Status";
@@ -65,7 +64,6 @@ export default function Feed() {
 	);
 	const [prevScrollY, setPrevScrollY] = useState(0);
 	const [scrollPercentage, setScrollPercentage] = useState(0);
-	const [showNewTootModal, setShowNewTootModal] = useState(false);
 	const [thread, setThread] = useState<Toot[]>([]);
 
 	// Checkboxes for persistent user settings state variables
@@ -156,8 +154,6 @@ export default function Feed() {
 
 	return (
 		<div style={{ height: "auto" }}>
-			<ReplyModal setShow={setShowNewTootModal} show={showNewTootModal} />
-
 			<div className="flex flex-wrap" style={waitOrDefaultCursor(isLoadingThread)}>
 				{/* Tooltip options: https://react-tooltip.com/docs/options */}
 				<Tooltip
@@ -229,15 +225,6 @@ export default function Feed() {
 									<BugReportLink />
 								)}
 							</p>
-						</div>
-
-						<div style={newTootButton}>
-							<button
-								className="w-full border border-gray-400 text-gray-700 hover:bg-gray-100 px-4 py-2 rounded transition-colors text-center"
-								onClick={() => setShowNewTootModal(true)}
-							>
-								{`Create New Toot`}
-							</button>
 						</div>
 
 						{algorithm && <ApiErrorsPanel />}
@@ -358,12 +345,6 @@ const loadNewTootsText: CSSProperties = {
 	textAlign: "center",
 };
 
-const newTootButton: CSSProperties = {
-	...verticalContainer,
-	marginTop: "35px",
-	marginLeft: "200px",
-	marginRight: "200px",
-};
 
 const noTootsMsgStyle: CSSProperties = {
 	display: "flex",
