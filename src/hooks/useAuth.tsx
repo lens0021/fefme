@@ -88,7 +88,7 @@ export default function AuthProvider(props: PropsWithChildren) {
 			setUser(null);
 			navigate("/#/login", { replace: true });
 		},
-		[app.clientId, app.clientSecret, navigate, resetErrors, setUser, user],
+		[app?.clientId, app?.clientSecret, navigate, resetErrors, setUser, user],
 	);
 
 	const value = useMemo(
