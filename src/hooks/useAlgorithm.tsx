@@ -57,7 +57,6 @@ type SavedFilters = {
 interface AlgoContext {
 	algorithm?: TheAlgorithm;
 	alwaysShowFollowed?: boolean;
-	alwaysShowFollowedCheckbox?: ReactElement;
 	api?: mastodon.rest.Client;
 	currentUserWebfinger?: string | null;
 	isGoToSocialUser?: boolean; // Whether the user is on a GoToSocial instance
@@ -70,7 +69,6 @@ interface AlgoContext {
 	selfTypeFilterEnabled?: boolean;
 	setSelfTypeFilterEnabled?: (value: boolean) => void;
 	showFilterHighlights?: boolean;
-	showFilterHighlightsCheckbox?: ReactElement;
 	timeline: Toot[];
 	triggerFeedUpdate?: () => void;
 	triggerHomeTimelineBackFill?: () => void;
@@ -107,14 +105,11 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 	}, [user]);
 
 	// Checkboxes with persistent storage that require somewhat global state
-	const [alwaysShowFollowed, alwaysShowFollowedCheckbox] = persistentCheckbox(
-		GuiCheckboxName.alwaysShowFollowed,
-	);
+	const alwaysShowFollowed = true;
 	const [hideSensitive, hideSensitiveCheckbox] = persistentCheckbox(
 		GuiCheckboxName.hideSensitive,
 	);
-	const [showFilterHighlights, showFilterHighlightsCheckbox] =
-		persistentCheckbox(GuiCheckboxName.showFilterHighlights);
+	const showFilterHighlights = true;
 	const [selfTypeFilterEnabled, setSelfTypeFilterEnabled] =
 		useLocalStorage<boolean>("type-filter-self", false);
 
@@ -424,7 +419,6 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 	const algoContext: AlgoContext = {
 		algorithm,
 		alwaysShowFollowed,
-		alwaysShowFollowedCheckbox,
 		api,
 		currentUserWebfinger,
 		hideSensitive,
@@ -437,7 +431,6 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		selfTypeFilterEnabled,
 		setSelfTypeFilterEnabled,
 		showFilterHighlights,
-		showFilterHighlightsCheckbox,
 		timeline,
 		triggerFeedUpdate,
 		triggerHomeTimelineBackFill,

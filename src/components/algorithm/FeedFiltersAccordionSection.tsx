@@ -16,9 +16,7 @@ import NumericFilters from "./filters/NumericFilters";
 export default function FeedFiltersAccordionSection() {
 	const {
 		algorithm,
-		alwaysShowFollowedCheckbox,
 		selfTypeFilterEnabled,
-		showFilterHighlightsCheckbox,
 	} = useAlgorithm();
 
 	const booleanFiltersCfg = config.filters.boolean.optionsFormatting;
@@ -61,11 +59,6 @@ export default function FeedFiltersAccordionSection() {
 			{HIGHLIGHTED_TOOLTIP}
 
 			<div>
-				<div className="flex flex-wrap items-center gap-2 px-3 py-2 text-xs font-semibold">
-					{showFilterHighlightsCheckbox}
-					{alwaysShowFollowedCheckbox}
-				</div>
-
 				{Object.keys(filterPositions)
 					.sort()
 					.map((position) => filterPositions[position])}
