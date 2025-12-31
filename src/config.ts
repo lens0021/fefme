@@ -47,7 +47,6 @@ export enum GuiCheckboxName {
 	hideSensitive = "hideSensitive",
 	showFilterHighlights = "showFilterHighlights",
 	showLinkPreviews = "showLinkPreviews",
-	stickToTop = "stickToTop",
 }
 
 // Subconfig section type definitions
@@ -400,11 +399,6 @@ class Config implements ReadonlyConfig {
 				defaultValue: true,
 				label: `Show Link Previews`,
 				tooltipText: "Show the full preview card for embedded links.",
-			},
-			stickToTop: {
-				defaultValue: true,
-				label: `Stick Control Panel To Top`,
-				tooltipText: `Keep tbe Fedialgo control panel on screen while scrolling.`,
 			},
 		},
 

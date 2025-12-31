@@ -38,7 +38,6 @@ import MultimediaNode from "./MultimediaNode";
 import NewTabLink from "../helpers/NewTabLink";
 import Poll from "./Poll";
 import PreviewCard from "./PreviewCard";
-import ReplyModal from "./ReplyModal";
 import useOnScreen from "../../hooks/useOnScreen";
 import { config } from "../../config";
 import { getLogger } from "../../helpers/log_helpers";
@@ -140,7 +139,6 @@ export default function StatusComponent(props: StatusComponentProps) {
 	const statusRef = useRef<HTMLDivElement>(null);
 	const isOnScreen = useOnScreen(statusRef);
 
-	const [showReplyModal, setShowReplyModal] = React.useState<boolean>(false);
 	const [showScoreModal, setShowScoreModal] = React.useState<boolean>(false);
 	const [showTootModal, setShowTootModal] = React.useState<boolean>(false);
 
@@ -262,12 +260,6 @@ export default function StatusComponent(props: StatusComponentProps) {
 				setShow={setShowTootModal}
 				show={showTootModal}
 				title="Raw Toot Object"
-			/>
-
-			<ReplyModal
-				setShow={setShowReplyModal}
-				toot={toot}
-				show={showReplyModal}
 			/>
 
 			<div
@@ -459,7 +451,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 
 					{/* Actions (retoot, favorite, show score, etc) that appear in bottom panel of toot */}
 					<div className="status__action-bar" ref={statusRef}>
-						{buildActionButton(TootAction.Reply, () => setShowReplyModal(true))}
+						{buildActionButton(TootAction.Reply, () => window.open(toot.realURL, '_blank'))}
 						{!toot.isDM && buildActionButton(TootAction.Reblog)}
 						{buildActionButton(TootAction.Favourite)}
 						{buildActionButton(TootAction.Bookmark)}

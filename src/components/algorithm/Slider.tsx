@@ -2,7 +2,6 @@
  * Slider that sets a weight for the algorithm.
  */
 import React, { ChangeEvent, CSSProperties } from "react";
-import Form from "react-bootstrap/esm/Form";
 
 import { config } from "../../config";
 import {
@@ -65,7 +64,8 @@ export default function Slider(props: SliderProps) {
 		</div>,
 
 		<div key={`${label}_slider`} style={sliderContainer}>
-			<Form.Range
+			<input
+				type="range"
 				className="custom-slider"
 				id={label}
 				min={minValue}
@@ -79,11 +79,11 @@ export default function Slider(props: SliderProps) {
 	];
 
 	return (
-		<Form.Group className="me-2" key={`${label}_sliderForm`}>
+		<div className="me-2" key={`${label}_sliderForm`}>
 			<div style={{ ...labelContainer }}>
 				{hideValueBox ? divs.reverse() : divs}
 			</div>
-		</Form.Group>
+		</div>
 	);
 }
 

@@ -71,15 +71,10 @@ export default function Feed() {
 	// TODO: kind of sucks that these checkboxes are instantiated here and the others are in useAlgorithm
 	const [showLinkPreviews, showLinkPreviewsCheckbox, checkboxTooltip] =
 		persistentCheckbox(GuiCheckboxName.showLinkPreviews);
-	const [isControlPanelSticky, isControlPanelStickyCheckbox] =
-		persistentCheckbox(GuiCheckboxName.stickToTop);
 
 	// Computed variables etc.
 	const bottomRef = useRef<HTMLDivElement>(null);
 	const isBottom = useOnScreen(bottomRef);
-	const leftColStyle: CSSProperties = isControlPanelSticky
-		? {}
-		: { position: "relative" };
 	const numShownToots = Math.max(
 		config.timeline.defaultNumDisplayedToots,
 		numDisplayedToots,
@@ -171,9 +166,8 @@ export default function Feed() {
 
 				<div className="w-full md:w-1/2">
 					{/* TODO: maybe the inset-inline-end property could be used to allow panel to scroll to length but still stick? */}
-					<div className="sticky-top left-col-scroll" style={leftColStyle}>
+					<div className="sticky-top left-col-scroll">
 						<div style={stickySwitchContainer}>
-							{isControlPanelStickyCheckbox}
 							{showLinkPreviewsCheckbox}
 							{hideSensitiveCheckbox}
 							{shouldAutoUpdateCheckbox}

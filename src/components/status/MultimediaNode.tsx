@@ -36,8 +36,8 @@ interface MultimediaNodeProps {
  * Either toot or mediaAttachments must be given. If toot is not provided the image will not be clickable.
  * @param {MultimediaNodeProps} props
  * @param {Toot} [props.toot] - Optional Toot object whose images / video / audio will be displayed
- * @param {mastodon.v1.MediaAttachment[]} [props.mediaAttachments] - Images or videos. Used in ReplyModal.
- * @param {string} [props.removeMediaAttachment] - Used by ReplyModal to delete attachments.
+ * @param {mastodon.v1.MediaAttachment[]} [props.mediaAttachments] - Images or videos
+ * @param {string} [props.removeMediaAttachment] - Function to delete attachments
  */
 export default function MultimediaNode(
 	props: MultimediaNodeProps,
