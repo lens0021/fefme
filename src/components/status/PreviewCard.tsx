@@ -36,7 +36,7 @@ export default function PreviewCard(
 	if (!showLinkPreviews) {
 		return (
 			<NewTabLink
-				className="status-card compact py-1.5 px-2.5 underline"
+				className="inline-flex items-center gap-2 text-sm text-[color:var(--color-primary)] underline underline-offset-2"
 				href={card.url}
 			>
 				{headline}
@@ -45,29 +45,31 @@ export default function PreviewCard(
 	}
 
 	return (
-		<NewTabLink className="status-card compact" href={card.url}>
-			<div className="status-card__image">
-				{/* TODO: WTF is this and do we need it? */}
-				<canvas
-					className="status-card__image-preview status-card__image-preview--hidden"
-					height="32"
-					width="32"
-				/>
+		<NewTabLink
+			className="block overflow-hidden rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] hover:border-[color:var(--color-primary)]/40"
+			href={card.url}
+		>
+			<div className="flex flex-col sm:flex-row">
+				<div className="w-full shrink-0 bg-black/5 sm:w-48">
+					<canvas className="hidden" height="32" width="32" />
 
-				<LazyLoadImage
-					alt={altText}
-					className="status-card__image-image max-h-[40vh] object-top"
-					src={card.image}
-					title={altText}
-				/>
-			</div>
+					<LazyLoadImage
+						alt={altText}
+						className="h-full w-full object-cover"
+						src={card.image}
+						title={altText}
+					/>
+				</div>
 
-			<div className="status-card__content">
-				{headline}
+				<div className="flex flex-1 flex-col gap-1 p-3">
+					<div className="text-sm font-medium text-[color:var(--color-fg)]">
+						{headline}
+					</div>
 
-				<p className="status-card__description mt-[2px]">
-					{card.description.slice(0, config.toots.maxPreviewCardLength)}
-				</p>
+					<p className="text-xs text-[color:var(--color-muted-fg)]">
+						{card.description.slice(0, config.toots.maxPreviewCardLength)}
+					</p>
+				</div>
 			</div>
 		</NewTabLink>
 	);

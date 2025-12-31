@@ -109,7 +109,8 @@ export default function StatusComponent(props: StatusComponentProps) {
 	} = props;
 	const { isGoToSocialUser, isLoading } = useAlgorithm();
 	const { logAndSetFormattedError } = useError();
-	const contentClass = fontColor ? "status__content__alt" : "status__content";
+	const contentClass =
+		"text-[15px] leading-relaxed text-[color:var(--color-fg)] [&_a]:text-[color:var(--color-primary)] [&_a:hover]:underline [&_p]:mb-2 [&_p:last-child]:mb-0";
 	const fontStyle = fontColor ? { color: fontColor } : {};
 
 	// If it's a retoot set 'toot' to the original toot
@@ -128,9 +129,12 @@ export default function StatusComponent(props: StatusComponentProps) {
 		config.theme.defaultFontSize,
 	);
 	const ariaLabel = `${toot.account.displayName}, ${toot.account.note} ${toot.account.webfingerURI}`;
-	const style = toot.isDM
-		? { backgroundColor: config.timeline.dmBackgroundColor }
-		: {};
+	const style: CSSProperties = {
+		backgroundColor: toot.isDM
+			? config.timeline.dmBackgroundColor
+			: "var(--color-card-bg)",
+		borderColor: "var(--color-border)",
+	};
 	// Ref for detecting if the status is on screen
 	const statusRef = useRef<HTMLDivElement>(null);
 	const isOnScreen = useOnScreen(statusRef);
@@ -156,7 +160,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 					const rebloggerKey = account.id ?? account.webfingerURI;
 					const rebloggerLink = (
 						<NewTabLink
-							className="status__display-name muted"
+							className="text-[color:var(--color-muted-fg)] hover:text-[color:var(--color-fg)] hover:underline"
 							href={account.localServerUrl}
 							key={rebloggerKey}
 						>
@@ -223,7 +227,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 	};
 
 	return (
-		<div style={style}>
+		<div>
 			<JsonModal
 				infoTxt="Scoring categories where the unweighted score is zero are not shown."
 				json={toot.scoreInfo ? (formatScores(toot.scoreInfo) as object) : {}}
@@ -266,29 +270,26 @@ export default function StatusComponent(props: StatusComponentProps) {
 
 			<div
 				aria-label={ariaLabel}
-				className="status__wrapper status__wrapper-public focusable"
+				className="mb-4 rounded-2xl border p-4 shadow-sm focus-within:ring-2 focus-within:ring-[color:var(--color-primary)]"
+				style={style}
+				tabIndex={0}
 			>
 				{/* Names of accounts that reblogged the toot (if any) */}
 				{isReblog && (
-					<div className="status__prepend">
-						<div className="status__prepend-icon-wrapper">
-							<FontAwesomeIcon
-								className="status__prepend-icon fa-fw"
-								icon={faRetweet}
-							/>
-						</div>
+					<div className="mb-2 flex items-center gap-2 text-xs text-[color:var(--color-muted-fg)]">
+						<FontAwesomeIcon className="text-emerald-400" icon={faRetweet} />
 
 						{rebloggersLinks}
 					</div>
 				)}
 
-				<div className={`status ${isReblog ? "pt-[10px]" : ""}`}>
+				<div className={`space-y-3 ${isReblog ? "pt-2" : ""}`}>
 					{/* Top bar with account and info icons */}
-					<div className="status__info">
+					<div className="flex flex-wrap items-start justify-between gap-3">
 						{/* Top right icons + timestamp that link to the toot */}
-						<div className="status__relative-time inline-block">
+						<div className="flex items-center gap-2 text-xs text-[color:var(--color-muted-fg)]">
 							<NewTabLink
-								className="status__relative-time-icons"
+								className="inline-flex items-center gap-2 hover:text-[color:var(--color-fg)]"
 								href={toot.realURL}
 								onClick={(e) => {
 									openToot(toot, e, isGoToSocialUser).catch((err) => {
@@ -300,7 +301,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 									});
 								}}
 							>
-								<span className="status__visibility-icon">
+								<span className="inline-flex items-center gap-1">
 									{toot.editedAt && infoIcon(InfoIconType.Edited)}
 									{toot.inReplyToAccountId && infoIcon(InfoIconType.Reply)}
 									{(toot.trendingRank || 0) > 0 &&
@@ -324,7 +325,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 									e.preventDefault();
 									setShowTootModal(true);
 								}}
-								className="ml-[10px] cursor-pointer"
+								className="ml-2 inline-flex items-center text-[color:var(--color-muted-fg)] hover:text-[color:var(--color-fg)]"
 							>
 								{infoIcon(InfoIconType.ShowToot)}
 							</button>
@@ -333,7 +334,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 						{/* Account name + avatar */}
 						<div
 							title={toot.account.webfingerURI}
-							className="status__display-name"
+							className="flex items-center gap-3"
 						>
 							<button
 								type="button"
@@ -343,22 +344,23 @@ export default function StatusComponent(props: StatusComponentProps) {
 									config.theme.accountBioFontSize,
 								)}
 							>
-								<div className="status__avatar">
-									<div className="account__avatar h-[46px] w-[46px]">
+								<div className="h-12 w-12 overflow-hidden rounded-full bg-[color:var(--color-muted)]">
 										<LazyLoadImage
 											src={toot.account.avatar}
 											alt={`${toot.account.webfingerURI}`}
 										/>
-									</div>
 								</div>
 							</button>
 
-							<span className="display-name">
+							<span className="flex flex-col">
 								<bdi>
-									<strong key="internalBDI" className="display-name__html">
+									<strong
+										key="internalBDI"
+										className="flex items-center gap-1 text-sm font-semibold"
+									>
 										<NewTabLink
 											href={toot.account.localServerUrl}
-											className="text-white no-underline"
+											className="text-[color:var(--color-fg)] no-underline"
 											style={fontStyle}
 										>
 											{parse(
@@ -385,7 +387,10 @@ export default function StatusComponent(props: StatusComponentProps) {
 									</strong>
 								</bdi>
 
-								<span key="acctdisplay" className="display-name__account">
+								<span
+									key="acctdisplay"
+									className="flex flex-wrap items-center gap-2 text-xs text-[color:var(--color-muted-fg)]"
+								>
 									@{toot.account.webfingerURI}
 									<span className="inline-block w-[5px]"> </span>
 									{buildActionButton(AccountAction.Follow)}
@@ -398,7 +403,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 					{/* Text content of the toot */}
 					<div className={contentClass} style={fontStyle}>
 						<div
-							className="status__content__text status__content__text--visible translate"
+							className={contentClass}
 							lang={toot.language}
 						>
 							{parse(
@@ -453,7 +458,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 						)}
 
 					{/* Actions (retoot, favorite, show score, etc) that appear in bottom panel of toot */}
-					<div className="status__action-bar" ref={statusRef}>
+					<div className="flex flex-wrap items-center gap-2" ref={statusRef}>
 						{buildActionButton(TootAction.Reply, () =>
 							window.open(toot.realURL, "_blank"),
 						)}

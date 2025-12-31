@@ -136,8 +136,8 @@ export default function Poll(props: PollProps) {
 	};
 
 	return (
-		<div className="poll">
-			<ul>
+		<div className="mt-3 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] p-3">
+			<ul className="space-y-2">
 				{poll.options.map((option, i) => (
 					<PollOption
 						active={!!selected[i]}
@@ -151,11 +151,11 @@ export default function Poll(props: PollProps) {
 				))}
 			</ul>
 
-			<div className="poll__footer">
+			<div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-[color:var(--color-muted-fg)]">
 				{!showResults && (
 					<button
 						type="button"
-						className="button button-secondary"
+						className="inline-flex items-center rounded-full bg-[color:var(--color-primary)] px-3 py-1 text-xs font-semibold text-[color:var(--color-primary-fg)] transition-opacity disabled:opacity-50"
 						disabled={voteDisabled}
 						onClick={vote}
 					>
@@ -167,7 +167,7 @@ export default function Poll(props: PollProps) {
 					<>
 						<button
 							type="button"
-							className="poll__link"
+							className="text-[color:var(--color-primary)] hover:underline"
 							onClick={() => {
 								logger.debug(
 									"See results clicked, current selected:",
@@ -177,18 +177,10 @@ export default function Poll(props: PollProps) {
 							}}
 						>
 							{revealed ? "Hide" : "See"} Results
-						</button>{" "}
-						·{" "}
+						</button>
+						<span>·</span>
 					</>
 				)}
-
-				{/* {showResults && !disabled && (
-                    <>
-                        <button className='poll__link' onClick={() => logger.log('Refresh clicked, current selected:', selected)}>
-                            Refresh
-                        </button>{' '}
-                        ·{' '}
-                    </>)} */}
 
 				{votesCount}
 				{poll.expiresAt && <> · {timeRemaining}</>}
@@ -238,58 +230,58 @@ function PollOption(props) {
 
 	return (
 		<li>
-			<label className={`poll__option${showResults ? "" : " selectable"}`}>
-				<input
-					checked={active}
-					disabled={disabled}
-					name="vote-options"
-					onChange={handleOptionChange}
-					type={poll.multiple ? "checkbox" : "radio"}
-					value={index}
-				/>
+			<div className="relative">
+				{showResults && (
+					<span
+						className={`absolute inset-y-0 left-0 rounded-lg ${isLeading ? "bg-[color:var(--color-success)]/20" : "bg-[color:var(--color-primary)]/15"}`}
+						style={{ width: `${percent}%` }}
+					/>
+				)}
+				<label className="relative z-10 flex items-center gap-3 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-muted)] px-3 py-2">
+					<input
+						checked={active}
+						disabled={disabled}
+						name="vote-options"
+						onChange={handleOptionChange}
+						type={poll.multiple ? "checkbox" : "radio"}
+						value={index}
+						className="h-4 w-4 accent-[color:var(--color-primary)]"
+					/>
 
-				{!showResults && (
 					<span
 						aria-checked={active}
 						aria-label={title}
-						className={`poll__input ${poll.multiple ? "checkbox" : "radio"} ${active ? "active" : ""}`}
-						data-index={index}
 						lang={lang}
 						onKeyDown={handleOptionKeyPress}
 						role={poll.multiple ? "checkbox" : "radio"}
 						tabIndex={0}
-					/>
-				)}
-
-				{showResults && (
-					<span className="poll__number" title={`${option.votesCount} votes`}>
-						{Math.round(percent)}%
+						className="text-sm text-[color:var(--color-fg)]"
+					>
+						{option.title}
 					</span>
-				)}
 
-				<span className="poll__option__text translate" lang={lang}>
-					{option.title}
-				</span>
+					{showResults && (
+						<span
+							className="ml-auto text-xs text-[color:var(--color-muted-fg)]"
+							title={`${option.votesCount} votes`}
+						>
+							{Math.round(percent)}%
+						</span>
+					)}
 
-				{!!voted && (
-					<span className="poll__voted">
-						{"("}
-						<FontAwesomeIcon
-							icon={faCheck}
-							style={{ color: "cyan" }}
-							title={"You voted for this answer"}
-						/>
-						{")"}
-					</span>
-				)}
-			</label>
-
-			{showResults && (
-				<span
-					className={`poll__chart ${isLeading ? "leading" : ""}`}
-					style={{ width: `${percent}%` }}
-				/>
-			)}
+					{!!voted && (
+						<span className="text-xs text-[color:var(--color-muted-fg)]">
+							{"("}
+							<FontAwesomeIcon
+								icon={faCheck}
+								className="mx-1 text-cyan-400"
+								title={"You voted for this answer"}
+							/>
+							{")"}
+						</span>
+					)}
+				</label>
+			</div>
 		</li>
 	);
 }

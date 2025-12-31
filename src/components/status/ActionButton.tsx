@@ -46,11 +46,6 @@ const isAccountAction = (value: string | ButtonAction) =>
 const isTootAction = (value: string | ButtonAction) =>
 	isValueInStringEnum(TootAction)(value);
 
-// Sizing icons: https://docs.fontawesome.com/web/style/size
-const ACCOUNT_ACTION_BUTTON_CLASS = "fa-xs";
-const ICON_BUTTON_CLASS = "status__action-bar__button icon-button";
-const ACTION_ICON_BASE_CLASS = `${ICON_BUTTON_CLASS} icon-button--with-counter`;
-
 type AccountBoolean = "isFollowed" | "muted";
 type TootBoolean = "bookmarked" | "favourited" | "reblogged";
 type TootCount = "reblogsCount" | "favouritesCount" | "repliesCount";
@@ -111,13 +106,11 @@ export default function ActionButton(props: ActionButtonProps) {
 	const actionInfo = ACTION_INFO[action];
 	let label = actionInfo.label || capitalCase(action);
 	let actionTarget: Account | Toot = toot;
-	let className = ACTION_ICON_BASE_CLASS;
 	let buttonText: string;
 	let icon = actionInfo.icon;
 
 	if (isAccountAction(action)) {
 		actionTarget = toot.account;
-		className += ` ${ACCOUNT_ACTION_BUTTON_CLASS}`;
 
 		if (
 			action === AccountAction.Follow &&
@@ -140,10 +133,8 @@ export default function ActionButton(props: ActionButtonProps) {
 		actionTarget[actionInfo.booleanName],
 	);
 
-	// If the action is a boolean (fave, reblog, bookmark) set the className active/inactive
-	if (actionTarget[actionInfo.booleanName]) {
-		className += currentState ? " active activate" : " deactivate";
-	}
+	const isActive = Boolean(actionInfo.booleanName && currentState);
+	const isAccount = isAccountAction(action);
 
 	// Returns a function that's called when state changes for faves, bookmarks, retoots
 	const performAction = () => {
@@ -270,9 +261,35 @@ export default function ActionButton(props: ActionButtonProps) {
 		});
 	};
 
-	const buttonClassName = isAccountAction(action)
-		? `${className} mt-[5px] translate-y-[2px]`
-		: `${className} text-[18px] h-[23.142857px] leading-[18px] w-auto`;
+	const actionColor = (() => {
+		switch (action) {
+			case TootAction.Favourite:
+				return { active: "text-pink-400", hover: "hover:text-pink-400" };
+			case TootAction.Reblog:
+				return { active: "text-emerald-400", hover: "hover:text-emerald-400" };
+			case TootAction.Bookmark:
+				return { active: "text-amber-400", hover: "hover:text-amber-400" };
+			case TootAction.Score:
+				return { active: "text-cyan-400", hover: "hover:text-cyan-400" };
+			case TootAction.Reply:
+				return { active: "text-blue-400", hover: "hover:text-blue-400" };
+			case AccountAction.Mute:
+				return { active: "text-amber-400", hover: "hover:text-amber-400" };
+			case AccountAction.Follow:
+			default:
+				return { active: "text-blue-400", hover: "hover:text-blue-400" };
+		}
+	})();
+	const toneClass = isActive
+		? actionColor.active
+		: `text-[color:var(--color-muted-fg)] ${actionColor.hover}`;
+	const buttonClassName = [
+		"inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-medium transition-colors",
+		"hover:bg-[color:var(--color-light-shade)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]",
+		toneClass,
+		isAccount ? "text-[10px]" : "text-xs",
+	].join(" ");
+	const iconClassName = isAccount ? "text-[10px]" : "text-sm";
 
 	return (
 		<button
@@ -283,14 +300,10 @@ export default function ActionButton(props: ActionButtonProps) {
 			title={label}
 			type="button"
 		>
-			<FontAwesomeIcon aria-hidden="true" className="fa-fw" icon={icon} />
+			<FontAwesomeIcon aria-hidden="true" className={iconClassName} icon={icon} />
 
 			{buttonText && (
-				<span className="icon-button__counter">
-					<span className="animated-number">
-						<span>{buttonText}</span>
-					</span>
-				</span>
+				<span className="text-[11px] leading-none">{buttonText}</span>
 			)}
 		</button>
 	);

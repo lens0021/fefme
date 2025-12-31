@@ -13,14 +13,7 @@ import { useAlgorithm } from "../../hooks/useAlgorithm";
 import AttachmentsModal from "./AttachmentsModal";
 
 // TODO: what is this <canvas> element for? It came from pkreissel's original implementation
-const GALLERY_CLASS = "media-gallery__preview";
-const HIDDEN_CANVAS = (
-	<canvas
-		className={`${GALLERY_CLASS} ${GALLERY_CLASS}--hidden`}
-		height="32"
-		width="32"
-	/>
-);
+const HIDDEN_CANVAS = <canvas className="hidden" height="32" width="32" />;
 const VIDEO_HEIGHT = Math.floor(config.toots.imageHeight * 1.7);
 
 const logger = getLogger("MultimediaNode");
@@ -90,7 +83,7 @@ export default function MultimediaNode(
 	const makeImage = useCallback(
 		(image: mastodon.v1.MediaAttachment, idx: number): React.ReactElement => (
 			<div
-				className="media-gallery__item h-full inset-auto"
+				className="relative h-full pr-2 last:pr-0"
 				key={image.previewUrl}
 				style={{ width: `${(1 / images.length) * 100}%` }}
 			>
@@ -121,7 +114,7 @@ export default function MultimediaNode(
 						...filterStyle,
 						cursor: removeMediaAttachment ? "default" : "pointer",
 					}}
-					className="h-full w-full bg-black rounded-[15px] object-contain object-top"
+					className="h-full w-full rounded-[15px] bg-black object-contain object-top"
 					title={showContent ? image.description : spoilerText}
 					wrapperProps={{ style: { position: "static" } }} // Required to center properly with blur
 				/>
@@ -149,7 +142,7 @@ export default function MultimediaNode(
 				)}
 
 				<div
-					className="media-gallery overflow-hidden"
+					className="flex overflow-hidden rounded-xl border border-[color:var(--color-border)]"
 					style={{
 						height:
 							images.length > 1 || imageHeight < 200
@@ -165,7 +158,7 @@ export default function MultimediaNode(
 	if (videos.length > 0) {
 		return (
 			<div
-				className="media-gallery overflow-hidden"
+				className="flex overflow-hidden rounded-xl border border-[color:var(--color-border)] bg-black"
 				style={{ height: `${VIDEO_HEIGHT}px` }}
 			>
 				{videos.map((video, i) => {
@@ -214,7 +207,7 @@ export default function MultimediaNode(
 
 					return (
 						<div
-							className="media-gallery__item h-full w-full bg-black rounded-[15px] inset-auto"
+							className="relative h-full w-full rounded-[15px] bg-black"
 							key={videoKey}
 						>
 							{HIDDEN_CANVAS}
@@ -228,7 +221,7 @@ export default function MultimediaNode(
 	if (audios.length > 0) {
 		return (
 			<div
-				className="media-gallery overflow-hidden"
+				className="flex overflow-hidden rounded-xl border border-[color:var(--color-border)] bg-black/10"
 				style={{ height: `${imageHeight / 4}px` }}
 			>
 				<audio controls className="w-full">
