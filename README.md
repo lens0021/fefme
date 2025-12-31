@@ -1,23 +1,18 @@
-# FediAlgo: A Customizable Mastodon Timeline Algorithm and Filtering System
+# Fefme: A Fediverse timelime for ME
 
-This repo contains a simple demo React application (a website, basically) for the (almost) pure javascript [`fedialgo`](https://github.com/michelcrypt4d4mus/fedialgo) package, a customizable algorithm for the federated social media platform [Mastodon](https://joinmastodon.org/) that can free you from the tyranny of Mastodon's reverse chronological order timeline.
+This is a fork of <https://github.com/michelcrypt4d4mus/fedialgo_demo_app_foryoufeed>.
 
-* Try the demo [here](https://michelcrypt4d4mus.github.io/fedialgo_demo_app_foryoufeed/) (**None of your data ever leaves your browser.** All computations and timeline reorderings are done in client side javascript.)
-* Watch a demo of most of the features [on YouTube](https://www.youtube.com/watch?v=tR35bUHzJdk)
-* [Explainer video](https://video.fedihost.co/w/a1522517-704e-44a3-aa0e-5c4e7d49e7d1) as to why FediAlgo is great for the Fediverse from one very satisfied FediAlgo user. FediAlgo team had no input on this.
-* Check out [the release notes](https://github.com/michelcrypt4d4mus/fedialgo_demo_app_foryoufeed/releases) or the even more granular [`CHANGELOG`](https://github.com/michelcrypt4d4mus/fedialgo/blob/master/CHANGELOG.md).
+Cautions:
 
-Each incoming toot in your recent timeline will be scored based on a variety of factors and resorted top to bottom based on what toots have the highest scores instead of just reverse chronological order. You can adjust in a very fine grained way how much weight you want to give to each of those factors in determining each toot's scores. There are also some easy to use presets, including reverting to the standard reverse chronological order.
+* I have removed several features from the original thet were unnecessary for this fork.
 
-<p align="center">
-    <img src="public/assets/Showcase.jpg" alt="Algorithm Weighting Sliders" width="600">
-</p>
+* Try the demo [here](https://lens0021.github.io/fefme/)
 
-Both this repo and the `fedialgo` package linked above were forked from [pkreissel's original implementations](https://github.com/pkreissel/fedialgo).
+Each incoming post in your recent timeline will be scored based on a variety of factors and resorted top to bottom based on what toots have the highest scores instead of just reverse chronological order. You can adjust in a very fine grained way how much weight you want to give to each of those factors in determining each post's scores.
 
+## Usage
 
-# Usage
-1. Click on the link to [the demo](https://michelcrypt4d4mus.github.io/fedialgo_demo_app_foryoufeed/). It's deployed on GitHub Pages so there is no server - everything is handled in your browser.
+1. Click on the link to [the demo](https://lens0021.github.io/fefme/). It's deployed on GitHub Pages so there is no server - everything is handled in your browser.
 1. Specify the Mastodon server your account lives on and click "Login". If you're already logged in with that browser you won't have to enter a password. (Note: passwords and tokens are never sent to FediAlgo! Your login in strictly between you and your Mastodon server. Once authenticated your Mastodon server gives your browser a temporary token FediAlgo uses to read your timeline, the same as any other Mastodon client app.)
    <p align="center">
      <img src="doc/login_screen.png" alt="OAuth Permissions Request" width="600">
@@ -32,111 +27,80 @@ Both this repo and the `fedialgo` package linked above were forked from [pkreiss
 
 If you try out FediAlgo but don't plan on using it again you may want to revoke its permissions. This can be done by going to `https://{YOUR_MASTODON_SERVER}/oauth/authorized_applications` and clicking the "revoke" button.
 
-
 ## Setting Weights
-Once the initial load is complete you can adjust the way the algorithm weights various aspects of a toot when it decides what should be at or near the top of your feed. There's also a drop down for preconfigured settings (feedback appreciated!) Hopefully these are self explanatory:
 
-<p align="center">
-    <img src="doc/algorithm_sliders.png" alt="Algorithm Weighting Sliders" width="300">
-</p>
+Once the initial load is complete you can adjust the way the algorithm weights various aspects of a post when it decides what should be at or near the top of your feed.
 
-One thing that's kind of a gotcha is the way the `topPosts - Favor posts that are trending in the Fediverse` slider works. Because trending posts often have tons of engagement in the form of replies, favorites, and retoots they can easily drown out the toots from people you are actually following. As a result the impact of this slider gets increasingly drastic _but only if the value is below 1.0_. At 1.0 and above it behaves like all the other weighting sliders.
+One thing that's kind of a gotcha is the way the `topPosts - Favor posts that are trending in the Fediverse` slider works. Because trending posts often have tons of engagement in the form of replies, favorites, and boosts they can easily drown out the posts from people you are actually following. As a result the impact of this slider gets increasingly drastic _but only if the value is below 1.0_. At 1.0 and above it behaves like all the other weighting sliders.
 
 ### Filtering
-You can filter based on hashtag, source (accounts you follow, hashtags you follow, various kinds of trending toots), language, application, and various numerical metrics like minimum number of replies, minimum number of boosts, etc.
+
+You can filter based on hashtag, source (accounts you follow, hashtags you follow, various kinds of trending posts), language, application, and various numerical metrics like minimum number of replies, minimum number of boosts, etc.
 
 <p align="center">
     <img src="doc/source_and_language_filters.png" hspace="20" width="300">
     <img src="doc/hashtag_filters.png" hspace="20" width="300">
 </p>
 
+## Investigating A Post's Score
 
-## Investigating A Toot's Score
 Clicking the ⚖️ in the GUI will bring up a popup that will show you the gorey details of how a toot measured up.
 
 <p align="center">
     <img src="doc/click_the_i_for_score_info.png" alt="click_the_i_for_score_info" width="600">
 </p>
 
-Here's an example of the elements that go into scoring a toot:
+Here's an example of the elements that go into scoring a post:
 
 <p align="center">
     <img src="doc/toot_score_modal.png" alt="An example of the way a toot is weighted." width="600">
 </p>
 
-## Retooting And Favoriting
-* You can retoot, bookmark, and favorite other people's toots through this app's web interface.
+## Boosting And Favoriting
+
+* You can boost, bookmark, and favorite other people's posts through this app's web interface.
 * Clicking the reply icon will take you to the standard Mastodon web app view of the toot you want to reply to on your home server.
 * Clicking the timestamp in the top right corner will take you to the toot on that tooter's home server (you'll only be able to reply if that's also your home server).
 
+## Contributing
 
-## Troubleshooting
-Most (all?) browsers will allow you to clear all the "site data" (cookies and cache) for a single site. If you run into an issue try doing that and then reloading the app at `https://localhost:3000`.
+## Prerequisites
 
-* [How to clear site data for one site in Chrome](https://support.google.com/chrome/thread/16531954/clear-cache-for-specific-website-in-google-chrome?hl=en)
-* [How to clear site data for one site in Firefox](https://support.mozilla.org/en-US/kb/clear-cookies-and-site-data-firefox)
-
-
-There's also all kinds of information logged to your browser's developer console. If you run into a problem maybe take a look in there for any errors.
-* [Viewing logs in Chrome](https://developer.chrome.com/docs/devtools/console/log)
-* [Viewing logs in Firefox](https://firefox-source-docs.mozilla.org/devtools-user/browser_console/index.html)
-
-
-Here's an example of what you might see:
-
-<p align="center">
-    <img src="doc/brower_console_debug_logs.png" alt="brower_console_debug_logs.png" width="800">
-</p>
-
-
-# Contributing
-### Prerequisites
 * [`node.js`](https://nodejs.org/):
-   * On Linux use `apt`, `yum`, or your favorite package manager. For example here's [guide on how to install `node.js` on Ubuntu linux](https://www.digitalocean.com/community/tutorials/how-to-install-node-js-on-ubuntu-20-04).
-   * On macOS you can install `node.js` with [Homebrew](https://brew.sh/) by running `brew install node`.
 * `git`
-   * Hopefully you have `git` installed already but if you're on a recent version of macOS you may need to use Homebrew: `brew install git`
 
 ### Quick Start
-There's [a script](./quick_install.sh) in this repo that will do all the steps for you if you're into that kind of thing, otherwise:
 
-1. `git clone https://github.com/michelcrypt4d4mus/fedialgo_demo_app_foryoufeed`
-1. `cd fedialgo_demo_app_foryoufeed`
+1. `git clone https://github.com/lens0021/fefme`
+1. `cd fefme`
 1. `npm install` (you can ignore the various warnings)
 1. `npm run start`
    * It should automatically change focus to your default browser and prompt you to login to Mastodon but if that doesn't happen you can point your browser at [`http://localhost:3000/`](http://localhost:3000/).
 
 You can install the local `fedialgo` package by running `npm link` in the `fedialgo` project dir and then `npm link fedialgo` in this project's dir _or_ you can do that kind of thing manually by running `npm install path/to/local/fedialgo` in this repo's dir but either way in order to pick up any code changes from `fedialgo` you will have to run `npm run build` in the `fedialgo` package dir.
 
-Assuming you check both `fedialgo` and this repo out to the same directory there's a helper script to link the local repo in [`link_local_fedialgo.sh`](./link_local_fedialgo.sh).
-
-### Running In `production` Mode
-There's [a script](./serve_bundle.js) you can use to launch a "production" mode webserver after building the project locally. If you want do that kind of thing use these steps:
-
-```bash
-npm run build
-node serve_dist_bundle.js
-```
-
 ### Debugging
+
 You can overload a few environment variables by creating a `.env.development.local` file and adding your overrides to it.
 
 If you set the environment variable `FEDIALGO_DEBUG=true` a _lot_ more debugging info will be printed to the browser console. See [`.env.development`](./.env.development) for other environment variables you can play with.
 
-There's also an arrow icon at the top right of ecah toot that will open a display showing the raw JSON of the underlying toot.
+There's also an arrow icon at the top right of ecah post that will open a display showing the raw JSON of the underlying post.
 
 #### Environment Variables
+
 Environment variables are managed by [`dotenv-flow`](https://www.npmjs.com/package/dotenv-flow) so there are files in this repo called `.env.production` and `.env.development` for the main two `NODE_ENV` values. To override the values in those files you should be able to just create files named `.env.production.local` and `.env.development.local`, respectively.
 
 ### Troubleshooting
+
 Someone reported they were unable to build with `npm run build` but using `NODE_ENV=production npm run build --no-hmr` seemed to fix the issue.
 
 #### Code Notes
-* There's tons of info on how the scoring and weighting of toots is being done in your browser's javascript debug console logs if `FEDIALGO_DEBUG` is set.
+
+* There's tons of info on how the scoring and weighting of posts is being done in your browser's javascript debug console logs if `FEDIALGO_DEBUG` is set.
 * The interesting stuff that actually handles the feed is in the [`Feed.tsx`](src/pages/Feed.tsx) file.
-* The UI of this app is based on @ronilaukkarinen's [`mastodon-bird-ui` repo](https://github.com/ronilaukkarinen/mastodon-bird-ui)
-* Deploying to GitHub pages: https://gist.github.com/promto-c/e46ca197f324a2148af919e18c18b5e6
 
 #### Known Issues
+
 * If you get an error about `GenerateSW() was called more than once` or whatever just ignore it.
-* Infinite scroll isn't _really_ infinite (yet). If you scroll far enough you will run out of toots to peruse.
+* Infinite scroll isn't _really_ infinite (yet). If you scroll far enough you will run out of posts to peruse.
