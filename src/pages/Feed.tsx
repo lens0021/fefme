@@ -19,7 +19,6 @@ import StatusComponent, {
 } from "../components/status/Status";
 import TooltippedLink from "../components/helpers/TooltippedLink";
 import TopLevelAccordion from "../components/helpers/TopLevelAccordion";
-import TrendingInfo from "../components/TrendingInfo";
 import useOnScreen from "../hooks/useOnScreen";
 import WeightSetter from "../components/algorithm/WeightSetter";
 import { booleanIcon } from "../helpers/react_helpers";
@@ -186,7 +185,6 @@ export default function Feed() {
 
 						{algorithm && <WeightSetter />}
 						{algorithm && <FeedFiltersAccordionSection />}
-						{algorithm && <TrendingInfo />}
 						{algorithm && <ExperimentalFeatures />}
 
 						{thread.length > 0 && (
