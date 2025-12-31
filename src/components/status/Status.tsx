@@ -181,7 +181,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 						? [rebloggerLink, ", "]
 						: rebloggerLink;
 				})}{" "}
-				retooted
+				boosted
 			</span>
 		),
 		[toot.reblogsBy],
