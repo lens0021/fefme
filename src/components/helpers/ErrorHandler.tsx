@@ -1,24 +1,24 @@
 import {
-	PropsWithChildren,
-	ReactNode,
+	type PropsWithChildren,
+	type ReactNode,
 	createContext,
 	useContext,
 	useState,
 } from "react";
 
-import { ErrorBoundary } from "react-error-boundary";
-import { isString } from "lodash";
 import { Logger } from "fedialgo";
+import { isString } from "lodash";
+import { ErrorBoundary } from "react-error-boundary";
 
 import { config } from "../../config";
-import { extractText } from "../../helpers/react_helpers";
 import { getLogger } from "../../helpers/log_helpers";
+import { extractText } from "../../helpers/react_helpers";
 import { isEmptyStr } from "../../helpers/string_helpers";
 
 const errorLogger = getLogger("ErrorHandler");
 
 type ErrorLogProps = {
-	args?: any;
+	args?: unknown[] | unknown;
 	errorObj?: Error;
 	logger?: Logger;
 	msg: string;
@@ -85,6 +85,7 @@ export default function ErrorHandler(props: PropsWithChildren) {
 
 				<div className="mt-[50px]">
 					<button
+						type="button"
 						className="text-white text-base px-5 py-2.5 rounded-md border-0 cursor-pointer transition-colors"
 						style={{ backgroundColor: config.theme.light.primary }}
 						onClick={() => {
@@ -104,9 +105,9 @@ export default function ErrorHandler(props: PropsWithChildren) {
 	// for the user to see and the actual rest of the args (including any Errors) will be logged.
 	const logAndSetError = (
 		error: Logger | Error | ReactNode,
-		...args: any[]
+		...args: unknown[]
 	) => {
-		let firstArg: any = error;
+		let firstArg: unknown = error;
 		let logger = errorLogger;
 
 		// If the first argument is a Logger use it to log the error
@@ -125,12 +126,19 @@ export default function ErrorHandler(props: PropsWithChildren) {
 		const errorArg =
 			firstArg instanceof Error
 				? firstArg
-				: args.find((arg) => arg instanceof Error);
-		const formattedErrorMsg = logger.error(firstArg, ...args);
+				: args.find((arg): arg is Error => arg instanceof Error);
+		const formattedErrorMsg = logger.error(
+			String(firstArg),
+			...(args as unknown[]),
+		);
 
 		if (errorArg) {
 			setErrorObj(errorArg);
-			if (!(firstArg instanceof Error)) setErrorMsg(firstArg);
+			if (typeof firstArg === "string") {
+				setErrorMsg(firstArg);
+			} else {
+				setErrorMsg(formattedErrorMsg);
+			}
 		} else {
 			setErrorMsg(formattedErrorMsg);
 		}
@@ -139,18 +147,22 @@ export default function ErrorHandler(props: PropsWithChildren) {
 	// Accepts the 3 parts of an error popup as separate props (see ErrorLogProps above).
 	// args props is not shown to the user but they are passed through to the logger.
 	const logAndSetFormattedError = (errorProps: ErrorLogProps) => {
-		let { args, errorObj, logger, msg, note } = errorProps;
+		const { args, errorObj, logger, msg, note } = errorProps;
 		setErrorObj(errorObj || null);
 		setErrorNote(note || null);
 		setErrorMsg(msg);
-		args ||= [];
+		let normalizedArgs: unknown[] = [];
+		if (Array.isArray(args)) {
+			normalizedArgs = args;
+		} else if (args !== undefined) {
+			normalizedArgs = [args];
+		}
 
 		// Handle writing to console log, which means putting errorObj first for Logger
-		args = Array.isArray(args) ? args : [args];
-		args = errorObj ? [errorObj, ...args] : args;
+		normalizedArgs = errorObj ? [errorObj, ...normalizedArgs] : normalizedArgs;
 		let logMsg = isString(msg) ? msg : (extractText(msg) as string[]).join(" "); // TODO: why use extractText() here?
 		logMsg += isEmptyStr(note) ? "" : `\n(note: ${note})`;
-		(logger || errorLogger).error(logMsg, ...args);
+		(logger || errorLogger).error(logMsg, ...normalizedArgs);
 	};
 
 	const showModal = !!errorMsg || !!errorObj;
@@ -158,17 +170,18 @@ export default function ErrorHandler(props: PropsWithChildren) {
 	return (
 		<ErrorBoundary fallbackRender={errorPage}>
 			{showModal && (
-				<div
-					className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1050]"
-					onClick={resetErrors}
-				>
-					<div
-						className="bg-white rounded-lg max-w-[600px] w-[90%] max-h-[90vh] overflow-auto shadow-md"
-						onClick={(e) => e.stopPropagation()}
-					>
+				<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1050]">
+					<button
+						type="button"
+						aria-label="Close dialog"
+						onClick={resetErrors}
+						className="absolute inset-0 h-full w-full cursor-default"
+					/>
+					<div className="relative z-10 bg-white rounded-lg max-w-[600px] w-[90%] max-h-[90vh] overflow-auto shadow-md">
 						<div className="flex justify-between items-center px-5 py-4 border-b border-gray-200">
 							<h3 className="m-0 text-xl font-semibold">Error</h3>
 							<button
+								type="button"
 								onClick={resetErrors}
 								className="bg-transparent border-0 text-[28px] cursor-pointer text-gray-500 p-0 w-8 h-8 flex items-center justify-center"
 								aria-label="Close"

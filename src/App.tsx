@@ -1,24 +1,26 @@
-import React, { useEffect } from "react";
 import { Buffer } from "buffer"; // Required for class-transformer to work (maybe???)
-(window as any).Buffer = Buffer;
+import type React from "react";
+import { useEffect } from "react";
+const windowWithBuffer = window as Window & { Buffer?: typeof Buffer };
+windowWithBuffer.Buffer = Buffer;
 // NOTE: Using CDN to get boostrap instead of importing bootstrap.min.css (see index.html)
 
-import { HashRouter, Routes, Route } from "react-router-dom";
+import { HashRouter, Route, Routes } from "react-router-dom";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import "./birdUI.css";
 import "./default.css";
-import AlgorithmProvider from "./hooks/useAlgorithm";
-import AuthProvider from "./hooks/useAuth";
-import CallbackPage from "./pages/CallbackPage";
-import ErrorHandler from "./components/helpers/ErrorHandler";
-import Feed from "./pages/Feed";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
-import LoginPage from "./pages/LoginPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ErrorHandler from "./components/helpers/ErrorHandler";
 import { getLogger, logLocaleInfo } from "./helpers/log_helpers";
+import AlgorithmProvider from "./hooks/useAlgorithm";
+import AuthProvider from "./hooks/useAuth";
 import { useTheme } from "./hooks/useTheme";
+import CallbackPage from "./pages/CallbackPage";
+import Feed from "./pages/Feed";
+import LoginPage from "./pages/LoginPage";
 
 const logger = getLogger("App.tsx");
 

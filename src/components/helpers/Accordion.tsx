@@ -1,4 +1,9 @@
-import React, { CSSProperties, PropsWithChildren, ReactElement, useState } from "react";
+import React, {
+	type CSSProperties,
+	type PropsWithChildren,
+	type ReactElement,
+	useState,
+} from "react";
 
 import { capitalCase } from "change-case";
 
@@ -39,7 +44,7 @@ export default function Accordion(props: AccordionProps) {
 	};
 
 	const hasSwitches = (switchbar?.length || 0) > 0;
-	const shouldWrapBody = hasSwitches || (footerSwitches && footerSwitches.length);
+	const shouldWrapBody = hasSwitches || footerSwitches?.length;
 
 	if (variant === "top") {
 		const titleClassName = `font-bold text-[17px] mt-0 mb-[5px] ml-[5px] underline font-[Tahoma,Geneva,sans-serif] ${
@@ -50,10 +55,13 @@ export default function Accordion(props: AccordionProps) {
 		return (
 			<div className="border border-gray-200 rounded mb-2">
 				<button
+					type="button"
 					onClick={toggleOpen}
 					className="w-full text-left bg-gray-50 hover:bg-gray-100 transition-colors flex justify-between items-center p-0"
 				>
-					<span className={`${activeClassName} ${titleClassName}`}>{title}</span>
+					<span className={`${activeClassName} ${titleClassName}`}>
+						{title}
+					</span>
 					<span className="text-gray-500">{isOpen ? "−" : "+"}</span>
 				</button>
 
@@ -69,10 +77,11 @@ export default function Accordion(props: AccordionProps) {
 	return (
 		<div className="border-b border-gray-200" key={title}>
 			<button
+				type="button"
 				onClick={toggleOpen}
 				className="w-full text-left py-2 hover:bg-gray-50 transition-colors flex justify-between items-center"
 			>
-				<label className="cursor-pointer my-[-5px]">
+				<span className="cursor-pointer my-[-5px]">
 					<span
 						className={`filterHeader ${isActive ? "filterHeader--active" : ""}`}
 						key={1}
@@ -88,7 +97,7 @@ export default function Accordion(props: AccordionProps) {
 							{"  "}({description})
 						</span>
 					)}
-				</label>
+				</span>
 				<span className="text-gray-500 px-2">{isOpen ? "−" : "+"}</span>
 			</button>
 

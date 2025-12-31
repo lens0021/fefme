@@ -2,33 +2,35 @@
  * @fileoverview Context to hold the TheAlgorithm variable
  */
 import React, {
-	PropsWithChildren,
-	ReactElement,
+	type PropsWithChildren,
+	type ReactElement,
 	createContext,
 	useContext,
 	useEffect,
+	useMemo,
+	useCallback,
 	useState,
 } from "react";
 
 import TheAlgorithm, {
 	GET_FEED_BUSY_MSG,
 	AgeIn,
-	Toot,
+	type Toot,
 	isAccessTokenRevokedError,
 } from "fedialgo";
-import { createRestAPIClient, mastodon } from "masto";
+import { createRestAPIClient, type mastodon } from "masto";
 import { useError } from "../components/helpers/ErrorHandler";
 
 import { persistentCheckbox } from "../components/helpers/Checkbox";
+import { GuiCheckboxName, config } from "../config";
+import { getLogger } from "../helpers/log_helpers";
 import {
-	addMimeExtensionsToServer,
 	type MastodonServer,
+	addMimeExtensionsToServer,
 } from "../helpers/mastodon_helpers";
 import { Events } from "../helpers/string_helpers";
-import { getLogger } from "../helpers/log_helpers";
-import { GuiCheckboxName, config } from "../config";
+import type { ErrorHandler } from "../types";
 import { useAuthContext } from "./useAuth";
-import { type ErrorHandler } from "../types";
 
 const logger = getLogger("AlgorithmProvider");
 const loadLogger = logger.tempLogger("setLoadState");
@@ -77,10 +79,13 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 	const [timeline, setTimeline] = useState<Toot[]>([]);
 
 	// TODO: this doesn't make any API calls yet, right?
-	const api = createRestAPIClient({
-		accessToken: user.access_token,
-		url: user.server,
-	});
+	const api = useMemo(() => {
+		if (!user) return null;
+		return createRestAPIClient({
+			accessToken: user.access_token,
+			url: user.server,
+		});
+	}, [user]);
 
 	// Checkboxes with persistent storage that require somewhat global state
 	const [allowMultiSelect, allowMultiSelectCheckbox] = persistentCheckbox(
@@ -99,78 +104,107 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		persistentCheckbox(GuiCheckboxName.showFilterHighlights);
 
 	// Pass startedLoadAt as an arg every time because managing the react state of the last load is tricky
-	const setLoadState = (newIsLoading: boolean, startedLoadAt: Date) => {
-		const loadStartedAtStr = startedLoadAt.toISOString();
-		const msg = `called (isLoading: "${isLoading}", newIsLoading: "${newIsLoading}", loadStartedAt: "${loadStartedAtStr}")`;
-		isLoading === newIsLoading ? loadLogger.warn(msg) : loadLogger.trace(msg);
-		setIsLoading(newIsLoading);
+	const setLoadState = useCallback(
+		(newIsLoading: boolean, startedLoadAt: Date) => {
+			const loadStartedAtStr = startedLoadAt.toISOString();
+			const msg = `called (isLoading: "${isLoading}", newIsLoading: "${newIsLoading}", loadStartedAt: "${loadStartedAtStr}")`;
+			isLoading === newIsLoading ? loadLogger.warn(msg) : loadLogger.trace(msg);
+			setIsLoading(newIsLoading);
 
-		if (newIsLoading) {
-			setLastLoadStartedAt(startedLoadAt);
-		} else {
-			const lastLoadDuration = AgeIn.seconds(startedLoadAt).toFixed(1);
-			loadLogger.log(
-				`Load finished in ${lastLoadDuration} seconds (loadStartedAtStr: "${loadStartedAtStr}")`,
-			);
-			setLastLoadDurationSeconds(Number(lastLoadDuration));
-		}
-	};
+			if (newIsLoading) {
+				setLastLoadStartedAt(startedLoadAt);
+			} else {
+				const lastLoadDuration = AgeIn.seconds(startedLoadAt).toFixed(1);
+				loadLogger.log(
+					`Load finished in ${lastLoadDuration} seconds (loadStartedAtStr: "${loadStartedAtStr}")`,
+				);
+				setLastLoadDurationSeconds(Number(lastLoadDuration));
+			}
+		},
+		[isLoading],
+	);
 
 	// Log a bunch of info about the current state along with the msg
-	const logAndShowError: ErrorHandler = (msg: string, errorObj?: Error) => {
-		const args = {
+	const logAndShowError: ErrorHandler = useCallback(
+		(msg: string, errorObj?: Error) => {
+			const args = {
+				api,
+				lastLoadStartedAt,
+				lastLoadDurationSeconds,
+				serverInfo,
+				user,
+			};
+			logAndSetFormattedError({ args, errorObj, logger, msg });
+		},
+		[
 			api,
-			lastLoadStartedAt,
 			lastLoadDurationSeconds,
+			lastLoadStartedAt,
+			logAndSetFormattedError,
 			serverInfo,
 			user,
-		};
-		logAndSetFormattedError({ args, errorObj, logger, msg });
-	};
+		],
+	);
 
 	// Wrapper for calls to FediAlgo TheAlgorithm class that can throw a "busy" error
-	const triggerLoadFxn = (
-		loadFxn: () => Promise<void>,
-		handleError: ErrorHandler,
-		setLoadState: (isLoading: boolean, startedLoadAt: Date) => void,
-	) => {
-		const startedAt = new Date();
-		setLoadState(true, startedAt);
+	const triggerLoadFxn = useCallback(
+		(
+			loadFxn: () => Promise<void>,
+			handleError: ErrorHandler,
+			loadStateHandler: (isLoading: boolean, startedLoadAt: Date) => void,
+		) => {
+			const startedAt = new Date();
+			loadStateHandler(true, startedAt);
 
-		loadFxn()
-			.then(() => setLoadState(false, startedAt))
-			.catch((err) => {
-				// Don't flip the isLoading state if the feed is just busy loading
-				if (err.message.includes(GET_FEED_BUSY_MSG)) {
-					handleError(config.timeline.loadingErroMsg);
-				} else {
-					handleError(`Failure while retrieving timeline data!`, err);
-					setLoadState(false, startedAt);
-				}
-			});
-	};
+			loadFxn()
+				.then(() => loadStateHandler(false, startedAt))
+				.catch((err) => {
+					// Don't flip the isLoading state if the feed is just busy loading
+					if (err.message.includes(GET_FEED_BUSY_MSG)) {
+						handleError(config.timeline.loadingErroMsg);
+					} else {
+						handleError("Failure while retrieving timeline data!", err);
+						loadStateHandler(false, startedAt);
+					}
+				});
+		},
+		[],
+	);
 
-	const trigger = (loadFxn: () => Promise<void>) =>
-		triggerLoadFxn(loadFxn, logAndShowError, setLoadState);
-	const triggerFeedUpdate = () => trigger(() => algorithm.triggerFeedUpdate());
-	const triggerHomeTimelineBackFill = () =>
-		trigger(() => algorithm.triggerHomeTimelineBackFill());
-	const triggerMoarData = () => trigger(() => algorithm.triggerMoarData());
-	const triggerPullAllUserData = () =>
-		trigger(() => algorithm.triggerPullAllUserData());
+	const trigger = useCallback(
+		(loadFxn: () => Promise<void>) =>
+			triggerLoadFxn(loadFxn, logAndShowError, setLoadState),
+		[logAndShowError, setLoadState, triggerLoadFxn],
+	);
+	const triggerFeedUpdate = useCallback(
+		() => algorithm && trigger(() => algorithm.triggerFeedUpdate()),
+		[algorithm, trigger],
+	);
+	const triggerHomeTimelineBackFill = useCallback(
+		() => algorithm && trigger(() => algorithm.triggerHomeTimelineBackFill()),
+		[algorithm, trigger],
+	);
+	const triggerMoarData = useCallback(
+		() => algorithm && trigger(() => algorithm.triggerMoarData()),
+		[algorithm, trigger],
+	);
+	const triggerPullAllUserData = useCallback(
+		() => algorithm && trigger(() => algorithm.triggerPullAllUserData()),
+		[algorithm, trigger],
+	);
 
 	// Reset all state except for the user and server
-	const resetAlgorithm = async () => {
+	const resetAlgorithm = useCallback(async () => {
 		resetErrors();
 		if (!algorithm) return;
 		setIsLoading(true);
 		await algorithm.reset();
 		triggerFeedUpdate();
-	};
+	}, [algorithm, resetErrors, triggerFeedUpdate]);
 
 	// Initial load of the feed
 	useEffect(() => {
-		if (algorithm || !user) return;
+		if (algorithm || !user || !api) return;
 
 		// Check that we have valid user credentials and load timeline toots, otherwise force a logout.
 		const constructFeed = async (): Promise<void> => {
@@ -187,13 +221,13 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 					err.message.includes("NetworkError when attempting to fetch resource")
 				) {
 					logger.error(
-						`NetworkError during verifyCredentials(), going to log out`,
+						"NetworkError during verifyCredentials(), going to log out",
 						err,
 					);
 				} else if (isAccessTokenRevokedError(err)) {
 					logAndShowError(config.app.accessTokenRevokedMsg, err);
 				} else {
-					logAndShowError(`Failed to verifyCredentials(), logging out...`, err);
+					logAndShowError("Failed to verifyCredentials(), logging out...", err);
 				}
 
 				logout(true);
@@ -209,7 +243,7 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 
 			if (await algo.isGoToSocialUser()) {
 				logger.warn(
-					`User is on a GoToSocial instance, skipping call to api.v1.apps.verifyCredentials()...`,
+					"User is on a GoToSocial instance, skipping call to api.v1.apps.verifyCredentials()...",
 				);
 			} else {
 				// Verify the app crednentials
@@ -217,13 +251,13 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 					.verifyCredentials()
 					.then((verifyResponse) => {
 						logger.trace(
-							`oAuth() api.v1.apps.verifyCredentials() succeeded:`,
+							"oAuth() api.v1.apps.verifyCredentials() succeeded:",
 							verifyResponse,
 						);
 					})
 					.catch((err) => {
 						logAndShowError(
-							`api.v1.apps.verifyCredentials() failed. It might be OK, if not try logging out & back in.`,
+							"api.v1.apps.verifyCredentials() failed. It might be OK, if not try logging out & back in.",
 							err,
 						);
 					});
@@ -251,12 +285,21 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 				})
 				.catch((err) => {
 					// Not serious enough error to alert the user as we can fallback to our configured defaults
-					logger.error(`Failed to get server info:`, err);
+					logger.error("Failed to get server info:", err);
 				});
 		};
 
 		constructFeed();
-	}, [algorithm, user]);
+	}, [
+		algorithm,
+		api,
+		logAndShowError,
+		logout,
+		setLoadState,
+		timeline.length,
+		triggerLoadFxn,
+		user,
+	]);
 
 	// Set up feed reloader to call algorithm.triggerFeedUpdate() on focus after configured amount of time
 	useEffect(() => {
@@ -268,7 +311,7 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 			let msg: string;
 
 			if (isLoading || algorithm.isLoading) {
-				msg = `load in progress`;
+				msg = "load in progress";
 				if (!isLoading) logger.error(`isLoading is true but ${msg}`);
 			} else {
 				const feedAgeInSeconds = algorithm.mostRecentHomeTootAgeInSeconds();
@@ -291,7 +334,14 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 			document.hasFocus() && shouldReloadFeed() && triggerFeedUpdate();
 		window.addEventListener(Events.FOCUS, handleFocus);
 		return () => window.removeEventListener(Events.FOCUS, handleFocus);
-	}, [algorithm, isLoading, shouldAutoUpdate, timeline, user]);
+	}, [
+		algorithm,
+		isLoading,
+		shouldAutoUpdate,
+		timeline.length,
+		triggerFeedUpdate,
+		user,
+	]);
 
 	const algoContext: AlgoContext = {
 		algorithm,

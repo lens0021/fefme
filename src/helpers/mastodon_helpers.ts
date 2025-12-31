@@ -1,8 +1,8 @@
+import { MediaCategory } from "fedialgo";
 /*
  * Functions for dealing with Mastodon API and data structures.
  */
-import { mastodon } from "masto";
-import { MediaCategory } from "fedialgo";
+import type { mastodon } from "masto";
 
 import { appLogger } from "./log_helpers";
 import { mimeTypeExtension } from "./string_helpers";
@@ -36,7 +36,7 @@ export function addMimeExtensionsToServer(
 		appLogger.error(
 			`Failed to add MIME extensions to server: ${server.domain}`,
 			error,
-			`\nserver info:`,
+			"\nserver info:",
 			server,
 		);
 		return { ...server, mimeExtensions: {} };
@@ -49,17 +49,17 @@ function buildMimeExtensions(mimeTypes: string[]): MimeExtensions {
 		const [category, fileType] = mimeType.split("/");
 		if (fileType.startsWith("x-") || fileType.includes(".")) return acc; // skip invalid file extensions
 
-		if (category == MediaCategory.AUDIO) {
+		if (category === MediaCategory.AUDIO) {
 			acc[MIME_GROUPS[MediaCategory.AUDIO]] ||= [];
 			acc[MIME_GROUPS[MediaCategory.AUDIO]].push(mimeTypeExtension(mimeType));
-		} else if (category == MediaCategory.IMAGE) {
+		} else if (category === MediaCategory.IMAGE) {
 			acc[MIME_GROUPS[MediaCategory.IMAGE]] ||= [];
 			acc[MIME_GROUPS[MediaCategory.IMAGE]].push(mimeTypeExtension(mimeType));
 
 			if (fileType === "jpeg") {
 				acc[MIME_GROUPS[MediaCategory.IMAGE]].push(".jpg"); // Add .jpg extension support
 			}
-		} else if (category == MediaCategory.VIDEO) {
+		} else if (category === MediaCategory.VIDEO) {
 			acc[MIME_GROUPS[MediaCategory.VIDEO]] ||= [];
 
 			if (mimeType === "video/quicktime") {
@@ -76,6 +76,6 @@ function buildMimeExtensions(mimeTypes: string[]): MimeExtensions {
 		return acc;
 	}, {} as MimeExtensions);
 
-	appLogger.trace(`Server accepted MIME types:`, mimeExtensions);
+	appLogger.trace("Server accepted MIME types:", mimeExtensions);
 	return mimeExtensions;
 }

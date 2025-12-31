@@ -1,14 +1,15 @@
 /*
  * Unified checkbox component with optional tooltips and persistence helpers.
  */
-import React, { CSSProperties, ReactElement } from "react";
+import type React from "react";
+import type { CSSProperties, ReactElement } from "react";
 
 import { capitalCase } from "change-case";
 import { Tooltip } from "react-tooltip";
 
-import { config, GuiCheckboxName } from "../../config";
-import { type CheckboxTooltipConfig } from "../../helpers/tooltip_helpers";
+import { type GuiCheckboxName, config } from "../../config";
 import { followUri } from "../../helpers/react_helpers";
+import type { CheckboxTooltipConfig } from "../../helpers/tooltip_helpers";
 import { useAlgorithm } from "../../hooks/useAlgorithm";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
 
@@ -17,11 +18,7 @@ export const FILTER_TOOLTIP_ANCHOR = "user-hashtag-anchor";
 export const HIGHLIGHTED_TOOLTIP_ANCHOR = "user-hashtag-anchor-highlighted";
 
 export const HIGHLIGHTED_TOOLTIP = (
-	<Tooltip
-		className="z-[2000]"
-		id={HIGHLIGHTED_TOOLTIP_ANCHOR}
-		place="top"
-	/>
+	<Tooltip className="z-[2000]" id={HIGHLIGHTED_TOOLTIP_ANCHOR} place="top" />
 );
 
 interface CheckboxProps {
@@ -61,7 +58,8 @@ export default function Checkbox(props: CheckboxProps) {
 	let highlightStyle: CSSProperties = {};
 
 	const highlightColor = tooltip?.highlight?.color;
-	const baseTooltipAnchor = tooltip?.anchor || tooltipAnchor || DEFAULT_TOOLTIP_ANCHOR;
+	const baseTooltipAnchor =
+		tooltip?.anchor || tooltipAnchor || DEFAULT_TOOLTIP_ANCHOR;
 	let resolvedTooltipAnchor = baseTooltipAnchor;
 
 	if (highlightColor) {
@@ -80,17 +78,21 @@ export default function Checkbox(props: CheckboxProps) {
 		label = `${label.slice(0, maxLabelLength)}...`;
 	}
 
-	let labelNode: React.ReactNode = <span className={labelClasses}>{label}</span>;
+	let labelNode: React.ReactNode = (
+		<span className={labelClasses}>{label}</span>
+	);
 
 	if (url) {
-		// Use a span because you can't use an <a> tag inside the <a> tag we need for the tooltip
 		labelNode = (
-			<span
-				onClick={(e) => followUri(url, e)}
+			<a
+				href={url}
+				target="_blank"
+				rel="noopener noreferrer"
 				className={`${labelClasses} underline cursor-pointer text-black`}
+				onClick={(e) => followUri(url, e)}
 			>
 				{label}
-			</span>
+			</a>
 		);
 	}
 
@@ -122,9 +124,12 @@ export default function Checkbox(props: CheckboxProps) {
 	if (!tooltip?.text) return checkbox;
 
 	return (
-		<a data-tooltip-id={resolvedTooltipAnchor} data-tooltip-content={tooltip.text}>
+		<span
+			data-tooltip-id={resolvedTooltipAnchor}
+			data-tooltip-content={tooltip.text}
+		>
 			{checkbox}
-		</a>
+		</span>
 	);
 }
 
@@ -166,6 +171,7 @@ export function persistentCheckbox(
 		value,
 		checkbox,
 		<Tooltip
+			key={tooltipAnchor}
 			className="z-[2000]"
 			delayShow={config.timeline.tooltips.defaultTooltipDelayMS}
 			id={tooltipAnchor}

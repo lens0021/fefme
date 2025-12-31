@@ -1,7 +1,7 @@
 /*
  * Slider that sets a weight for the algorithm.
  */
-import React, { ChangeEvent, CSSProperties } from "react";
+import React, { type ChangeEvent, CSSProperties } from "react";
 
 import { config } from "../../config";
 
@@ -29,12 +29,12 @@ export default function Slider(props: SliderProps) {
 		value,
 		width,
 	} = props;
-	if (!value && value != 0) return;
+	if (!value && value !== 0) return;
 
-	let step = stepSize ?? (minValue >= 0 ? config.weights.defaultStepSize : 1);
+	const step = stepSize ?? (minValue >= 0 ? config.weights.defaultStepSize : 1);
 	let decimals = 2;
 
-	if (stepSize == 1) {
+	if (stepSize === 1) {
 		decimals = 0;
 	} else if (minValue > 0 && minValue < 0.01) {
 		decimals = 3;
@@ -42,16 +42,22 @@ export default function Slider(props: SliderProps) {
 		decimals = 1;
 	}
 
-	let divs = [
-		<div key={`${label}_label`} className="flex flex-row items-center text-sm justify-between whitespace-nowrap">
+	const divs = [
+		<div
+			key={`${label}_label`}
+			className="flex flex-row items-center text-sm justify-between whitespace-nowrap"
+		>
 			{!hideValueBox && (
-				<div className="rounded bg-white self-end border border-black mr-2.5 pl-2 pr-2 pt-0.5" id="innerest_doop">
+				<div
+					className="rounded bg-white self-end border border-black mr-2.5 pl-2 pr-2 pt-0.5"
+					id="innerest_doop"
+				>
 					<span className="font-mono text-xs">{value?.toFixed(decimals)}</span>
 				</div>
 			)}
 
 			<span>
-				<span className="font-bold mr-1">{`${label}` + (hideValueBox ? "" : ":")}</span>
+				<span className="font-bold mr-1">{`${label}${hideValueBox ? "" : ":"}`}</span>
 
 				{description && <span>{description}</span>}
 			</span>

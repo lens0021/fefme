@@ -1,12 +1,12 @@
 import React from "react";
 
-import BooleanFilterAccordionSection from "./BooleanFilterAccordionSection";
-import NumericFilters from "./filters/NumericFilters";
-import Accordion from "../helpers/Accordion";
 import { config } from "../../config";
-import { HEADER_SWITCH_TOOLTIP } from "./filters/HeaderSwitch";
-import { HIGHLIGHTED_TOOLTIP } from "../helpers/Checkbox";
 import { useAlgorithm } from "../../hooks/useAlgorithm";
+import Accordion from "../helpers/Accordion";
+import { HIGHLIGHTED_TOOLTIP } from "../helpers/Checkbox";
+import BooleanFilterAccordionSection from "./BooleanFilterAccordionSection";
+import { HEADER_SWITCH_TOOLTIP } from "./filters/HeaderSwitch";
+import NumericFilters from "./filters/NumericFilters";
 
 /**
  * Component for setting the user's preferred weightings of various post properties.

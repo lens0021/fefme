@@ -4,24 +4,28 @@
  */
 import React, { useEffect, useRef, useState } from "react";
 
-import TheAlgorithm, { READY_TO_LOAD_MSG, Toot, optionalSuffix } from "fedialgo";
+import TheAlgorithm, {
+	READY_TO_LOAD_MSG,
+	type Toot,
+	optionalSuffix,
+} from "fedialgo";
 import { Tooltip } from "react-tooltip";
 
 import ApiErrorsPanel from "../components/ApiErrorsPanel";
-import ExperimentalFeatures from "../components/experimental/ExperimentalFeatures";
 import FeedFiltersAccordionSection from "../components/algorithm/FeedFiltersAccordionSection";
+import WeightSetter from "../components/algorithm/WeightSetter";
+import ExperimentalFeatures from "../components/experimental/ExperimentalFeatures";
+import Accordion from "../components/helpers/Accordion";
 import { persistentCheckbox } from "../components/helpers/Checkbox";
+import { confirm } from "../components/helpers/Confirmation";
 import StatusComponent, {
 	TOOLTIP_ACCOUNT_ANCHOR,
 } from "../components/status/Status";
-import Accordion from "../components/helpers/Accordion";
-import useOnScreen from "../hooks/useOnScreen";
-import WeightSetter from "../components/algorithm/WeightSetter";
-import { booleanIcon } from "../helpers/react_helpers";
-import { confirm } from "../components/helpers/Confirmation";
-import { getLogger } from "../helpers/log_helpers";
 import { GuiCheckboxName, config } from "../config";
+import { getLogger } from "../helpers/log_helpers";
+import { booleanIcon } from "../helpers/react_helpers";
 import { useAlgorithm } from "../hooks/useAlgorithm";
+import useOnScreen from "../hooks/useOnScreen";
 
 const LOAD_BUTTON_SEPARATOR = " ● ";
 const LOAD_BUTTON_TOOLTIP_ANCHOR = "tooltipped-link-anchor";
@@ -47,7 +51,6 @@ export default function Feed() {
 	const [numDisplayedToots, setNumDisplayedToots] = useState<number>(
 		config.timeline.defaultNumDisplayedToots,
 	);
-	const [prevScrollY, setPrevScrollY] = useState(0);
 	const [scrollPercentage, setScrollPercentage] = useState(0);
 	const [thread, setThread] = useState<Toot[]>([]);
 
@@ -67,7 +70,11 @@ export default function Feed() {
 
 	// Reset all state except for the user and server
 	const reset = async () => {
-		if (!(await confirm(`Are you sure you want to reset your feed data? (You will stay logged in)`)))
+		if (
+			!(await confirm(
+				"Are you sure you want to reset your feed data? (You will stay logged in)",
+			))
+		)
 			return;
 		setNumDisplayedToots(config.timeline.defaultNumDisplayedToots);
 		resetAlgorithm();
@@ -116,14 +123,7 @@ export default function Feed() {
 
 		window.addEventListener("scroll", handleScroll);
 		return () => window.removeEventListener("scroll", handleScroll);
-	}, [
-		isBottom,
-		numDisplayedToots,
-		prevScrollY,
-		setNumDisplayedToots,
-		setPrevScrollY,
-		timeline,
-	]);
+	}, [isBottom, numDisplayedToots, timeline.length]);
 
 	// TODO: probably easier to not rely on fedialgo's measurement of the last load time; we can easily track it ourselves.
 	let footerMsg = `Scored ${(timeline?.length || 0).toLocaleString()} toots`;
@@ -132,11 +132,9 @@ export default function Feed() {
 		(seconds) => `in ${seconds.toFixed(1)} seconds`,
 	);
 
-		return (
-			<div className="h-auto">
-				<div
-					style={{ cursor: isLoadingThread ? "wait" : "default" }}
-				>
+	return (
+		<div className="h-auto">
+			<div style={{ cursor: isLoadingThread ? "wait" : "default" }}>
 				{/* Tooltip options: https://react-tooltip.com/docs/options */}
 				<Tooltip
 					border={"solid"}
@@ -149,7 +147,7 @@ export default function Feed() {
 					variant="light"
 				/>
 
-					{checkboxTooltip}
+				{checkboxTooltip}
 
 				<div className="w-full">
 					{/* Controls section */}
@@ -197,9 +195,13 @@ export default function Feed() {
 								<p className="text-base h-auto mt-1.5">
 									{footerMsg} (
 									{
-										<a onClick={reset} className="font-bold underline cursor-pointer text-red-600 text-sm">
+										<button
+											type="button"
+											onClick={reset}
+											className="font-bold underline cursor-pointer text-red-600 text-sm"
+										>
 											Reset Feed Data
-										</a>
+										</button>
 									}
 									)
 								</p>
@@ -268,65 +270,70 @@ export default function Feed() {
 								variant="light"
 							/>
 
-							<a
+							<button
+								type="button"
 								data-tooltip-content={
 									config.timeline.loadTootsButtonLabels.loadNewToots.tooltipText
 								}
 								data-tooltip-id={LOAD_BUTTON_TOOLTIP_ANCHOR}
+								className="cursor-pointer underline"
+								onClick={triggerFeedUpdate}
 							>
 								<span
-									onClick={triggerFeedUpdate}
-									className="cursor-pointer underline"
 									style={
-										config.timeline.loadTootsButtonLabels.loadNewToots.labelStyle
+										config.timeline.loadTootsButtonLabels.loadNewToots
+											.labelStyle
 									}
 								>
 									{config.timeline.loadTootsButtonLabels.loadNewToots.label}
 								</span>
-							</a>
+							</button>
 
 							{LOAD_BUTTON_SEPARATOR}
 
-							<a
+							<button
+								type="button"
 								data-tooltip-content={
 									config.timeline.loadTootsButtonLabels.loadOldToots.tooltipText
 								}
 								data-tooltip-id={LOAD_BUTTON_TOOLTIP_ANCHOR}
+								className="cursor-pointer underline"
+								onClick={triggerHomeTimelineBackFill}
 							>
 								<span
-									onClick={triggerHomeTimelineBackFill}
-									className="cursor-pointer underline"
 									style={
-										config.timeline.loadTootsButtonLabels.loadOldToots.labelStyle
+										config.timeline.loadTootsButtonLabels.loadOldToots
+											.labelStyle
 									}
 								>
 									{config.timeline.loadTootsButtonLabels.loadOldToots.label}
 								</span>
-							</a>
+							</button>
 
 							{LOAD_BUTTON_SEPARATOR}
 
-							<a
+							<button
+								type="button"
 								data-tooltip-content={
 									config.timeline.loadTootsButtonLabels.loadUserDataForAlgorithm
 										.tooltipText
 								}
 								data-tooltip-id={LOAD_BUTTON_TOOLTIP_ANCHOR}
+								className="cursor-pointer underline"
+								onClick={triggerMoarData}
 							>
 								<span
-									onClick={triggerMoarData}
-									className="cursor-pointer underline"
 									style={
-										config.timeline.loadTootsButtonLabels.loadUserDataForAlgorithm
-											.labelStyle
+										config.timeline.loadTootsButtonLabels
+											.loadUserDataForAlgorithm.labelStyle
 									}
 								>
 									{
-										config.timeline.loadTootsButtonLabels.loadUserDataForAlgorithm
-											.label
+										config.timeline.loadTootsButtonLabels
+											.loadUserDataForAlgorithm.label
 									}
 								</span>
-							</a>
+							</button>
 						</div>
 					)}
 
@@ -345,7 +352,7 @@ export default function Feed() {
 							/>
 						))}
 
-						{timeline.length == 0 &&
+						{timeline.length === 0 &&
 							(isLoading ? (
 								<div className="flex flex-1 h-screen items-center justify-center">
 									<div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600" />

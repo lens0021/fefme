@@ -2,11 +2,11 @@
  * Modal to display JSON data.
  * React Bootstrap Modal: https://getbootstrap.com/docs/5.0/components/modal/
  */
-import React, { CSSProperties, ReactNode } from "react";
+import React, { type CSSProperties, type ReactNode } from "react";
 
 import ReactJsonView from "@microlink/react-json-view";
 
-import { ModalProps } from "../../types";
+import type { ModalProps } from "../../types";
 
 type ReactJsonViewProps = typeof ReactJsonView.defaultProps;
 
@@ -54,17 +54,20 @@ export default function JsonModal(props: JsonModalProps) {
 				: "max-w-2xl";
 
 	return (
-		<div
-			className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-			onClick={() => setShow(false)}
-		>
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+			<button
+				type="button"
+				aria-label="Close dialog"
+				onClick={() => setShow(false)}
+				className="absolute inset-0 h-full w-full cursor-default"
+			/>
 			<div
-				className={`bg-white rounded-lg shadow-lg ${sizeClass} w-full mx-4 max-h-[90vh] overflow-y-auto`}
-				onClick={(e) => e.stopPropagation()}
+				className={`relative z-10 bg-white rounded-lg shadow-lg ${sizeClass} w-full mx-4 max-h-[90vh] overflow-y-auto`}
 			>
 				<div className="p-4 border-b flex justify-between items-center text-black">
 					<h3 className="text-lg font-semibold">{title}</h3>
 					<button
+						type="button"
 						onClick={() => setShow(false)}
 						className="text-2xl leading-none hover:text-gray-600"
 						aria-label="Close"

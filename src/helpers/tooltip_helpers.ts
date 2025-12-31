@@ -1,9 +1,9 @@
 /*
  * Types and methods for helping with tooltip coloring etc.
  */
-import { CSSProperties } from "react";
+import type { CSSProperties } from "react";
 
-import tinycolor from "tinycolor2";
+import type tinycolor from "tinycolor2";
 
 import type { GradientEndpoints } from "./styles";
 

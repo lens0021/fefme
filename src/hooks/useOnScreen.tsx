@@ -1,4 +1,4 @@
-import { RefObject, useEffect, useMemo, useState } from "react";
+import { type RefObject, useEffect, useMemo, useState } from "react";
 
 /**
  * Used to determine if an element is in the viewport. Currently sets the isBottom variable
@@ -12,13 +12,15 @@ export default function useOnScreen(ref: RefObject<HTMLElement>): boolean {
 			new IntersectionObserver(([entry]) =>
 				setIntersecting(entry.isIntersecting),
 			),
-		[ref],
+		[],
 	);
 
 	useEffect(() => {
-		observer.observe(ref.current);
-		return () => observer.disconnect();
-	}, []);
+		const element = ref.current;
+		if (!element) return;
+		observer.observe(element);
+		return () => observer.unobserve(element);
+	}, [observer, ref]);
 
 	return isIntersecting;
 }

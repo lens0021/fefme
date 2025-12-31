@@ -1,12 +1,12 @@
+import type { StringNumberDict, WeightName } from "fedialgo";
 /*
  * Slider that sets a weight for the algorithm.
  */
-import isFinite from "lodash/isFinite";
-import { type StringNumberDict, type WeightName } from "fedialgo";
+import isFiniteNumber from "lodash/isFinite";
 
-import Slider from "./Slider";
 import { config } from "../../config";
 import { useAlgorithm } from "../../hooks/useAlgorithm";
+import Slider from "./Slider";
 
 interface WeightSliderProps {
 	updateWeights: (newWeights: StringNumberDict) => Promise<void>;
@@ -18,12 +18,12 @@ export default function WeightSlider(props: WeightSliderProps) {
 	const { updateWeights, userWeights, weightName } = props;
 	const { algorithm } = useAlgorithm();
 
-	if (!isFinite(userWeights[weightName])) return <></>;
+	if (!isFiniteNumber(userWeights[weightName])) return <></>;
 	const info = algorithm.weightsInfo[weightName];
 
-	const weightValues = Object.values(userWeights).filter((x) => !isNaN(x)) ?? [
-		0,
-	];
+	const weightValues = Object.values(userWeights).filter(
+		(x) => !Number.isNaN(x),
+	) ?? [0];
 	const defaultMin =
 		Math.min(...weightValues) - 1 * config.weights.scalingMultiplier;
 	const defaultMax =

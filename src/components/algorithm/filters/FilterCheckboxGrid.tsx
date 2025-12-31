@@ -5,34 +5,34 @@
  */
 import { useMemo } from "react";
 
-import { isEmpty, isFinite } from "lodash";
 import {
-	FILTER_OPTION_DATA_SOURCES,
-	BooleanFilter,
+	type BooleanFilter,
 	BooleanFilterName,
+	type BooleanFilterOption,
+	FILTER_OPTION_DATA_SOURCES,
+	type FilterOptionDataSource,
 	ScoreName,
 	TagTootsCategory,
 	TypeFilterName,
-	type BooleanFilterOption,
-	type FilterOptionDataSource,
 } from "fedialgo";
+import { isEmpty, isFinite as isFiniteNumber } from "lodash";
 
+import { config } from "../../../config";
+import { getLogger } from "../../../helpers/log_helpers";
+import { gridify } from "../../../helpers/react_helpers";
+import { buildGradient } from "../../../helpers/styles";
+import type {
+	CheckboxGradientTooltipConfig,
+	CheckboxTooltipConfig,
+} from "../../../helpers/tooltip_helpers";
+import { useAlgorithm } from "../../../hooks/useAlgorithm";
 import Checkbox, {
 	FILTER_TOOLTIP_ANCHOR,
 	HIGHLIGHTED_TOOLTIP_ANCHOR,
 } from "../../helpers/Checkbox";
-import { buildGradient } from "../../../helpers/styles";
-import { config } from "../../../config";
-import { getLogger } from "../../../helpers/log_helpers";
-import { gridify } from "../../../helpers/react_helpers";
-import { useAlgorithm } from "../../../hooks/useAlgorithm";
-import {
-	type CheckboxGradientTooltipConfig,
-	type CheckboxTooltipConfig,
-} from "../../../helpers/tooltip_helpers";
-import {
-	type HeaderSwitchState,
-	type TagHighlightSwitchState,
+import type {
+	HeaderSwitchState,
+	TagHighlightSwitchState,
 } from "../BooleanFilterAccordionSection";
 
 type DataSourceGradients = Record<
@@ -58,14 +58,14 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 	} = useAlgorithm();
 	const logger = useMemo(
 		() => getLogger("FilterCheckboxGrid", filter.propertyName),
-		[],
+		[filter.propertyName],
 	);
 
 	const optionsFormatCfg =
 		config.filters.boolean.optionsFormatting[filter.propertyName];
 	const tooltipConfig = optionsFormatCfg?.tooltips || {};
-	const isTagFilter = filter.propertyName == BooleanFilterName.HASHTAG;
-	const isUserFilter = filter.propertyName == BooleanFilterName.USER;
+	const isTagFilter = filter.propertyName === BooleanFilterName.HASHTAG;
+	const isUserFilter = filter.propertyName === BooleanFilterName.USER;
 
 	// Build a dict from FilterOptionDataSource to tooltip objs with the color (or gradient) + base text
 	const tooltipGradients: DataSourceGradients = useMemo(
@@ -112,7 +112,7 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 				logger.deep(`Rebuilt gradient, maxValue=${maxValue}`);
 				return gradients;
 			}, {} as DataSourceGradients),
-		[filter.options],
+		[filter.options, logger, tooltipConfig],
 	);
 
 	/**
@@ -130,7 +130,7 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 	): CheckboxTooltipConfig | undefined => {
 		const gradientCfg = tooltipGradients[dataSource];
 		const optionGradientValue = option[dataSource]; // The value driving the gradient, e.g. num favourites
-		if (!isFinite(optionGradientValue)) return undefined;
+		if (!isFiniteNumber(optionGradientValue)) return undefined;
 		if (!gradientCfg)
 			logger.logAndThrowError(`No gradientCfg found for "${dataSource}"!`);
 
@@ -178,13 +178,12 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 				? tooltipConfig[TypeFilterName.FOLLOWED_HASHTAGS]
 				: undefined;
 
-			Object.values(TagTootsCategory)
-				.reverse()
-				.forEach((dataSource) => {
-					tooltip ||=
-						tagSwitchState?.[dataSource] &&
-						getGradientTooltip(option, dataSource);
-				});
+			const tagSources = Object.values(TagTootsCategory).reverse();
+			for (const dataSource of tagSources) {
+				tooltip ||=
+					tagSwitchState?.[dataSource] &&
+					getGradientTooltip(option, dataSource);
+			}
 		} else if (isUserFilter) {
 			tooltip = getGradientTooltip(
 				option,
@@ -199,14 +198,14 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 					userTooltipCfg.text +
 					(isEmpty(tooltip.text) ? "" : ` (${tooltip.text.toLowerCase()})`);
 			}
-		} else if (filter.propertyName == BooleanFilterName.LANGUAGE) {
+		} else if (filter.propertyName === BooleanFilterName.LANGUAGE) {
 			tooltip = getGradientTooltip(option, filter.propertyName);
 		}
 
 		return tooltip;
 	};
 
-	const optionGrid = useMemo(() => {
+	const optionGrid = (() => {
 		logger.deep(
 			`Rebuilding optionGrid for ${filter.options.length} options (${filter.selectedOptions.length} selected)`,
 		);
@@ -219,7 +218,7 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 			options = options.filter((option) => !!findTooltip(option));
 		}
 
-		const optionCheckboxes = options.objs.map((option, i) => {
+		const optionCheckboxes = options.objs.map((option) => {
 			const label = option.displayName || option.name;
 
 			const labelExtra = option?.numToots?.toLocaleString();
@@ -227,7 +226,7 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 			return (
 				<Checkbox
 					isChecked={filter.isOptionEnabled(option.name)}
-					key={`${filter.propertyName}_${option.name}_${i}`}
+					key={option.name}
 					label={
 						optionsFormatCfg?.formatLabel
 							? optionsFormatCfg?.formatLabel(label)
@@ -247,18 +246,7 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 		});
 
 		return gridify(optionCheckboxes);
-	}, [
-		filter.options,
-		filter.selectedOptions,
-		allowMultiSelect,
-		alwaysShowFollowed,
-		highlightsOnly,
-		minToots,
-		showFilterHighlights,
-		sortByCount,
-		tagSwitchState,
-		tooltipGradients,
-	]);
+	})();
 
 	return optionGrid;
 }

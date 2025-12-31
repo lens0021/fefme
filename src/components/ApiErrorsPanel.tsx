@@ -32,8 +32,8 @@ export default function ApiErrorsPanel(): JSX.Element {
 				{isExpanded && (
 					<div className="bg-[#4f4f42] p-3">
 						<ul className="list-decimal pl-[25px]">
-							{algorithm.apiErrorMsgs.map((msg, i) => (
-								<li key={`${msg}_${i}`} className="text-[#c6d000] text-xs mt-[2px]">
+							{algorithm.apiErrorMsgs.map((msg) => (
+								<li key={msg} className="text-[#c6d000] text-xs mt-[2px]">
 									{msg}
 								</li>
 							))}

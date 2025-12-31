@@ -6,7 +6,7 @@ import { useState } from "react";
 import { config } from "../config";
 import { getLogger } from "../helpers/log_helpers";
 import { sanitizeServerUrl } from "../helpers/string_helpers";
-import { type App, type ServerUser, type User } from "../types";
+import type { App, ServerUser, User } from "../types";
 
 const SERVER = "server";
 const SERVER_USERS = "serverUsers";
@@ -29,10 +29,9 @@ export function useLocalStorage<T>(
 
 			if (value) {
 				return JSON.parse(value);
-			} else {
-				window.localStorage.setItem(storageKey, JSON.stringify(defaultValue));
-				return defaultValue;
 			}
+			window.localStorage.setItem(storageKey, JSON.stringify(defaultValue));
+			return defaultValue;
 		} catch (err) {
 			logger.error(
 				`useLocalStorage.getValue(keyname: "${storageKey}") error:`,
@@ -46,7 +45,7 @@ export function useLocalStorage<T>(
 		try {
 			window.localStorage.setItem(storageKey, JSON.stringify(newValue));
 		} catch (err) {
-			logger.error(`setValue() failed!`, err);
+			logger.error("setValue() failed!", err);
 		}
 
 		setStoredValue(newValue);
@@ -139,9 +138,9 @@ function setServerProperties(
 	logger.trace(
 		`setServerProperties() for "${server}", app:`,
 		app,
-		`\nuser:`,
+		"\nuser:",
 		user,
-		`\nserverUsers:`,
+		"\nserverUsers:",
 		serverUsers,
 	);
 	setServerUsers(serverUsers);
@@ -152,9 +151,8 @@ function getValue<T>(storageKey: string): T {
 
 	if (value) {
 		return JSON.parse(value) as T;
-	} else {
-		throw new Error(`No value found for key "${storageKey}" in localStorage.`);
 	}
+	throw new Error(`No value found for key "${storageKey}" in localStorage.`);
 }
 
 function getServer(): string {

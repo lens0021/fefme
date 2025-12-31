@@ -1,19 +1,20 @@
 import React, { useState } from "react";
 
-import { createRestAPIClient } from "masto";
 import { FEDIALGO } from "fedialgo";
+import { createRestAPIClient } from "masto";
 import { stringifyQuery } from "ufo";
 
+import { useError } from "../components/helpers/ErrorHandler";
 import { config } from "../config";
+import { getLogger } from "../helpers/log_helpers";
+import { sanitizeServerUrl } from "../helpers/string_helpers";
 import {
 	getApp,
 	useAppStorage,
 	useServerStorage,
 	useServerUserStorage,
 } from "../hooks/useLocalStorage";
-import { getLogger } from "../helpers/log_helpers";
-import { sanitizeServerUrl } from "../helpers/string_helpers";
-import { useError } from "../components/helpers/ErrorHandler";
+import type { App } from "../types";
 
 const logger = getLogger("LoginPage");
 
@@ -63,7 +64,7 @@ export default function LoginPage() {
 		const serverUrl = sanitizeServerUrl(serverDomain, true);
 		const api = createRestAPIClient({ url: serverUrl });
 		const app = getApp(serverDomain);
-		let registeredApp; // TODO: using 'App' type causes a type error
+		let registeredApp: App | null = null;
 
 		if (app?.clientId) {
 			logger.trace(`Found existing app creds to use for '${serverUrl}':`, app);
@@ -122,7 +123,9 @@ export default function LoginPage() {
 					</span>
 					<br />
 					To get started enter your Mastodon server in the form:{" "}
-					<code className="bg-gray-100 px-1 rounded">{config.app.defaultServer}</code>
+					<code className="bg-gray-100 px-1 rounded">
+						{config.app.defaultServer}
+					</code>
 				</p>
 			</div>
 
@@ -137,6 +140,7 @@ export default function LoginPage() {
 				/>
 
 				<button
+					type="button"
 					onClick={oAuthLogin}
 					className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors"
 				>

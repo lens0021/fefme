@@ -1,16 +1,17 @@
 /*
  * Navigation helpers for React components.
  */
-import React, {
+import type React from "react";
+import {
+	type CSSProperties,
 	Children,
-	CSSProperties,
-	MouseEvent,
-	ReactElement,
-	ReactNode,
+	type MouseEvent,
+	type ReactElement,
+	type ReactNode,
 	isValidElement,
 } from "react";
 
-import { Toot, makeChunks, type TrendingWithHistory } from "fedialgo";
+import { type Toot, type TrendingWithHistory, makeChunks } from "fedialgo";
 
 import { appLogger } from "./log_helpers";
 import { isEmptyStr } from "./string_helpers";
@@ -62,33 +63,30 @@ export function extractText(children: ReactNode | ReactNode[]): string[] {
 
 	// TODO: something is really wrong with the type checker here - only with all this forcible casting
 	// would it accept that the "elements" accumulator in reduce() is a string array.
-	let nodeStrings = Children.toArray(children).reduce((elements, child) => {
-		elements = elements as string[];
+	const nodeStrings: string[] = [];
 
+	for (const child of Children.toArray(children)) {
 		if (hasChildren(child)) {
-			const extracted = extractText(child.props.children);
-			elements = [...elements, ...extracted];
+			nodeStrings.push(...extractText(child.props.children));
 		} else if (isValidElement(child)) {
 			// newText = '';
 		} else {
 			const str = nodeToString(child);
 
 			if (!isEmptyStr(str)) {
-				elements = [...elements, str];
+				nodeStrings.push(str);
 			}
 		}
+	}
 
-		return (elements as string[]).flat().flat();
-	}, [] as string[]) as string[];
-
-	nodeStrings = nodeStrings.filter((s) => !isEmptyStr(s));
+	const filteredNodeStrings = nodeStrings.filter((s) => !isEmptyStr(s));
 	appLogger.trace(
 		"extractText() called with children:",
 		children,
 		"\nresulting in:",
-		nodeStrings,
+		filteredNodeStrings,
 	);
-	return nodeStrings;
+	return filteredNodeStrings;
 }
 
 // Create a grid of numCols columns. If numCols is not provided either 2 or 3 columns
@@ -98,14 +96,18 @@ export function gridify(
 	numCols?: number,
 	colStyle?: CSSProperties,
 ): ReactElement {
-	if (elements.length == 0) return <></>;
-	numCols ||= elements.length > 10 ? 3 : 2;
-	const columns = makeChunks(elements, { numChunks: numCols });
+	if (elements.length === 0) return <></>;
+	const resolvedNumCols = numCols ?? (elements.length > 10 ? 3 : 2);
+	const columns = makeChunks(elements, { numChunks: resolvedNumCols });
 
 	return (
 		<div className="flex gap-4">
-			{columns.map((columnItems, i) => (
-				<div key={i} className="flex-1" style={colStyle || {}}>
+			{columns.map((columnItems) => (
+				<div
+					key={columnItems.map((item) => String(item.key ?? "item")).join("-")}
+					className="flex-1"
+					style={colStyle || {}}
+				>
 					{columnItems}
 				</div>
 			))}
@@ -142,7 +144,11 @@ export function verticalSpacer(height: number, key?: string): ReactElement {
 export function createSwitchFactory<T extends Record<string, boolean>>(
 	state: T,
 	setState: React.Dispatch<React.SetStateAction<T>>,
-	HeaderSwitchComponent: React.ComponentType<any>,
+	HeaderSwitchComponent: React.ComponentType<{
+		isChecked: boolean;
+		label: string;
+		onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+	}>,
 ) {
 	return (key: keyof T) => {
 		return (
@@ -192,7 +198,7 @@ const hasChildren = (
  */
 export function booleanIcon(
 	value: boolean | null | undefined,
-	includeString: boolean = true,
+	includeString = true,
 ): ReactElement {
 	const style: CSSProperties = { color: value ? "green" : "red" };
 	return (

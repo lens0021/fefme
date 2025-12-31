@@ -4,11 +4,8 @@
  */
 import React from "react";
 
-import { Account, Toot, isValueInStringEnum } from "fedialgo";
-import { capitalCase } from "change-case";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-	IconDefinition,
+	type IconDefinition,
 	faBalanceScale,
 	faBookmark,
 	faReply,
@@ -18,13 +15,16 @@ import {
 	faUserPlus,
 	faVolumeMute,
 } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { capitalCase } from "change-case";
+import { type Account, type Toot, isValueInStringEnum } from "fedialgo";
 
 import { config } from "../../config";
-import { confirm } from "../helpers/Confirmation";
 import { getLogger } from "../../helpers/log_helpers";
 import { NETWORK_ERROR, scoreString } from "../../helpers/string_helpers";
-import { OAUTH_ERROR_MSG } from "../experimental/ExperimentalFeatures";
 import { useAlgorithm } from "../../hooks/useAlgorithm";
+import { OAUTH_ERROR_MSG } from "../experimental/ExperimentalFeatures";
+import { confirm } from "../helpers/Confirmation";
 import { useError } from "../helpers/ErrorHandler";
 
 export enum AccountAction {
@@ -73,7 +73,7 @@ const ACTION_INFO: Record<ButtonAction, ActionInfo> = {
 		icon: faStar,
 	},
 	[AccountAction.Follow]: {
-		booleanName: `isFollowed`,
+		booleanName: "isFollowed",
 		icon: faUserPlus,
 	},
 	[AccountAction.Mute]: {
@@ -120,18 +120,18 @@ export default function ActionButton(props: ActionButtonProps) {
 		className += ` ${ACCOUNT_ACTION_BUTTON_CLASS}`;
 
 		if (
-			action == AccountAction.Follow &&
+			action === AccountAction.Follow &&
 			actionTarget[actionInfo.booleanName]
 		) {
 			icon = faUserMinus;
-			label = `Unfollow`;
+			label = "Unfollow";
 		}
 
 		label += ` ${toot.account.webfingerURI}`;
 	} else {
 		if (actionInfo.countName && toot[actionInfo.countName] > 0) {
 			buttonText = toot[actionInfo.countName]?.toLocaleString();
-		} else if (action == TootAction.Score) {
+		} else if (action === TootAction.Score) {
 			buttonText = scoreString(toot.scoreInfo?.score);
 		}
 	}
@@ -161,7 +161,7 @@ export default function ActionButton(props: ActionButtonProps) {
 			toot[actionInfo.booleanName as TootBoolean] = newState;
 			setCurrentState(newState);
 
-			if (newState && actionInfo.countName && action != TootAction.Reply) {
+			if (newState && actionInfo.countName && action !== TootAction.Reply) {
 				toot[actionInfo.countName] = startingCount + 1;
 			} else {
 				toot[actionInfo.countName] = startingCount ? startingCount - 1 : 0; // Avoid count going below 0
@@ -171,11 +171,11 @@ export default function ActionButton(props: ActionButtonProps) {
 				try {
 					const selected = api.v1.statuses.$select(await toot.resolveID());
 
-					if (action == TootAction.Bookmark) {
+					if (action === TootAction.Bookmark) {
 						await (newState ? selected.bookmark() : selected.unbookmark());
-					} else if (action == TootAction.Favourite) {
+					} else if (action === TootAction.Favourite) {
 						await (newState ? selected.favourite() : selected.unfavourite());
-					} else if (action == TootAction.Reblog) {
+					} else if (action === TootAction.Reblog) {
 						await (newState ? selected.reblog() : selected.unreblog());
 					} else {
 						throw new Error(`Unknown action: ${action}`);
@@ -219,9 +219,9 @@ export default function ActionButton(props: ActionButtonProps) {
 					const resolvedToot = await toot.resolve();
 					const selected = api.v1.accounts.$select(resolvedToot.account.id);
 
-					if (action == AccountAction.Follow) {
+					if (action === AccountAction.Follow) {
 						await (newState ? selected.follow() : selected.unfollow());
-					} else if (action == AccountAction.Mute) {
+					} else if (action === AccountAction.Mute) {
 						await (newState ? selected.mute() : selected.unmute());
 						await algorithm.refreshMutedAccounts();
 					} else {
@@ -247,24 +247,24 @@ export default function ActionButton(props: ActionButtonProps) {
 	const logAndShowError = (
 		error?: Error,
 		desiredState?: boolean,
-		...args: any[]
+		...args: unknown[]
 	) => {
 		const actionMsg = (desiredState === false ? "un" : "") + action.toString();
 		let msg = `Failed to ${actionMsg} `;
-		let note = error?.message.includes(NETWORK_ERROR)
+		const note = error?.message.includes(NETWORK_ERROR)
 			? undefined
 			: OAUTH_ERROR_MSG;
 
 		if (isAccountAction(action)) {
 			msg += toot.account.displayNameFullHTML(config.theme.defaultFontSize);
 		} else {
-			msg = msg + "toot";
+			msg = `${msg}toot`;
 		}
 
 		logAndSetFormattedError({
 			args,
 			logger,
-			msg: msg + "!",
+			msg: `${msg}!`,
 			errorObj: error,
 			note,
 		});

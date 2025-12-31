@@ -1,7 +1,7 @@
 /**
  * Helpers for async operations and error handling
  */
-import { Logger } from "fedialgo";
+import type { Logger } from "fedialgo";
 
 /**
  * Executes an async operation with automatic error handling

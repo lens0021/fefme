@@ -4,78 +4,150 @@
  * Usage: node migrate-to-tailwind.js
  */
 
-const fs = require('fs');
-const path = require('path');
-const { execSync } = require('child_process');
+const fs = require("node:fs");
+const path = require("node:path");
+const { execSync } = require("node:child_process");
 
 // Common CSSProperties → Tailwind replacements
 const STYLE_REPLACEMENTS = [
 	// Typography
-	{ pattern: /\bfontWeight:\s*["']bold["']/g, tailwind: 'font-bold', prop: 'fontWeight' },
-	{ pattern: /\bcolor:\s*["']black["']/g, tailwind: 'text-black', prop: 'color' },
-	{ pattern: /\bcolor:\s*["']white["']/g, tailwind: 'text-white', prop: 'color' },
-	{ pattern: /\bcolor:\s*["']grey["']/g, tailwind: 'text-gray-500', prop: 'color' },
-	{ pattern: /\bcolor:\s*["']gray["']/g, tailwind: 'text-gray-500', prop: 'color' },
+	{
+		pattern: /\bfontWeight:\s*["']bold["']/g,
+		tailwind: "font-bold",
+		prop: "fontWeight",
+	},
+	{
+		pattern: /\bcolor:\s*["']black["']/g,
+		tailwind: "text-black",
+		prop: "color",
+	},
+	{
+		pattern: /\bcolor:\s*["']white["']/g,
+		tailwind: "text-white",
+		prop: "color",
+	},
+	{
+		pattern: /\bcolor:\s*["']grey["']/g,
+		tailwind: "text-gray-500",
+		prop: "color",
+	},
+	{
+		pattern: /\bcolor:\s*["']gray["']/g,
+		tailwind: "text-gray-500",
+		prop: "color",
+	},
 
 	// Background colors
-	{ pattern: /\bbackgroundColor:\s*["']white["']/g, tailwind: 'bg-white', prop: 'backgroundColor' },
-	{ pattern: /\bbackgroundColor:\s*["']black["']/g, tailwind: 'bg-black', prop: 'backgroundColor' },
+	{
+		pattern: /\bbackgroundColor:\s*["']white["']/g,
+		tailwind: "bg-white",
+		prop: "backgroundColor",
+	},
+	{
+		pattern: /\bbackgroundColor:\s*["']black["']/g,
+		tailwind: "bg-black",
+		prop: "backgroundColor",
+	},
 
 	// Cursor
-	{ pattern: /\bcursor:\s*["']pointer["']/g, tailwind: 'cursor-pointer', prop: 'cursor' },
+	{
+		pattern: /\bcursor:\s*["']pointer["']/g,
+		tailwind: "cursor-pointer",
+		prop: "cursor",
+	},
 
 	// Text decoration
-	{ pattern: /\btextDecoration:\s*["']underline["']/g, tailwind: 'underline', prop: 'textDecoration' },
+	{
+		pattern: /\btextDecoration:\s*["']underline["']/g,
+		tailwind: "underline",
+		prop: "textDecoration",
+	},
 
 	// Display
-	{ pattern: /\bdisplay:\s*["']flex["']/g, tailwind: 'flex', prop: 'display' },
+	{ pattern: /\bdisplay:\s*["']flex["']/g, tailwind: "flex", prop: "display" },
 
 	// Flex direction
-	{ pattern: /\bflexDirection:\s*["']row["']/g, tailwind: 'flex-row', prop: 'flexDirection' },
-	{ pattern: /\bflexDirection:\s*["']column["']/g, tailwind: 'flex-col', prop: 'flexDirection' },
+	{
+		pattern: /\bflexDirection:\s*["']row["']/g,
+		tailwind: "flex-row",
+		prop: "flexDirection",
+	},
+	{
+		pattern: /\bflexDirection:\s*["']column["']/g,
+		tailwind: "flex-col",
+		prop: "flexDirection",
+	},
 
 	// Align items
-	{ pattern: /\balignItems:\s*["']center["']/g, tailwind: 'items-center', prop: 'alignItems' },
-	{ pattern: /\balignItems:\s*["']start["']/g, tailwind: 'items-start', prop: 'alignItems' },
-	{ pattern: /\balignItems:\s*["']end["']/g, tailwind: 'items-end', prop: 'alignItems' },
+	{
+		pattern: /\balignItems:\s*["']center["']/g,
+		tailwind: "items-center",
+		prop: "alignItems",
+	},
+	{
+		pattern: /\balignItems:\s*["']start["']/g,
+		tailwind: "items-start",
+		prop: "alignItems",
+	},
+	{
+		pattern: /\balignItems:\s*["']end["']/g,
+		tailwind: "items-end",
+		prop: "alignItems",
+	},
 
 	// Justify content
-	{ pattern: /\bjustifyContent:\s*["']center["']/g, tailwind: 'justify-center', prop: 'justifyContent' },
-	{ pattern: /\bjustifyContent:\s*["']space-between["']/g, tailwind: 'justify-between', prop: 'justifyContent' },
-	{ pattern: /\bjustifyContent:\s*["']space-around["']/g, tailwind: 'justify-around', prop: 'justifyContent' },
-	{ pattern: /\bjustifyContent:\s*["']end["']/g, tailwind: 'justify-end', prop: 'justifyContent' },
+	{
+		pattern: /\bjustifyContent:\s*["']center["']/g,
+		tailwind: "justify-center",
+		prop: "justifyContent",
+	},
+	{
+		pattern: /\bjustifyContent:\s*["']space-between["']/g,
+		tailwind: "justify-between",
+		prop: "justifyContent",
+	},
+	{
+		pattern: /\bjustifyContent:\s*["']space-around["']/g,
+		tailwind: "justify-around",
+		prop: "justifyContent",
+	},
+	{
+		pattern: /\bjustifyContent:\s*["']end["']/g,
+		tailwind: "justify-end",
+		prop: "justifyContent",
+	},
 ];
 
 // Import removals after migration
 const IMPORTS_TO_REMOVE = [
-	'boldFont',
-	'blackFont',
-	'whiteFont',
-	'blackBoldFont',
-	'linkCursor',
-	'linkesque',
-	'centerAlignedFlex',
-	'centerAlignedFlexRow',
-	'centerAlignedFlexCol',
-	'flexSpaceAround',
+	"boldFont",
+	"blackFont",
+	"whiteFont",
+	"blackBoldFont",
+	"linkCursor",
+	"linkesque",
+	"centerAlignedFlex",
+	"centerAlignedFlexRow",
+	"centerAlignedFlexCol",
+	"flexSpaceAround",
 ];
 
 function findTsxFiles(dir, fileList = []) {
 	const files = fs.readdirSync(dir);
 
-	files.forEach(file => {
+	for (const file of files) {
 		const filePath = path.join(dir, file);
 		const stat = fs.statSync(filePath);
 
 		if (stat.isDirectory()) {
 			// Skip node_modules
-			if (file !== 'node_modules') {
+			if (file !== "node_modules") {
 				findTsxFiles(filePath, fileList);
 			}
-		} else if (file.endsWith('.tsx') || file.endsWith('.ts')) {
+		} else if (file.endsWith(".tsx") || file.endsWith(".ts")) {
 			fileList.push(filePath);
 		}
-	});
+	}
 
 	return fileList;
 }
@@ -98,7 +170,7 @@ function analyzeFile(content) {
 	}
 
 	// Find potential replacements
-	STYLE_REPLACEMENTS.forEach(({ pattern, tailwind, prop }) => {
+	for (const { pattern, tailwind, prop } of STYLE_REPLACEMENTS) {
 		const matches = content.match(pattern);
 		if (matches) {
 			analysis.potentialReplacements.push({
@@ -107,15 +179,15 @@ function analyzeFile(content) {
 				tailwind,
 			});
 		}
-	});
+	}
 
 	return analysis;
 }
 
 function scanCodebase() {
-	console.log('🔍 Scanning codebase for migration opportunities...\n');
+	console.log("🔍 Scanning codebase for migration opportunities...\n");
 
-	const srcDir = path.join(__dirname, 'src');
+	const srcDir = path.join(__dirname, "src");
 	const files = findTsxFiles(srcDir);
 
 	let totalFiles = 0;
@@ -124,15 +196,18 @@ function scanCodebase() {
 
 	const report = [];
 
-	files.forEach(filePath => {
-		const content = fs.readFileSync(filePath, 'utf-8');
+	for (const filePath of files) {
+		const content = fs.readFileSync(filePath, "utf-8");
 		const analysis = analyzeFile(content);
 
 		totalFiles++;
 
 		if (analysis.hasStyleImports || analysis.potentialReplacements.length > 0) {
 			filesWithStyles++;
-			const replacementCount = analysis.potentialReplacements.reduce((sum, r) => sum + r.count, 0);
+			const replacementCount = analysis.potentialReplacements.reduce(
+				(sum, r) => sum + r.count,
+				0,
+			);
 			totalReplacements += replacementCount;
 
 			report.push({
@@ -141,23 +216,26 @@ function scanCodebase() {
 				replacementCount,
 			});
 		}
-	});
+	}
 
 	// Sort by replacement count descending
 	report.sort((a, b) => b.replacementCount - a.replacementCount);
 
-	console.log(`📊 Scan Results:`);
+	console.log("📊 Scan Results:");
 	console.log(`   Total files: ${totalFiles}`);
 	console.log(`   Files with style code: ${filesWithStyles}`);
 	console.log(`   Total potential replacements: ${totalReplacements}\n`);
 
-	console.log(`📋 Top 15 files by replacement count:\n`);
-	report.slice(0, 15).forEach(({ file, replacementCount, potentialReplacements }) => {
+	console.log("📋 Top 15 files by replacement count:\n");
+	for (const { file, replacementCount, potentialReplacements } of report.slice(
+		0,
+		15,
+	)) {
 		console.log(`   ${file} (${replacementCount} replacements)`);
-		potentialReplacements.forEach(({ count, prop, tailwind }) => {
+		for (const { count, prop, tailwind } of potentialReplacements) {
 			console.log(`      - ${prop} → ${tailwind} (${count}x)`);
-		});
-	});
+		}
+	}
 
 	return { totalFiles, filesWithStyles, totalReplacements, report };
 }
@@ -165,9 +243,9 @@ function scanCodebase() {
 // Run scan
 const results = scanCodebase();
 
-console.log('\n✅ Scan complete!');
-console.log('\n💡 Next steps:');
-console.log('   1. Review the report above');
-console.log('   2. Run targeted migrations on high-impact files');
-console.log('   3. Test after each batch of changes');
-console.log('   4. Commit incrementally\n');
+console.log("\n✅ Scan complete!");
+console.log("\n💡 Next steps:");
+console.log("   1. Review the report above");
+console.log("   2. Run targeted migrations on high-impact files");
+console.log("   3. Test after each batch of changes");
+console.log("   4. Commit incrementally\n");

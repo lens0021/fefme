@@ -2,19 +2,15 @@
  * @fileoverview Render a Status, also known as a Toot.
  */
 import React, {
-	CSSProperties,
+	type CSSProperties,
 	useCallback,
 	useEffect,
 	useMemo,
 	useRef,
 } from "react";
 
-import parse from "html-react-parser";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { LazyLoadImage } from "react-lazy-load-image-component";
-import { Toot } from "fedialgo";
 import {
-	IconDefinition,
+	type IconDefinition,
 	faBolt,
 	faCheckCircle,
 	faFireFlameCurved,
@@ -27,18 +23,11 @@ import {
 	faRobot,
 	faUpRightFromSquare,
 } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import type { Toot } from "fedialgo";
+import parse from "html-react-parser";
+import { LazyLoadImage } from "react-lazy-load-image-component";
 
-import ActionButton, {
-	AccountAction,
-	ButtonAction,
-	TootAction,
-} from "./ActionButton";
-import JsonModal from "../helpers/JsonModal";
-import MultimediaNode from "./MultimediaNode";
-import NewTabLink from "../helpers/NewTabLink";
-import Poll from "./Poll";
-import PreviewCard from "./PreviewCard";
-import useOnScreen from "../../hooks/useOnScreen";
 import { config } from "../../config";
 import { executeWithLoadingState } from "../../helpers/async_helpers";
 import { getLogger } from "../../helpers/log_helpers";
@@ -46,7 +35,18 @@ import { formatScore, formatScores } from "../../helpers/number_helpers";
 import { openToot } from "../../helpers/react_helpers";
 import { timestampString } from "../../helpers/string_helpers";
 import { useAlgorithm } from "../../hooks/useAlgorithm";
+import useOnScreen from "../../hooks/useOnScreen";
 import { useError } from "../helpers/ErrorHandler";
+import JsonModal from "../helpers/JsonModal";
+import NewTabLink from "../helpers/NewTabLink";
+import ActionButton, {
+	AccountAction,
+	type ButtonAction,
+	TootAction,
+} from "./ActionButton";
+import MultimediaNode from "./MultimediaNode";
+import Poll from "./Poll";
+import PreviewCard from "./PreviewCard";
 
 export const TOOLTIP_ACCOUNT_ANCHOR = "user-account-anchor";
 const logger = getLogger("StatusComponent");
@@ -117,7 +117,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 
 	if (!toot.mediaAttachments) {
 		logger.error(
-			`StatusComponent received toot with no mediaAttachments:`,
+			"StatusComponent received toot with no mediaAttachments:",
 			toot,
 		);
 	}
@@ -146,18 +146,19 @@ export default function StatusComponent(props: StatusComponentProps) {
 		// TODO: disabled this for now as it increases storage demands for small instances
 		// toot.resolveID().catch((e) => logger.error(`Error resolving toot ID: ${toot.description}`, e));
 		toot.numTimesShown = (toot.numTimesShown || 0) + 1;
-	}, [isLoading, isOnScreen]);
+	}, [isLoading, isOnScreen, toot]);
 
 	// Build the account link(s) for the reblogger(s) that appears at top of a retoot
 	const rebloggersLinks = useMemo(
 		() => (
 			<span>
 				{toot.reblogsBy.map((account, i) => {
+					const rebloggerKey = account.id ?? account.webfingerURI;
 					const rebloggerLink = (
 						<NewTabLink
 							className="status__display-name muted"
 							href={account.localServerUrl}
-							key={i}
+							key={rebloggerKey}
 						>
 							<bdi>
 								<strong>
@@ -188,9 +189,9 @@ export default function StatusComponent(props: StatusComponentProps) {
 			let title = iconType as string;
 			let color = iconInfo.color;
 
-			if (iconType == InfoIconType.Edited) {
+			if (iconType === InfoIconType.Edited) {
 				title += ` ${timestampString(toot.editedAt)}`;
-			} else if (iconType == InfoIconType.Hashtags) {
+			} else if (iconType === InfoIconType.Hashtags) {
 				title = toot.containsTagsMsg();
 
 				if (toot.followedTags?.length) {
@@ -317,7 +318,8 @@ export default function StatusComponent(props: StatusComponentProps) {
 								</time>
 							</NewTabLink>
 
-							<span
+							<button
+								type="button"
 								onClick={(e) => {
 									e.preventDefault();
 									setShowTootModal(true);
@@ -325,7 +327,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 								className="ml-[10px] cursor-pointer"
 							>
 								{infoIcon(InfoIconType.ShowToot)}
-							</span>
+							</button>
 						</div>
 
 						{/* Account name + avatar */}
@@ -333,7 +335,9 @@ export default function StatusComponent(props: StatusComponentProps) {
 							title={toot.account.webfingerURI}
 							className="status__display-name"
 						>
-							<a
+							<button
+								type="button"
+								className="p-0 border-0 bg-transparent cursor-pointer"
 								data-tooltip-id={TOOLTIP_ACCOUNT_ANCHOR}
 								data-tooltip-html={toot.account.noteWithAccountInfo(
 									config.theme.accountBioFontSize,
@@ -347,7 +351,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 										/>
 									</div>
 								</div>
-							</a>
+							</button>
 
 							<span className="display-name">
 								<bdi>
@@ -425,7 +429,8 @@ export default function StatusComponent(props: StatusComponentProps) {
 					{setThread &&
 						(toot.repliesCount > 0 || !!toot.inReplyToAccountId) && (
 							<p className="pt-2">
-								<a
+								<button
+									type="button"
 									onClick={async () => {
 										logger.debug(
 											`Loading thread for toot: ${toot.description}`,
@@ -437,19 +442,21 @@ export default function StatusComponent(props: StatusComponentProps) {
 										);
 										setThread(toots);
 									}}
-									className="text-gray-500 text-[11px]"
+									className="text-gray-500 text-[11px] p-0 border-0 bg-transparent"
 									style={{
 										cursor: isLoadingThread ? "wait" : "pointer",
 									}}
 								>
 									⇇ View the Thread
-								</a>
+								</button>
 							</p>
 						)}
 
 					{/* Actions (retoot, favorite, show score, etc) that appear in bottom panel of toot */}
 					<div className="status__action-bar" ref={statusRef}>
-						{buildActionButton(TootAction.Reply, () => window.open(toot.realURL, '_blank'))}
+						{buildActionButton(TootAction.Reply, () =>
+							window.open(toot.realURL, "_blank"),
+						)}
 						{!toot.isDM && buildActionButton(TootAction.Reblog)}
 						{buildActionButton(TootAction.Favourite)}
 						{buildActionButton(TootAction.Bookmark)}

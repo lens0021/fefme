@@ -1,4 +1,4 @@
-import React, { ReactElement } from "react";
+import React, { type ReactElement } from "react";
 import { Navigate } from "react-router-dom";
 
 import { useAuthContext } from "../hooks/useAuth";

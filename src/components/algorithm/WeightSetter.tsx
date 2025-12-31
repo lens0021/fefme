@@ -12,13 +12,13 @@ import TheAlgorithm, {
 	type Weights,
 } from "fedialgo";
 
-import Accordion from "../helpers/Accordion";
-import WeightSlider from "./WeightSlider";
-import { confirm } from "../helpers/Confirmation";
-import { getLogger } from "../../helpers/log_helpers";
 import { config } from "../../config";
+import { getLogger } from "../../helpers/log_helpers";
 import { useAlgorithm } from "../../hooks/useAlgorithm";
+import Accordion from "../helpers/Accordion";
+import { confirm } from "../helpers/Confirmation";
 import { useError } from "../helpers/ErrorHandler";
+import WeightSlider from "./WeightSlider";
 
 const logger = getLogger("WeightSetter");
 const WEIGHTS_STORAGE_KEY = "fefme_user_weights";
@@ -29,7 +29,7 @@ export default function WeightSetter() {
 	const [userWeights, setUserWeights] = useState<Weights>({} as Weights);
 
 	// Load weights from localStorage or use defaults
-	const initWeights = async () => {
+	const initWeights = useCallback(async () => {
 		try {
 			const savedWeights = localStorage.getItem(WEIGHTS_STORAGE_KEY);
 			if (savedWeights) {
@@ -45,17 +45,17 @@ export default function WeightSetter() {
 			logger.error("Error loading weights from localStorage:", error);
 			setUserWeights(await algorithm.getUserWeights());
 		}
-	};
+	}, [algorithm]);
 
 	useEffect(() => {
 		initWeights();
-	}, []);
+	}, [initWeights]);
 
 	// Update the user weightings and save to localStorage
 	const updateWeights = useCallback(
 		async (newWeights: Weights): Promise<void> => {
 			try {
-				logger.log(`updateWeights() called with:`, newWeights);
+				logger.log("updateWeights() called with:", newWeights);
 				setUserWeights(newWeights);
 				algorithm.updateUserWeights(newWeights);
 				// Save to localStorage
@@ -68,29 +68,26 @@ export default function WeightSetter() {
 	);
 
 	// Reset to default weights
-	const resetToDefaults = useCallback(
-		async (): Promise<void> => {
-			if (
-				!(await confirm(
-					"Are you sure you want to reset all weights to their default values?",
-				))
-			)
-				return;
+	const resetToDefaults = useCallback(async (): Promise<void> => {
+		if (
+			!(await confirm(
+				"Are you sure you want to reset all weights to their default values?",
+			))
+		)
+			return;
 
-			try {
-				logger.log("Resetting weights to defaults");
-				// Clear localStorage
-				localStorage.removeItem(WEIGHTS_STORAGE_KEY);
-				// Reset algorithm to defaults
-				await algorithm.updateUserWeightsToPreset("default");
-				const defaultWeights = await algorithm.getUserWeights();
-				setUserWeights(defaultWeights);
-			} catch (error) {
-				logAndSetError(logger, error);
-			}
-		},
-		[algorithm, logAndSetError],
-	);
+		try {
+			logger.log("Resetting weights to defaults");
+			// Clear localStorage
+			localStorage.removeItem(WEIGHTS_STORAGE_KEY);
+			// Reset algorithm to defaults
+			await algorithm.updateUserWeightsToPreset("default");
+			const defaultWeights = await algorithm.getUserWeights();
+			setUserWeights(defaultWeights);
+		} catch (error) {
+			logAndSetError(logger, error);
+		}
+	}, [algorithm, logAndSetError]);
 
 	const makeWeightSlider = (weightName: WeightName) => (
 		<WeightSlider
@@ -105,6 +102,7 @@ export default function WeightSetter() {
 		<Accordion variant="top" title={"Feed Algorithm Control Panel"}>
 			<div className="flex justify-center mb-4">
 				<button
+					type="button"
 					onClick={resetToDefaults}
 					className="rounded-md cursor-pointer px-4 py-2 text-sm font-medium border-0 transition-colors text-white"
 					style={{ backgroundColor: config.theme.light.danger }}

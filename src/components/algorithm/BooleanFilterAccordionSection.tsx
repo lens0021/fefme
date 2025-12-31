@@ -2,23 +2,27 @@
  * Component for collecting a list of options for a BooleanFilter and displaying
  * them as checkboxes, with a switchbar for invertSelection, sortByCount, etc.
  */
-import { ReactElement, useMemo, useState } from "react";
+import { type ReactElement, useMemo, useState } from "react";
 
-import { BooleanFilter, BooleanFilterName, TagTootsCategory } from "fedialgo";
+import {
+	type BooleanFilter,
+	BooleanFilterName,
+	TagTootsCategory,
+} from "fedialgo";
 import { Tooltip } from "react-tooltip";
 
-import Accordion from "../helpers/Accordion";
-import FilterCheckboxGrid from "./filters/FilterCheckboxGrid";
-import HeaderSwitch from "./filters/HeaderSwitch";
 import { config } from "../../config";
+import { getLogger } from "../../helpers/log_helpers";
 import {
 	computeMinTootsDefaultValue,
 	computeMinTootsMaxValue,
 } from "../../helpers/min_toots";
 import { createSwitchFactory } from "../../helpers/react_helpers";
-import { getLogger } from "../../helpers/log_helpers";
 import { SwitchType } from "../../helpers/styles";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
+import Accordion from "../helpers/Accordion";
+import FilterCheckboxGrid from "./filters/FilterCheckboxGrid";
+import HeaderSwitch from "./filters/HeaderSwitch";
 
 export type TagHighlightSwitchState = Record<TagTootsCategory, boolean>;
 
@@ -64,16 +68,20 @@ export default function BooleanFilterAccordionSection(
 
 	const minTootsSliderDefaultValue: number = useMemo(
 		() => computeMinTootsDefaultValue(filter.options, filter.propertyName),
-		[filter.options, filter.options.objs],
+		[filter.options, filter.options.objs, filter.propertyName],
 	);
 	const minTootsMaxValue = useMemo(
 		() => computeMinTootsMaxValue(filter.options, filter.propertyName),
-		[filter.options, filter.options.objs],
+		[filter.options, filter.options.objs, filter.propertyName],
 	);
+	const highlightTooltips =
+		booleanFiltersConfig.optionsFormatting[filter.propertyName]?.tooltips;
+	const minTootsTooltipDelay =
+		booleanFiltersConfig.minTootsSlider.tooltipHoverDelay;
 
 	const minTootsState = useState<number>(minTootsSliderDefaultValue);
 
-	if (minTootsState[0] == 0 && minTootsSliderDefaultValue > 0) {
+	if (minTootsState[0] === 0 && minTootsSliderDefaultValue > 0) {
 		logger.trace(
 			`Updating minToots from default of 0 to ${minTootsSliderDefaultValue}`,
 		);
@@ -92,13 +100,15 @@ export default function BooleanFilterAccordionSection(
 				isChecked={filter.invertSelection} // TODO: this is modifying the filter directly which isn't great
 				key={SwitchType.INVERT_SELECTION}
 				label={SwitchType.INVERT_SELECTION}
-				onChange={(e) => (filter.invertSelection = e.target.checked)}
+				onChange={(e) => {
+					filter.invertSelection = e.target.checked;
+				}}
 			/>,
 			makeHeaderSwitch(SwitchType.SORT_BY_COUNT),
 		];
 
 		// Add a highlights-only switch if there are highlighted tooltips configured for this filter
-		if (booleanFiltersConfig.optionsFormatting[filter.propertyName]?.tooltips) {
+		if (highlightTooltips) {
 			_headerSwitches = _headerSwitches.concat([
 				makeHeaderSwitch(SwitchType.HIGHLIGHTS_ONLY),
 			]);
@@ -112,12 +122,14 @@ export default function BooleanFilterAccordionSection(
 				<div key={`${filter.propertyName}-minTootsSlider`} className="w-[23%]">
 					<Tooltip
 						className="font-normal z-[2000]"
-						delayShow={booleanFiltersConfig.minTootsSlider.tooltipHoverDelay}
+						delayShow={minTootsTooltipDelay}
 						id={tooltipAnchor}
 						place="bottom"
 					/>
 
-					<a
+					<button
+						type="button"
+						className="text-left"
 						data-tooltip-id={tooltipAnchor}
 						data-tooltip-content={`Hide ${pluralizedPanelTitle} with less than ${minTootsState[0]} toots`}
 					>
@@ -130,7 +142,7 @@ export default function BooleanFilterAccordionSection(
 										min={1}
 										max={minTootsMaxValue}
 										onChange={(e) =>
-											minTootsState[1](parseInt(e.target.value, 10))
+											minTootsState[1](Number.parseInt(e.target.value, 10))
 										}
 										step={1}
 										style={{ width: "80%" }}
@@ -145,7 +157,7 @@ export default function BooleanFilterAccordionSection(
 								</div>
 							</div>
 						</div>
-					</a>
+					</button>
 				</div>,
 			);
 		}
@@ -153,10 +165,9 @@ export default function BooleanFilterAccordionSection(
 		return _headerSwitches;
 	}, [
 		filter,
-		filter.invertSelection,
-		filter.options,
-		switchState[SwitchType.HIGHLIGHTS_ONLY],
-		switchState[SwitchType.SORT_BY_COUNT],
+		highlightTooltips,
+		minTootsTooltipDelay,
+		makeHeaderSwitch,
 		minTootsMaxValue,
 		minTootsSliderDefaultValue,
 		minTootsState[0],
@@ -168,7 +179,7 @@ export default function BooleanFilterAccordionSection(
 		HeaderSwitch,
 	);
 
-	if (filter.propertyName == BooleanFilterName.HASHTAG) {
+	if (filter.propertyName === BooleanFilterName.HASHTAG) {
 		footerSwitches = Object.values(TagTootsCategory).map((k) =>
 			makeFooterSwitch(k),
 		);

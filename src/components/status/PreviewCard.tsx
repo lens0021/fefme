@@ -2,15 +2,15 @@
  * React component to display preview cards for links.
  * https://docs.joinmastodon.org/entities/PreviewCard/
  */
-import React from "react";
+import type React from "react";
 
-import parse from "html-react-parser";
 import { extractDomain } from "fedialgo";
+import parse from "html-react-parser";
+import type { mastodon } from "masto";
 import { LazyLoadImage } from "react-lazy-load-image-component";
-import { mastodon } from "masto";
 
-import NewTabLink from "../helpers/NewTabLink";
 import { config } from "../../config";
+import NewTabLink from "../helpers/NewTabLink";
 
 interface PreviewCardProps {
 	card: mastodon.v1.PreviewCard;
@@ -35,7 +35,10 @@ export default function PreviewCard(
 	// If link previews are disabled just return a link with the headline
 	if (!showLinkPreviews) {
 		return (
-			<NewTabLink className="status-card compact py-1.5 px-2.5 underline" href={card.url}>
+			<NewTabLink
+				className="status-card compact py-1.5 px-2.5 underline"
+				href={card.url}
+			>
 				{headline}
 			</NewTabLink>
 		);

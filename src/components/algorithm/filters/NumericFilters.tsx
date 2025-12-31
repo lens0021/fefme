@@ -5,12 +5,12 @@
  */
 import { capitalCase } from "change-case";
 
-import Accordion from "../../helpers/Accordion";
-import HeaderSwitch from "./HeaderSwitch";
-import Slider from "./../Slider";
 import { config } from "../../../config";
 import { SwitchType } from "../../../helpers/styles";
 import { useAlgorithm } from "../../../hooks/useAlgorithm";
+import Accordion from "../../helpers/Accordion";
+import Slider from "./../Slider";
+import HeaderSwitch from "./HeaderSwitch";
 
 export default function NumericFilters(props: { isActive: boolean }) {
 	const { isActive } = props;
@@ -24,24 +24,24 @@ export default function NumericFilters(props: { isActive: boolean }) {
 			switchbar={[
 				<HeaderSwitch
 					isChecked={numericFilters.every((filter) => filter.invertSelection)}
-					key={SwitchType.INVERT_SELECTION + "--numericFilters"}
+					key={`${SwitchType.INVERT_SELECTION}--numericFilters`}
 					label={SwitchType.INVERT_SELECTION}
 					// TODO: this edits the filter object directly which isn't great
-					onChange={(e) =>
-						numericFilters.forEach(
-							(filter) => (filter.invertSelection = e.target.checked),
-						)
-					}
+					onChange={(e) => {
+						for (const filter of numericFilters) {
+							filter.invertSelection = e.target.checked;
+						}
+					}}
 					tooltipText={config.filters.numeric.invertSelectionTooltipTxt}
 				/>,
 			]}
 			title={config.filters.numeric.title}
 		>
 			{Object.entries(algorithm.filters.numericFilters).map(
-				([name, numericFilter], i) => (
+				([name, numericFilter]) => (
 					<Slider
 						description={numericFilter.description}
-						key={`${numericFilter.propertyName}_${i}`}
+						key={numericFilter.propertyName}
 						label={capitalCase(numericFilter.propertyName)}
 						maxValue={config.filters.numeric.maxValue}
 						minValue={0}

@@ -3,7 +3,7 @@
  */
 import { useEffect } from "react";
 
-import { MediaCategory, Toot, VIDEO_TYPES } from "fedialgo";
+import { MediaCategory, type Toot, VIDEO_TYPES } from "fedialgo";
 
 import { getLogger } from "../../helpers/log_helpers";
 
@@ -28,7 +28,7 @@ export default function AttachmentsModal(props: AttachmentsModalProps) {
 				`<AttachmentsModal> Invalid media.url at idx ${mediaInspectionIdx}. toot:`,
 				toot,
 			);
-		} else if (media.type == MediaCategory.IMAGE) {
+		} else if (media.type === MediaCategory.IMAGE) {
 			element = (
 				<img alt={media.description ?? ""} src={media.url} width={"100%"} />
 			);
@@ -36,6 +36,7 @@ export default function AttachmentsModal(props: AttachmentsModalProps) {
 			element = (
 				<video controls width={"100%"}>
 					<source src={media.url} type="video/mp4" />
+					<track kind="captions" src={media.url} />
 					Your browser does not support the video tag.
 				</video>
 			);
@@ -67,24 +68,30 @@ export default function AttachmentsModal(props: AttachmentsModalProps) {
 
 		window.addEventListener("keydown", handleKeyDown);
 		return () => window.removeEventListener("keydown", handleKeyDown);
-	}, [mediaInspectionIdx, toot.imageAttachments]);
+	}, [
+		mediaInspectionIdx,
+		setMediaInspectionIdx,
+		toot.imageAttachments.length,
+		toot.mediaAttachments.length,
+	]);
 
 	if (!shouldShowModal) return null;
 
 	return (
-		<div
-			className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90"
-			onClick={() => setMediaInspectionIdx(-1)}
-		>
-			<div
-				className="bg-white rounded-lg shadow-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto"
-				onClick={(e) => e.stopPropagation()}
-			>
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90">
+			<button
+				type="button"
+				aria-label="Close dialog"
+				onClick={() => setMediaInspectionIdx(-1)}
+				className="absolute inset-0 h-full w-full cursor-default"
+			/>
+			<div className="relative z-10 bg-white rounded-lg shadow-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
 				<div className="p-4 border-b flex justify-between items-center">
 					<h3 className="text-lg font-semibold text-black">
 						{toot.contentShortened()}
 					</h3>
 					<button
+						type="button"
 						onClick={() => setMediaInspectionIdx(-1)}
 						className="text-2xl leading-none hover:text-gray-600"
 						aria-label="Close"

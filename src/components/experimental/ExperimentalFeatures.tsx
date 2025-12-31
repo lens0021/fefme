@@ -3,10 +3,10 @@
  */
 import { FEDIALGO } from "fedialgo";
 
-import Accordion from "../helpers/Accordion";
-import { confirm } from "../helpers/Confirmation";
 import { useAlgorithm } from "../../hooks/useAlgorithm";
 import { useAuthContext } from "../../hooks/useAuth";
+import Accordion from "../helpers/Accordion";
+import { confirm } from "../helpers/Confirmation";
 
 const DELETE_ALL = "Delete All Data & Logout";
 const LOAD_COMPLETE_USER_HISTORY = "Load Complete User History";
@@ -20,12 +20,7 @@ const BUTTON_TEXT = {
 		" Takes time & resources proportional to the number of times you've tooted.",
 };
 
-export const OAUTH_ERROR_MSG =
-	`If you were trying to bookmark, mute, or reply with an image you may have used` +
-	` ${FEDIALGO} before it requested the appropriate permissions to perform those actions.` +
-	` This can be fixed with the "${DELETE_ALL}" button in the Experimental Features` +
-	` section or by manually clearing your browser's local storage (cookies and everything else) for this site.` +
-	` and then logging back in.`;
+export const OAUTH_ERROR_MSG = `If you were trying to bookmark, mute, or reply with an image you may have used ${FEDIALGO} before it requested the appropriate permissions to perform those actions. This can be fixed with the "${DELETE_ALL}" button in the Experimental Features section or by manually clearing your browser's local storage (cookies and everything else) for this site. and then logging back in.`;
 
 export default function ExperimentalFeatures() {
 	const { algorithm, isLoading, triggerPullAllUserData } = useAlgorithm();
@@ -35,7 +30,7 @@ export default function ExperimentalFeatures() {
 	const wipeAll = async () => {
 		if (
 			!(await confirm(
-				`Are you sure you want to delete everything? You will be logged out and need to re-authenticate.`,
+				"Are you sure you want to delete everything? You will be logged out and need to re-authenticate.",
 			))
 		)
 			return;
@@ -55,8 +50,12 @@ export default function ExperimentalFeatures() {
 			: "bg-blue-600 hover:bg-blue-700 text-white";
 
 		return (
-			<li key={label} className="flex flex-row items-center text-[18px] mb-[2px]">
+			<li
+				key={label}
+				className="flex flex-row items-center text-[18px] mb-[2px]"
+			>
 				<button
+					type="button"
 					className={`${buttonClass} px-3 py-1.5 text-sm rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-center flex-[2] my-[5px]`}
 					disabled={isLoading}
 					onClick={onClick}
@@ -64,9 +63,7 @@ export default function ExperimentalFeatures() {
 					{isLoading ? "Loading..." : label}
 				</button>
 
-				<div className="flex-[4] text-sm ml-[10px]">
-					{BUTTON_TEXT[label]}
-				</div>
+				<div className="flex-[4] text-sm ml-[10px]">{BUTTON_TEXT[label]}</div>
 			</li>
 		);
 	};

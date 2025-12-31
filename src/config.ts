@@ -1,8 +1,9 @@
 /*
  * Configuration variables for the application.
  */
-import { CSSProperties } from "react";
+import type { CSSProperties } from "react";
 
+import { capitalCase } from "change-case";
 import TheAlgorithm, {
 	FEDIALGO,
 	BooleanFilterName,
@@ -13,18 +14,17 @@ import TheAlgorithm, {
 	optionalSuffix,
 	type FilterOptionDataSource,
 } from "fedialgo";
-import { capitalCase } from "change-case";
-import { mastodon } from "masto";
+import type { mastodon } from "masto";
 
+import type { TrendingPanelName } from "./components/TrendingSection";
 import { MB } from "./helpers/number_helpers";
 import { nTimes } from "./helpers/string_helpers";
-import { THEME, SwitchType, ThemeConfig } from "./helpers/styles";
-import {
-	type CheckboxTooltipConfig,
-	type GuiCheckboxLabel,
-	type LinkWithTooltipCfg,
+import { SwitchType, THEME, type ThemeConfig } from "./helpers/styles";
+import type {
+	CheckboxTooltipConfig,
+	GuiCheckboxLabel,
+	LinkWithTooltipCfg,
 } from "./helpers/tooltip_helpers";
-import { type TrendingPanelName } from "./components/TrendingSection";
 
 // Mastodon OAuth scopes required for this app to work. Details: https://docs.joinmastodon.org/api/oauth-scopes/
 const REQUIRED_OAUTH_SCOPES = [
@@ -189,9 +189,10 @@ interface ReadonlyConfig extends Readonly<ConfigType> {}
 // App level config that is not user configurable
 class Config implements ReadonlyConfig {
 	app: AppConfig = {
-		accessTokenRevokedMsg: `Your access token expired. Please log in again to continue using the app.`,
+		accessTokenRevokedMsg:
+			"Your access token expired. Please log in again to continue using the app.",
 		createAppParams: {
-			clientName: `Fefme`,
+			clientName: "Fefme",
 			scopes: REQUIRED_OAUTH_SCOPES.join(" "),
 			website: HOMEPAGE,
 		},
@@ -200,11 +201,11 @@ class Config implements ReadonlyConfig {
 		headerIconUrl:
 			"https://media.universeodon.com/accounts/avatars/109/363/179/904/598/380/original/eecdc2393e75e8bf.jpg",
 		issuesUrl: HOMEPAGE
-			? `https://${HOMEPAGE.replace(/(\w+)\.github\.io/, `github.com/$1`)}/issues`
+			? `https://${HOMEPAGE.replace(/(\w+)\.github\.io/, "github.com/$1")}/issues`
 			: "https://github.com/lens0021/fefme/issues",
 		repoName: HOMEPAGE ? HOMEPAGE.split("/").pop() : null,
 		repoUrl: HOMEPAGE
-			? HOMEPAGE.replace(/(\w+)\.github\.io/, `github.com/$1`)
+			? HOMEPAGE.replace(/(\w+)\.github\.io/, "github.com/$1")
 			: HOMEPAGE,
 		showcaseImageUrl:
 			"https://raw.githubusercontent.com/lens0021/fefme/refs/heads/main/public/assets/Showcase.jpg",
@@ -236,7 +237,7 @@ class Config implements ReadonlyConfig {
 										`${s} ${nTimes(n)} recently`,
 								},
 							},
-							text: `You favourited this hashtag`,
+							text: "You favourited this hashtag",
 						},
 						[TagTootsCategory.PARTICIPATED]: {
 							highlight: {
@@ -250,7 +251,7 @@ class Config implements ReadonlyConfig {
 										`${s} ${nTimes(n)} recently`,
 								},
 							},
-							text: `You tooted this hashtag`, // the string "N times" is appended in getTooltipInfo()
+							text: "You tooted this hashtag", // the string "N times" is appended in getTooltipInfo()
 						},
 						[TagTootsCategory.TRENDING]: {
 							highlight: {
@@ -260,13 +261,13 @@ class Config implements ReadonlyConfig {
 										`${s} (${n} recent toot${n > 1 ? "s" : ""})`,
 								},
 							},
-							text: `This hashtag is trending`,
+							text: "This hashtag is trending",
 						},
 						[TypeFilterName.FOLLOWED_HASHTAGS]: {
 							highlight: {
 								color: THEME.followedTagColor,
 							},
-							text: `You follow this hashtag`,
+							text: "You follow this hashtag",
 						},
 					},
 				},
@@ -282,7 +283,7 @@ class Config implements ReadonlyConfig {
 									},
 								},
 							},
-							text: `You used this language`,
+							text: "You used this language",
 						},
 					},
 				},
@@ -309,7 +310,7 @@ class Config implements ReadonlyConfig {
 										n ? `Interacted ${nTimes(n)} recently` : "",
 								},
 							},
-							text: `You follow this account`,
+							text: "You follow this account",
 						},
 					},
 				},
@@ -363,7 +364,7 @@ class Config implements ReadonlyConfig {
 
 	timeline: TimelineConfig = {
 		autoloadOnFocusAfterMinutes: 5, // Autoload new toots if timeline is this old (and feature is enabled)
-		apiErrorsUserMsgSuffix: `warnings while retrieving Mastodon data`,
+		apiErrorsUserMsgSuffix: "warnings while retrieving Mastodon data",
 		defaultLoadingMsg: "Loading (first time can take up to a minute or so)", // Message when first loading toots
 		defaultNumDisplayedToots: 20, // Default number of toots displayed in the timeline
 		dmBackgroundColor: "var(--color-dm-bg)", // Background color for DMs (theme-aware)
@@ -371,36 +372,36 @@ class Config implements ReadonlyConfig {
 		guiCheckboxLabels: {
 			allowMultiSelect: {
 				defaultValue: false,
-				label: `Allow Multiselect`,
+				label: "Allow Multiselect",
 				tooltipText:
 					"Allow selecting multiple filter options at the same time for a filter type.",
 			},
 			alwaysShowFollowed: {
 				defaultValue: true,
-				label: `Always Show Followed`,
+				label: "Always Show Followed",
 				tooltipText:
 					"Always show filter options for followed users and hashtags even if they have below the minimum toots threshold.",
 			},
 			autoupdate: {
 				defaultValue: false,
-				label: `Auto Update On Focus`,
+				label: "Auto Update On Focus",
 				tooltipText:
 					"Automatically fetch new toots whenever you view this browser tab.",
 			},
 			hideSensitive: {
 				defaultValue: true,
-				label: `Hide Sensitive Images`,
+				label: "Hide Sensitive Images",
 				tooltipText:
 					"Hide images marked as sensitive (NSFW etc.) behind a click through.",
 			},
 			showFilterHighlights: {
 				defaultValue: true,
-				label: `Color Highlights`,
-				tooltipText: `Show colored highlighting for notable filter options.`,
+				label: "Color Highlights",
+				tooltipText: "Show colored highlighting for notable filter options.",
 			},
 			showLinkPreviews: {
 				defaultValue: true,
-				label: `Show Link Previews`,
+				label: "Show Link Previews",
 				tooltipText: "Show the full preview card for embedded links.",
 			},
 		},
@@ -422,7 +423,7 @@ class Config implements ReadonlyConfig {
 			},
 		},
 
-		loadingErroMsg: `Currently loading, please wait a moment and try again.`, // Error message when busy
+		loadingErroMsg: "Currently loading, please wait a moment and try again.", // Error message when busy
 		noTootsMsg: "No toots in feed! Maybe check your filters settings?", // Message when no toots are available
 		numTootsToLoadOnScroll: 10, // Number of toots to load on scroll to bottom of page
 		tooltips: {

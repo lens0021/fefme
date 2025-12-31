@@ -3,14 +3,13 @@
  */
 import { ConfirmDialog, confirmable, createConfirmation } from "react-confirm";
 
-
 interface ConfirmationProps {
 	okLabel?: string;
 	cancelLabel?: string;
 	title?: string;
 	confirmation: string;
 	show: boolean;
-	proceed: (shouldProceed: boolean) => any; // called when ok button is clicked.
+	proceed: (shouldProceed: boolean) => void; // called when ok button is clicked.
 	enableEscape?: boolean;
 }
 
@@ -28,14 +27,15 @@ const Confirmation = (props: ConfirmationProps) => {
 	if (!show) return null;
 
 	return (
-		<div
-			className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-			onClick={enableEscape ? () => proceed(false) : undefined}
-		>
-			<div
-				className="bg-white text-black rounded-lg shadow-lg max-w-md w-full mx-4"
-				onClick={(e) => e.stopPropagation()}
-			>
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+			<button
+				type="button"
+				aria-label="Close dialog"
+				disabled={!enableEscape}
+				onClick={enableEscape ? () => proceed(false) : undefined}
+				className="absolute inset-0 h-full w-full cursor-default"
+			/>
+			<div className="relative z-10 bg-white text-black rounded-lg shadow-lg max-w-md w-full mx-4">
 				<div className="p-4 border-b">
 					<h3 className="text-lg font-semibold">{title}</h3>
 				</div>
@@ -44,6 +44,7 @@ const Confirmation = (props: ConfirmationProps) => {
 
 				<div className="p-4 border-t flex gap-2 justify-end">
 					<button
+						type="button"
 						onClick={() => proceed(false)}
 						className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition-colors"
 					>
@@ -51,6 +52,7 @@ const Confirmation = (props: ConfirmationProps) => {
 					</button>
 
 					<button
+						type="button"
 						onClick={() => proceed(true)}
 						className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
 					>
@@ -64,14 +66,14 @@ const Confirmation = (props: ConfirmationProps) => {
 
 export function confirm(
 	confirmation: string,
-	okLabel: string = "OK",
-	cancelLabel: string = "Cancel",
-	options: any = {},
+	okLabel = "OK",
+	cancelLabel = "Cancel",
+	options: Record<string, unknown> = {},
 ) {
 	return createConfirmation(confirmable(Confirmation))({
 		confirmation,
 		okLabel,
 		cancelLabel,
 		...options,
-	});
+	} as ConfirmationProps);
 }

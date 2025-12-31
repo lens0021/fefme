@@ -2,7 +2,7 @@
  * React component to display polls, mostly ripped from poll.tsx in Mastodon repo
  */
 import React, {
-	KeyboardEventHandler,
+	type KeyboardEventHandler,
 	useCallback,
 	useMemo,
 	useState,
@@ -11,13 +11,13 @@ import React, {
 import { faCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isAccessTokenRevokedError, timeString } from "fedialgo";
-import { mastodon } from "masto";
+import type { mastodon } from "masto";
 
+import { useError } from "../../components/helpers/ErrorHandler";
 import { getLogger } from "../../helpers/log_helpers";
 import { useAlgorithm } from "../../hooks/useAlgorithm";
-import { useError } from "../../components/helpers/ErrorHandler";
 
-const ALREADY_VOTED_MSG = `You have already voted`;
+const ALREADY_VOTED_MSG = "You have already voted";
 
 const logger = getLogger("Poll");
 
@@ -76,7 +76,7 @@ export default function Poll(props: PollProps) {
 	const vote = async () => {
 		const choiceIndexes = Object.keys(selected)
 			.filter((k) => selected[k])
-			.map((n) => parseInt(n));
+			.map((n) => Number.parseInt(n));
 		logger.debug(
 			"Vote clicked, selected is:",
 			selected,
@@ -94,10 +94,9 @@ export default function Poll(props: PollProps) {
 				"\nchoiceIndexes:",
 				choiceIndexes,
 			);
-			choiceIndexes.forEach(
-				(i) =>
-					(poll.options[i].votesCount = (poll.options[i].votesCount || 0) + 1),
-			);
+			for (const i of choiceIndexes) {
+				poll.options[i].votesCount = (poll.options[i].votesCount || 0) + 1;
+			}
 			poll.voted = true;
 			poll.ownVotes = choiceIndexes;
 			poll.votersCount = (poll.votersCount || 0) + 1;
@@ -112,7 +111,7 @@ export default function Poll(props: PollProps) {
 			} else if (error.message.includes(ALREADY_VOTED_MSG)) {
 				handleError("You have already voted in this poll.");
 			} else {
-				handleError(`Error voting in poll!`, error);
+				handleError("Error voting in poll!", error);
 			}
 		}
 	};
@@ -155,6 +154,7 @@ export default function Poll(props: PollProps) {
 			<div className="poll__footer">
 				{!showResults && (
 					<button
+						type="button"
 						className="button button-secondary"
 						disabled={voteDisabled}
 						onClick={vote}
@@ -166,6 +166,7 @@ export default function Poll(props: PollProps) {
 				{!disabled && (
 					<>
 						<button
+							type="button"
 							className="poll__link"
 							onClick={() => {
 								logger.debug(
@@ -214,9 +215,9 @@ function PollOption(props) {
 	const isLeading = useMemo(
 		() =>
 			poll.options
-				.filter((o) => o.title !== o.title)
-				.every((o) => o.votesCount >= o.votesCount),
-		[poll, option],
+				.filter((o) => o.title !== option.title)
+				.every((o) => o.votesCount >= option.votesCount),
+		[option.title, option.votesCount, poll.options],
 	);
 
 	// Handlers
@@ -237,7 +238,7 @@ function PollOption(props) {
 
 	return (
 		<li>
-			<label className={"poll__option" + (showResults ? "" : " selectable")}>
+			<label className={`poll__option${showResults ? "" : " selectable"}`}>
 				<input
 					checked={active}
 					disabled={disabled}

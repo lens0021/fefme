@@ -1,4 +1,4 @@
-import { useState } from "react";
+import type { useState } from "react";
 
 import type { mastodon } from "masto";
 
@@ -13,7 +13,6 @@ export type ReactState<T> = ReturnType<typeof useState<T>>;
 // App and User are vestiges of the original pkreissel implementation
 export interface App extends mastodon.v1.Client {
 	redirectUri?: string;
-	[key: string]: unknown;
 }
 
 export type ServerUser = {

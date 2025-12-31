@@ -1,7 +1,7 @@
 /*
  * Drop down button that starts with a default but updates to take a value.
  */
-import React, { CSSProperties } from "react";
+import React, { type CSSProperties } from "react";
 
 interface LabeledDropdownButton {
 	id?: string;

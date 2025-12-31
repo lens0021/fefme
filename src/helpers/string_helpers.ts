@@ -4,8 +4,8 @@
 import { AgeIn } from "fedialgo";
 import { isEmpty, isNil } from "lodash";
 
-import { appLogger } from "./log_helpers";
 import { config } from "../config";
+import { appLogger } from "./log_helpers";
 
 // Window events: https://developer.mozilla.org/en-US/docs/Web/API/Element/focus_event
 export enum Events {
@@ -38,7 +38,7 @@ export const nTimes = (n: number) => `${n} time${n === 1 ? "" : "s"}`;
 // Boolean helpers
 export const hasAnyCapitalLetters = (str: string) => /[A-Z]/.test(str);
 export const isEmptyStr = (s: string | null | undefined) =>
-	isNil(s) || isEmpty(s!.trim());
+	isNil(s) || isEmpty(s?.trim());
 
 // "image/png" => ".png"
 export function mimeTypeExtension(mimeType: string): string {
@@ -65,20 +65,22 @@ function ordinalSuffix(n: number): string {
 // Remove http:// or https:// from the server URL, Remove everything after slash
 export function sanitizeServerUrl(
 	server: string,
-	withHttpPrefix: boolean = false,
+	withHttpPrefix = false,
 ): string {
-	server = server.replace(/^https?:\/\//, "").split("/")[0];
+	const cleanedServer = server.replace(/^https?:\/\//, "").split("/")[0];
 
-	if (!/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,10}$/.test(server)) {
-		throw new Error(`"${server}" does not appear to be a valid server URL.`);
+	if (!/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,10}$/.test(cleanedServer)) {
+		throw new Error(
+			`"${cleanedServer}" does not appear to be a valid server URL.`,
+		);
 	}
 
-	return withHttpPrefix ? `https://${server}` : server;
+	return withHttpPrefix ? `https://${cleanedServer}` : cleanedServer;
 }
 
 // Converts a number to a string with the number of decimal places dependent on the value.
 export const scoreString = (score: number | null): string => {
-	if (!score && score != 0) return "?";
+	if (!score && score !== 0) return "?";
 	let decimalPlaces = 1;
 
 	// find the number of decimal places before a non-zero digit
@@ -105,7 +107,7 @@ export const scoreString = (score: number | null): string => {
 export const timestampString = (_timestamp: string): string => {
 	const timestamp = new Date(_timestamp);
 	const ageInSeconds = AgeIn.seconds(timestamp);
-	const isToday = timestamp.getDate() == new Date().getDate();
+	const isToday = timestamp.getDate() === new Date().getDate();
 	let str: string;
 
 	if (isToday && ageInSeconds < 3600 * 48) {
@@ -132,6 +134,6 @@ export const versionString = () => {
 		return process.env.FEDIALGO_VERSION;
 	} catch (e) {
 		appLogger.error(`Error getting version string: ${e}`);
-		return `?.?.?`;
+		return "?.?.?";
 	}
 };

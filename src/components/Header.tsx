@@ -29,6 +29,7 @@ export default function Header(): JSX.Element {
 				<div>
 					{user && (
 						<button
+							type="button"
 							onClick={() => logout()}
 							className="text-sm border border-red-600 text-red-600 hover:bg-red-600 hover:text-white px-3 py-1 rounded transition-colors"
 						>

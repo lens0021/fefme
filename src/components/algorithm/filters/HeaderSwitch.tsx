@@ -2,19 +2,19 @@
  * Component for the switches in the header of filter sections (invert selection,
  * sort by count, etc.).
  */
-import { ChangeEvent } from "react";
+import type { ChangeEvent } from "react";
 
 import { TagTootsCategory } from "fedialgo";
 import { Tooltip } from "react-tooltip";
 
-import Checkbox from "../../helpers/Checkbox";
-import { CheckboxTooltipConfig } from "../../../helpers/tooltip_helpers";
 import { config } from "../../../config";
 import { getLogger } from "../../../helpers/log_helpers";
 import { SwitchType } from "../../../helpers/styles";
+import type { CheckboxTooltipConfig } from "../../../helpers/tooltip_helpers";
 import { useAlgorithm } from "../../../hooks/useAlgorithm";
+import Checkbox from "../../helpers/Checkbox";
 
-const HEADER_SWITCH_TOOLTIP_ANCHOR = `header-switch-tooltip-anchor`;
+const HEADER_SWITCH_TOOLTIP_ANCHOR = "header-switch-tooltip-anchor";
 
 const TAG_HIGHLIGHT_LABELS: Record<TagTootsCategory, string> = {
 	[TagTootsCategory.FAVOURITED]: "Colour Favourites",
@@ -67,7 +67,7 @@ export default function HeaderSwitch(props: HeaderSwitchProps) {
 	return (
 		<Checkbox
 			capitalize={true}
-			disabled={label == SwitchType.HIGHLIGHTS_ONLY && !showFilterHighlights}
+			disabled={label === SwitchType.HIGHLIGHTS_ONLY && !showFilterHighlights}
 			isChecked={isChecked}
 			label={TAG_HIGHLIGHT_LABELS[label] || label}
 			onChange={onChange}

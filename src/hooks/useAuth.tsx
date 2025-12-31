@@ -2,24 +2,24 @@
  * @fileoverview Authorization context for the app.
  */
 import React, {
-	PropsWithChildren,
+	type PropsWithChildren,
 	createContext,
 	useContext,
+	useCallback,
 	useMemo,
 } from "react";
 import { useNavigate } from "react-router-dom";
 
 import axios from "axios";
 
+import { useError } from "../components/helpers/ErrorHandler";
 import { getLogger } from "../helpers/log_helpers";
+import type { User } from "../types";
 import {
 	useAppStorage,
-	useServerStorage,
 	useServerUserStorage,
 	useUserStorage,
 } from "./useLocalStorage";
-import { useError } from "../components/helpers/ErrorHandler";
-import { type User } from "../types";
 
 const logger = getLogger("AuthProvider");
 
@@ -38,7 +38,6 @@ export default function AuthProvider(props: PropsWithChildren) {
 	const serverUserState = useServerUserStorage();
 	const [app, setApp] = useAppStorage(serverUserState);
 	const [user, setUser] = useUserStorage(serverUserState);
-	const [server] = useServerStorage();
 
 	// User object looks like this:
 	// {
@@ -48,43 +47,53 @@ export default function AuthProvider(props: PropsWithChildren) {
 	//     server: "https://universeodon.com"
 	//     username: "cryptadamus"
 	// }
-	const setLoggedInUser = async (user: User) => {
-		setUser(user);
-		logger.debug(`Logged in user "${user.username}"`);
-		navigate("/");
-	};
+	const setLoggedInUser = useCallback(
+		async (user: User) => {
+			setUser(user);
+			logger.debug(`Logged in user "${user.username}"`);
+			navigate("/");
+		},
+		[navigate, setUser],
+	);
 
 	// Call this function to sign out logged in user (revoke their OAuth token) and reset the app state.
 	// If preserveAppErrors is true, which happens during forced logouts because of API errors,
 	// don't reset the app's error state, so that the error modal can be shown after logout.
-	const logout = async (preserveAppErrors: boolean = false): Promise<void> => {
-		logger.log("logout() called with preserveAppErrors:", preserveAppErrors);
-		const body = new FormData();
-		body.append("token", user.access_token);
-		body.append("client_id", app.clientId);
-		body.append("client_secret", app.clientSecret);
-		const oauthRevokeURL = user.server + "/oauth/revoke";
+	const logout = useCallback(
+		async (preserveAppErrors = false): Promise<void> => {
+			if (!user || !app) {
+				logger.warn("logout() called without user or app");
+				return;
+			}
+			logger.log("logout() called with preserveAppErrors:", preserveAppErrors);
+			const body = new FormData();
+			body.append("token", user.access_token);
+			body.append("client_id", app.clientId ?? "");
+			body.append("client_secret", app.clientSecret ?? "");
+			const oauthRevokeURL = `${user.server}/oauth/revoke`;
 
-		// POST to oauthRevokeURL throws error but log shows "Status code: 200" so I think it works? Hard to
-		// get at the actual status code variable (it's only in the low level logs).
-		// Error: "Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://universeodon.com/oauth/revoke. (Reason: CORS header ‘Access-Control-Allow-Origin’ missing). Status code: 200.""
-		try {
-			const _logoutResponse = await axios.post(oauthRevokeURL, body);
-		} catch (error) {
-			logger.warn(
-				`(Probably innocuous) error while trying to logout "${error}":`,
-				error,
-			);
-		}
+			// POST to oauthRevokeURL throws error but log shows "Status code: 200" so I think it works? Hard to
+			// get at the actual status code variable (it's only in the low level logs).
+			// Error: "Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://universeodon.com/oauth/revoke. (Reason: CORS header ‘Access-Control-Allow-Origin’ missing). Status code: 200.""
+			try {
+				const _logoutResponse = await axios.post(oauthRevokeURL, body);
+			} catch (error) {
+				logger.warn(
+					`(Probably innocuous) error while trying to logout "${error}":`,
+					error,
+				);
+			}
 
-		!preserveAppErrors && resetErrors();
-		setUser(null);
-		navigate("/#/login", { replace: true });
-	};
+			!preserveAppErrors && resetErrors();
+			setUser(null);
+			navigate("/#/login", { replace: true });
+		},
+		[app.clientId, app.clientSecret, navigate, resetErrors, setUser, user],
+	);
 
 	const value = useMemo(
 		() => ({ logout, setLoggedInUser, setApp, setUser, user }),
-		[app, server, user],
+		[logout, setApp, setLoggedInUser, setUser, user],
 	);
 
 	return (

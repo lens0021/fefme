@@ -2,7 +2,8 @@
  * Simple component for links that open in a new tab.
  */
 
-import React, { CSSProperties, PropsWithChildren, ReactElement } from "react";
+import type React from "react";
+import type { CSSProperties, PropsWithChildren, ReactElement } from "react";
 
 interface NewTabLinkProps extends PropsWithChildren {
 	className?: string;

@@ -1,26 +1,26 @@
-import React, { useMemo, useState } from "react";
+import type React from "react";
+import { useMemo, useState } from "react";
 
 import { capitalCase } from "change-case";
 import {
-	TagTootsCategory,
-	TrendingType,
-	optionalSuffix,
 	type TagList,
+	type TagTootsCategory,
 	type TagWithUsageCounts,
 	type TrendingObj,
+	type TrendingType,
+	optionalSuffix,
 } from "fedialgo";
 import { Tooltip } from "react-tooltip";
 
-import Accordion from "./helpers/Accordion";
-import NewTabLink from "./helpers/NewTabLink";
 import { config } from "../config";
+import { getLogger } from "../helpers/log_helpers";
 import {
 	computeMinTootsDefaultValue,
 	computeMinTootsMaxValue,
 } from "../helpers/min_toots";
-import { getLogger } from "../helpers/log_helpers";
 import { gridify } from "../helpers/react_helpers";
-import { useAlgorithm } from "../hooks/useAlgorithm";
+import Accordion from "./helpers/Accordion";
+import NewTabLink from "./helpers/NewTabLink";
 
 export type TrendingListObj = TrendingObj | string;
 export type TrendingPanelName =
@@ -60,11 +60,12 @@ type TrendingProps = TrendingTagListProps | TrendingObjsProps;
 /** Component for displaying a list of trending links, toots, or hashtags. */
 export default function TrendingSection(props: TrendingProps) {
 	const { linkRenderer, objRenderer, tagList, trendingObjs } = props;
-	const { isLoading } = useAlgorithm();
-
 	const panelType = props.panelType ?? (tagList?.source as TrendingPanelName);
-	const logger = useMemo(() => getLogger("TrendingSection", panelType), []);
-	logger.trace(`Rendering...`);
+	const logger = useMemo(
+		() => getLogger("TrendingSection", panelType),
+		[panelType],
+	);
+	logger.trace("Rendering...");
 
 	if (!objRenderer && !linkRenderer) {
 		logger.error(
@@ -123,30 +124,33 @@ export default function TrendingSection(props: TrendingProps) {
 		};
 
 		return (
-			<div key={`footer-${title}`} className="flex justify-around w-full mb-[5px]">
+			<div
+				key={`footer-${title}`}
+				className="flex justify-around w-full mb-[5px]"
+			>
 				<div className="w-[40%]">
 					{"("}
-					<a
+					<button
+						type="button"
 						onClick={toggleShown}
 						className="font-bold underline cursor-pointer font-mono text-[#1b5b61]"
 						style={{ fontSize: config.theme.trendingObjFontSize - 1 }}
 					>
-						{numShown == panelCfg.initialNumShown
+						{numShown === panelCfg.initialNumShown
 							? `show all ${trendingObjs.length} ${objTypeLabel}`
 							: `show fewer ${objTypeLabel}`}
-					</a>
+					</button>
 					{")"}
 				</div>
 			</div>
 		);
 	}, [
-		isLoading,
-		minTootsState[0],
 		numShown,
-		panelType,
 		tagList,
-		trendObjs,
-		trendObjs.length,
+		trendingObjs.length,
+		objTypeLabel,
+		panelCfg.initialNumShown,
+		title,
 	]);
 
 	// Memoize because react profiler says trending panels are most expensive to render
@@ -176,10 +180,12 @@ export default function TrendingSection(props: TrendingProps) {
 			);
 		}
 
+		if (!linkRenderer) return null;
+
 		logger.trace(
 			`Sliced trendObjs to ${objs.length} items (minTootsState=${minTootsState[0]}, numShown=${numShown})`,
 		);
-		const { infoTxt, linkLabel, linkUrl, onClick } = linkRenderer!;
+		const { infoTxt, linkLabel, linkUrl, onClick } = linkRenderer;
 		const labels = objs.map(
 			(o) => `${linkLabel(o)}${optionalSuffix(infoTxt, infoTxt(o))}`,
 		);
@@ -205,8 +211,8 @@ export default function TrendingSection(props: TrendingProps) {
 				"rounded-[20px] bg-[#d3d3d3] pl-[25px] pr-[20px] pt-[20px] pb-[13px]";
 		}
 
-		const elements = objs.map((obj, i) => (
-			<li key={`${title}-${i}-list-item`} className="mb-[4px]">
+		const elements = objs.map((obj) => (
+			<li key={linkUrl(obj)} className="mb-[4px]">
 				<NewTabLink
 					href={linkUrl(obj)}
 					onClick={(e) => onClick(obj, e)}
@@ -259,14 +265,16 @@ export default function TrendingSection(props: TrendingProps) {
 			</div>
 		);
 	}, [
-		isLoading,
+		footer,
+		linkRenderer,
+		logger,
 		minTootsState[0],
 		numShown,
+		objRenderer,
 		panelCfg,
 		panelType,
 		tagList,
 		trendObjs,
-		trendObjs.length,
 	]);
 
 	const slider = useMemo(() => {
@@ -284,7 +292,9 @@ export default function TrendingSection(props: TrendingProps) {
 					place="bottom"
 				/>
 
-				<a
+				<button
+					type="button"
+					className="text-left"
 					data-tooltip-id={tooltipAnchor}
 					data-tooltip-content={`Hide ${pluralizedPanelTitle} with less than ${minTootsState[0]} toots`}
 				>
@@ -297,7 +307,7 @@ export default function TrendingSection(props: TrendingProps) {
 									min={1}
 									max={minTootsMaxValue}
 									onChange={(e) =>
-										minTootsState[1](parseInt(e.target.value, 10))
+										minTootsState[1](Number.parseInt(e.target.value, 10))
 									}
 									step={1}
 									style={{ width: "80%" }}
@@ -312,7 +322,7 @@ export default function TrendingSection(props: TrendingProps) {
 							</div>
 						</div>
 					</div>
-				</a>
+				</button>
 			</div>
 		);
 	}, [minTootsMaxValue, minTootsState[0], panelType, tagList, title]);
@@ -323,11 +333,10 @@ export default function TrendingSection(props: TrendingProps) {
 				{trendingItemList}
 			</Accordion>
 		);
-	} else {
-		return (
-			<Accordion key={panelType} title={title}>
-				{trendingItemList}
-			</Accordion>
-		);
 	}
+	return (
+		<Accordion key={panelType} title={title}>
+			{trendingItemList}
+		</Accordion>
+	);
 }

@@ -2,9 +2,9 @@
  * Modal to display JSON data.
  * React Bootstrap Modal: https://getbootstrap.com/docs/5.0/components/modal/
  */
-import React, { CSSProperties } from "react";
+import React, { type CSSProperties } from "react";
 
-import { DataKey } from "recharts/types/util/types";
+import { type MinMaxAvgScore, ScoreName, type ScoreStats } from "fedialgo";
 import {
 	Legend,
 	Line,
@@ -14,14 +14,14 @@ import {
 	XAxis,
 	YAxis,
 } from "recharts";
-import { MinMaxAvgScore, ScoreName, ScoreStats } from "fedialgo";
+import type { DataKey } from "recharts/types/util/types";
 
-import LabeledDropdownButton from "../helpers/LabeledDropdownButton";
 import { config } from "../../config";
 import { formatScore } from "../../helpers/number_helpers";
-import { ModalProps } from "../../types";
 import { RECHARTS_COLORS } from "../../helpers/styles";
 import { useAlgorithm } from "../../hooks/useAlgorithm";
+import type { ModalProps } from "../../types";
+import LabeledDropdownButton from "../helpers/LabeledDropdownButton";
 
 const SCORE_TYPES: (keyof ScoreStats)[] = ["raw", "weighted"];
 const VALUE_TYPES: (keyof MinMaxAvgScore)[] = [
@@ -32,7 +32,7 @@ const VALUE_TYPES: (keyof MinMaxAvgScore)[] = [
 ];
 
 export default function StatsModal(props: ModalProps) {
-	let { dialogClassName, show, setShow, title } = props;
+	const { dialogClassName, show, setShow, title } = props;
 	const { algorithm } = useAlgorithm();
 	if (!algorithm) return <> </>;
 
@@ -60,17 +60,20 @@ export default function StatsModal(props: ModalProps) {
 	const sizeClass = dialogClassName === "modal-xl" ? "max-w-6xl" : "max-w-2xl";
 
 	return (
-		<div
-			className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-			onClick={() => setShow(false)}
-		>
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+			<button
+				type="button"
+				aria-label="Close dialog"
+				onClick={() => setShow(false)}
+				className="absolute inset-0 h-full w-full cursor-default"
+			/>
 			<div
-				className={`bg-white rounded-lg shadow-lg ${sizeClass} w-full mx-4 max-h-[90vh] overflow-y-auto`}
-				onClick={(e) => e.stopPropagation()}
+				className={`relative z-10 bg-white rounded-lg shadow-lg ${sizeClass} w-full mx-4 max-h-[90vh] overflow-y-auto`}
 			>
 				<div className="p-4 border-b flex justify-between items-center text-black">
 					<h3 className="text-lg font-semibold">{title}</h3>
 					<button
+						type="button"
 						onClick={() => setShow(false)}
 						className="text-2xl leading-none hover:text-gray-600"
 						aria-label="Close"
