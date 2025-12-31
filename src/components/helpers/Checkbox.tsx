@@ -18,7 +18,11 @@ export const FILTER_TOOLTIP_ANCHOR = "user-hashtag-anchor";
 export const HIGHLIGHTED_TOOLTIP_ANCHOR = "user-hashtag-anchor-highlighted";
 
 export const HIGHLIGHTED_TOOLTIP = (
-	<Tooltip className="z-[2000]" id={HIGHLIGHTED_TOOLTIP_ANCHOR} place="top" />
+	<Tooltip
+		className="z-[2000] max-w-[calc(100vw-2rem)] whitespace-normal break-words"
+		id={HIGHLIGHTED_TOOLTIP_ANCHOR}
+		place="top"
+	/>
 );
 
 interface CheckboxProps {
@@ -172,7 +176,7 @@ export function persistentCheckbox(
 		checkbox,
 		<Tooltip
 			key={tooltipAnchor}
-			className="z-[2000]"
+			className="z-[2000] max-w-[calc(100vw-2rem)] whitespace-normal break-words"
 			delayShow={config.timeline.tooltips.defaultTooltipDelayMS}
 			id={tooltipAnchor}
 			place="bottom"

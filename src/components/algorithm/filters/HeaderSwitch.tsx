@@ -34,7 +34,7 @@ const logger = getLogger("HeaderSwitch");
 // This must appear somewhere in the component tree for the header switch tooltips to work
 export const HEADER_SWITCH_TOOLTIP = (
 	<Tooltip
-		className="z-[2000]"
+		className="z-[2000] max-w-[calc(100vw-2rem)] whitespace-normal break-words"
 		delayShow={config.filters.headerSwitches.tooltipHoverDelay}
 		id={HEADER_SWITCH_TOOLTIP_ANCHOR}
 		place="top"

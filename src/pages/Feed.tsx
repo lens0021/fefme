@@ -171,7 +171,7 @@ export default function Feed() {
 				{/* Tooltip options: https://react-tooltip.com/docs/options */}
 				<Tooltip
 					border={"solid"}
-					className="z-[2000] max-w-xs"
+					className="z-[2000] max-w-[calc(100vw-2rem)] whitespace-normal break-words"
 					clickable={true}
 					delayShow={config.timeline.tooltips.accountTooltipDelayMS}
 					id={TOOLTIP_ACCOUNT_ANCHOR}
@@ -293,7 +293,7 @@ export default function Feed() {
 							<div className="text-center text-xs">
 								<Tooltip
 									border={"solid"}
-									className="text-xs z-[2000] max-w-xs"
+									className="text-xs z-[2000] max-w-[calc(100vw-2rem)] whitespace-normal break-words"
 									delayShow={config.timeline.tooltips.defaultTooltipDelayMS}
 									id={LOAD_BUTTON_TOOLTIP_ANCHOR}
 									opacity={0.95}

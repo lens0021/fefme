@@ -267,7 +267,7 @@ export default function TrendingSection(props: TrendingProps) {
 		return (
 			<div key={`${panelType}-minTootsSlider`} className="w-full">
 				<Tooltip
-					className="font-normal z-[2000]"
+					className="font-normal z-[2000] max-w-[calc(100vw-2rem)] whitespace-normal break-words"
 					delayShow={config.filters.boolean.minTootsSlider.tooltipHoverDelay}
 					id={tooltipAnchor}
 					place="bottom"

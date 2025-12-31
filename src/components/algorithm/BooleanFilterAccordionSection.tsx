@@ -121,7 +121,7 @@ export default function BooleanFilterAccordionSection(
 			_headerSwitches = _headerSwitches.concat(
 				<div key={`${filter.propertyName}-minTootsSlider`} className="w-full">
 					<Tooltip
-						className="font-normal z-[2000]"
+						className="font-normal z-[2000] max-w-[calc(100vw-2rem)] whitespace-normal break-words"
 						delayShow={minTootsTooltipDelay}
 						id={tooltipAnchor}
 						place="bottom"
