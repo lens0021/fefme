@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Fefme logo">
+  <defs>
+    <linearGradient id="drop" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#36b860"/>
+      <stop offset="1" stop-color="#0f7a4a"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#bff171"/>
+      <stop offset="1" stop-color="#7fda4f"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="#cfe3b2"/>
+  <g fill="#f7f7f7">
+    <path d="M120 330c-8 28 6 70 56 82 44 10 62-14 80-44 8-14 18-26 28-34-12-6-26-10-44-10-60 0-110 6-120 6z"/>
+    <path d="M392 330c8 28-6 70-56 82-44 10-62-14-80-44-8-14-18-26-28-34 12-6 26-10 44-10 60 0 110 6 120 6z"/>
+  </g>
+  <path fill="url(#drop)" d="M256 92c-46 44-70 92-70 144 0 74 36 144 70 184 34-40 70-110 70-184 0-52-24-100-70-144z"/>
+  <path fill="url(#drop)" d="M256 70c24 24 36 44 46 72 10 28 34 38 52 50-24 4-40 18-50 36-16-30-34-52-48-68-14 16-32 38-48 68-10-18-26-32-50-36 18-12 42-22 52-50 10-28 22-48 46-72z"/>
+  <g fill="url(#glow)">
+    <ellipse cx="240" cy="260" rx="18" ry="28"/>
+    <ellipse cx="282" cy="250" rx="14" ry="24"/>
+    <ellipse cx="262" cy="300" rx="12" ry="20"/>
+  </g>
+  <g fill="#3aae56">
+    <circle cx="176" cy="164" r="8"/>
+    <circle cx="206" cy="144" r="6"/>
+    <circle cx="336" cy="150" r="7"/>
+    <circle cx="352" cy="176" r="8"/>
+    <circle cx="156" cy="214" r="6"/>
+    <circle cx="356" cy="224" r="6"/>
+  </g>
+</svg>

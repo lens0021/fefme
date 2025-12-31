@@ -36,12 +36,3 @@
 		transform: rotate(360deg);
 	}
 }
-
-/* @font-face {
-    font-family: 'AnonymousPro';
-    font-weight: 'bold';
-    font-style: 'normal';
-    src: url('/fonts/AnonymousPro-Bold.woff') format('woof'),
-         url('/fonts/AnonymousPro-Bold.woff2') format('woff2'),
-         url('/fonts/AnonymousPro-Bold.ttf') format('truetype');
- } */
