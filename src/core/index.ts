@@ -344,6 +344,15 @@ export default class TheAlgorithm {
 					MastodonServer.fediverseTrendingToots(),
 					loggers[FediverseCacheKey.TRENDING_TOOTS],
 				),
+				// Federated timeline toots
+				MastoApi.instance
+					.getFederatedTimelineStatuses(40)
+					.then((statuses) =>
+						Toot.buildToots(statuses, FEDERATED_TIMELINE_SOURCE),
+					)
+					.then((toots) =>
+						this.lockedMergeToFeed(toots, new Logger(FEDERATED_TIMELINE_SOURCE)),
+					),
 				...Object.values(TagTootsCategory).map(
 					async (key) => await tootsForHashtags(key),
 				),

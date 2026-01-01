@@ -280,21 +280,11 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 	);
 
 	const triggerFeedUpdate = useCallback(
-		() =>
-			algorithm &&
-			trigger(async () => {
-				await algorithm.triggerFeedUpdate();
-				await algorithm.triggerFederatedTimelineMerge();
-			}),
+		() => algorithm && trigger(() => algorithm.triggerFeedUpdate()),
 		[algorithm, trigger],
 	);
 	const triggerHomeTimelineBackFill = useCallback(
-		() =>
-			algorithm &&
-			trigger(async () => {
-				await algorithm.triggerHomeTimelineBackFill();
-				await algorithm.triggerFederatedTimelineMerge();
-			}),
+		() => algorithm && trigger(() => algorithm.triggerHomeTimelineBackFill()),
 		[algorithm, trigger],
 	);
 	const triggerMoarData = useCallback(
