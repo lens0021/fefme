@@ -7,7 +7,12 @@ import type Toot from "../api/objects/toot";
 import type TagList from "../api/tag_list";
 import TagsForFetchingToots from "../api/tags_for_fetching_toots";
 import { config } from "../config";
-import { BooleanFilterName, ScoreName, type TagTootsCategory } from "../enums";
+import {
+	BooleanFilterName,
+	ScoreName,
+	UNKNOWN_SOURCE,
+	type TagTootsCategory,
+} from "../enums";
 import {
 	incrementCount,
 	sortedDictString,
@@ -220,6 +225,10 @@ export async function updateBooleanFilterOptions(
 			decorateLanguage,
 		);
 		const sourceSet = new Set(toot.sources ?? []);
+		if (sourceSet.size === 0) {
+			// Add "Unknown" as a source when the toot has no sources
+			sourceSet.add(UNKNOWN_SOURCE);
+		}
 		sourceSet.forEach((source) => {
 			optionLists[BooleanFilterName.SOURCE].incrementCount(source);
 		});

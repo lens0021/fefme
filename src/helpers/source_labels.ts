@@ -5,6 +5,7 @@ import {
 	FEDERATED_TIMELINE_SOURCE,
 	LoadAction,
 	TagTootsCategory,
+	UNKNOWN_SOURCE,
 } from "../core/enums";
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -19,6 +20,7 @@ const SOURCE_LABELS: Record<string, string> = {
 	[TagTootsCategory.TRENDING]: "Trending hashtags",
 	[LoadAction.GET_CONVERSATION]: "Conversation",
 	[FEDERATED_TIMELINE_SOURCE]: "Federated timeline",
+	[UNKNOWN_SOURCE]: "Unknown",
 };
 
 export const formatSourceLabel = (source: string): string =>

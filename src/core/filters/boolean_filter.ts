@@ -12,6 +12,7 @@ import { config } from "../config";
 import {
 	BooleanFilterName,
 	TypeFilterName,
+	UNKNOWN_SOURCE,
 	isValueInStringEnum,
 } from "../enums";
 import { compareStr, isEmptyStr } from "../helpers/string_helpers";
@@ -74,9 +75,12 @@ const TOOT_MATCHERS: Record<BooleanFilterName, TootMatcher> = {
 		);
 	},
 	[BooleanFilterName.SOURCE]: (toot: Toot, selectedOptions: string[]) => {
-		return selectedOptions.some((source) =>
-			(toot.sources ?? []).includes(source),
-		);
+		const sources = toot.sources ?? [];
+		// If toot has no sources and "Unknown" is selected, match it
+		if (sources.length === 0 && selectedOptions.includes(UNKNOWN_SOURCE)) {
+			return true;
+		}
+		return selectedOptions.some((source) => sources.includes(source));
 	},
 	[BooleanFilterName.TYPE]: (toot: Toot, selectedOptions: string[]) => {
 		return selectedOptions.some((v) => TYPE_FILTERS[v as TypeFilterName](toot));

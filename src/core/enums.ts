@@ -255,6 +255,7 @@ export const UNIQUE_ID_PROPERTIES: UniqueIdProperties = {
 } as const;
 
 export const FEDERATED_TIMELINE_SOURCE = "FederatedTimeline";
+export const UNKNOWN_SOURCE = "Unknown";
 
 export const TOOT_SOURCES = [
 	...STORAGE_KEYS_WITH_TOOTS,
