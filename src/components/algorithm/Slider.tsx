@@ -7,6 +7,7 @@ import { config } from "../../config";
 
 interface SliderProps {
 	description?: string;
+	disabled?: boolean;
 	hideValueBox?: boolean;
 	label: string;
 	minValue: number;
@@ -19,6 +20,7 @@ interface SliderProps {
 export default function Slider(props: SliderProps) {
 	const {
 		description,
+		disabled,
 		hideValueBox,
 		label,
 		minValue,
@@ -40,44 +42,35 @@ export default function Slider(props: SliderProps) {
 		decimals = 1;
 	}
 
-	const divs = [
-		<div
-			key={`${label}_label`}
-			className="flex flex-wrap items-center gap-2 text-sm"
-		>
-			{!hideValueBox && (
-				<div className="rounded bg-[color:var(--color-card-bg)] self-end border border-[color:var(--color-border)] mr-2.5 px-2 pt-0.5 min-w-[3.5rem]">
-					<span className="font-mono text-xs text-right block">
-						{value?.toFixed(decimals)}
-					</span>
-				</div>
-			)}
-
-			<span>
-				<span className="font-bold mr-1">{`${label}${hideValueBox ? "" : ":"}`}</span>
-
-				{description && <span>{description}</span>}
-			</span>
-		</div>,
-
-		<div key={`${label}_slider`} className="w-full">
-			<input
-				type="range"
-				className="custom-slider w-full"
-				id={label}
-				min={minValue}
-				max={maxValue}
-				onChange={onChange}
-				step={step}
-				value={value}
-			/>
-		</div>,
-	];
-
 	return (
 		<div className="me-2" key={`${label}_sliderForm`}>
-			<div className="flex flex-col gap-2 text-sm">
-				{hideValueBox ? divs.reverse() : divs}
+			<div className={`text-sm ${disabled ? "opacity-60" : ""}`}>
+				<div className="mb-1">
+					<span className="font-bold mr-1">{`${label}${hideValueBox ? "" : ":"}`}</span>
+					{description && <span>{description}</span>}
+				</div>
+				<div className="flex items-center gap-3">
+					{!hideValueBox && (
+						<div className="rounded bg-[color:var(--color-card-bg)] self-center border border-[color:var(--color-border)] px-2 pt-0.5 min-w-[3.5rem]">
+							<span className="font-mono text-xs text-right block">
+								{value?.toFixed(decimals)}
+							</span>
+						</div>
+					)}
+					<div className="flex-1 min-w-[6rem]">
+						<input
+							type="range"
+							className="custom-slider w-full"
+							disabled={disabled}
+							id={label}
+							min={minValue}
+							max={maxValue}
+							onChange={onChange}
+							step={step}
+							value={value}
+						/>
+					</div>
+				</div>
 			</div>
 		</div>
 	);

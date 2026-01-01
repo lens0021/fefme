@@ -82,9 +82,13 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 
 	// Wrapped setTimeline with logging
 	const setTimeline = (feed: Toot[]) => {
-		const seenCount = feed.filter(t => (t.numTimesShown ?? 0) > 0).length;
-		console.log("[useAlgorithm] setTimeline called with", feed.length, "toots");
-		console.log("[useAlgorithm] Seen in new timeline:", seenCount, "Unseen:", feed.length - seenCount);
+		const seenCount = feed.reduce(
+			(count, toot) => count + ((toot.numTimesShown ?? 0) > 0 ? 1 : 0),
+			0,
+		);
+		console.log(
+			`[useAlgorithm] setTimeline: ${feed.length} toots (${seenCount} seen, ${feed.length - seenCount} unseen)`,
+		);
 		setTimelineRaw(feed);
 	};
 

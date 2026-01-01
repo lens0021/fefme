@@ -9,13 +9,14 @@ import { useAlgorithm } from "../../hooks/useAlgorithm";
 import Slider from "./Slider";
 
 interface WeightSliderProps {
+	disabled?: boolean;
 	updateWeights: (newWeights: StringNumberDict) => Promise<void>;
 	userWeights: StringNumberDict;
 	weightName: WeightName;
 }
 
 export default function WeightSlider(props: WeightSliderProps) {
-	const { updateWeights, userWeights, weightName } = props;
+	const { disabled, updateWeights, userWeights, weightName } = props;
 	const { algorithm } = useAlgorithm();
 
 	if (!isFiniteNumber(userWeights[weightName])) return <></>;
@@ -32,6 +33,7 @@ export default function WeightSlider(props: WeightSliderProps) {
 
 	return (
 		<Slider
+			disabled={disabled}
 			description={info.description}
 			key={weightName}
 			label={weightName}

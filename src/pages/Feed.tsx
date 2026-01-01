@@ -48,11 +48,12 @@ export default function Feed() {
 		triggerMoarData,
 		triggerPullAllUserData,
 	} = useAlgorithm();
+	const { defaultNumDisplayedToots, numTootsToLoadOnScroll } = config.timeline;
 
 	// State variables
 	const [isLoadingThread, setIsLoadingThread] = useState(false);
 	const [numDisplayedToots, setNumDisplayedToots] = useState<number>(
-		config.timeline.defaultNumDisplayedToots,
+		defaultNumDisplayedToots,
 	);
 	const [scrollPercentage, setScrollPercentage] = useState(0);
 	const [thread, setThread] = useState<Toot[]>([]);
@@ -68,7 +69,7 @@ export default function Feed() {
 	const bottomRef = useRef<HTMLDivElement>(null);
 	const isBottom = useOnScreen(bottomRef);
 	const numShownToots = Math.max(
-		config.timeline.defaultNumDisplayedToots,
+		defaultNumDisplayedToots,
 		numDisplayedToots,
 	);
 	const visibleTimeline = useMemo(() => {
@@ -92,11 +93,9 @@ export default function Feed() {
 		const showMoreToots = () => {
 			if (numDisplayedToots < visibleTimeline.length) {
 				logger.log(
-					`Showing ${numDisplayedToots} posts, adding ${config.timeline.numTootsToLoadOnScroll} more (${visibleTimeline.length} available in feed)`,
+					`Showing ${numDisplayedToots} posts, adding ${numTootsToLoadOnScroll} more (${visibleTimeline.length} available in feed)`,
 				);
-				setNumDisplayedToots(
-					(prev) => prev + config.timeline.numTootsToLoadOnScroll,
-				);
+				setNumDisplayedToots((prev) => prev + numTootsToLoadOnScroll);
 			}
 		};
 
@@ -112,12 +111,14 @@ export default function Feed() {
 				document.documentElement.scrollTop || window.scrollY; // Current scroll position
 			const viewportHeight = document.documentElement.clientHeight; // Visible viewport height
 			const totalScrollableHeight = scrollHeight - viewportHeight; // Scrollable distance
-			const percentage = (scrollPosition / totalScrollableHeight) * 100;
+			const percentage = totalScrollableHeight
+				? (scrollPosition / totalScrollableHeight) * 100
+				: 0;
 			setScrollPercentage(percentage);
 
 			if (
 				percentage <= 10 &&
-				numDisplayedToots > config.timeline.defaultNumDisplayedToots * 3
+				numDisplayedToots > defaultNumDisplayedToots * 3
 			) {
 				const newNumDisplayedToots = Math.floor(numDisplayedToots * 0.8);
 				logger.log(
@@ -134,26 +135,31 @@ export default function Feed() {
 		isLoading,
 		numDisplayedToots,
 		visibleTimeline.length,
+		defaultNumDisplayedToots,
+		numTootsToLoadOnScroll,
 	]);
 
 	// TODO: probably easier to not rely on fefme's measurement of the last load time; we can easily track it ourselves.
-	let footerMsg = `Scored ${(visibleTimeline.length || 0).toLocaleString()} posts`;
-	footerMsg += optionalSuffix(
-		lastLoadDurationSeconds,
-		(seconds) => `in ${seconds.toFixed(1)} seconds`,
-	);
+	const footerMsg = useMemo(() => {
+		const base = `Scored ${(visibleTimeline.length || 0).toLocaleString()} posts`;
+		return (
+			base +
+			optionalSuffix(
+				lastLoadDurationSeconds,
+				(seconds) => `in ${seconds.toFixed(1)} seconds`,
+			)
+		);
+	}, [lastLoadDurationSeconds, visibleTimeline.length]);
 	const dataStats = useMemo(() => {
 		if (!algorithm) return null;
 		return algorithm.getDataStats();
 	}, [algorithm, lastLoadDurationSeconds, numDisplayedToots, timeline.length]);
 
-	const { mostRecentCachedTime } = useMemo(() => {
-		if (!dataStats || !dataStats.oldestCachedTime || !dataStats.mostRecentCachedTime) {
-			return { mostRecentCachedTime: "N/A" };
+	const mostRecentCachedTime = useMemo(() => {
+		if (!dataStats?.oldestCachedTime || !dataStats.mostRecentCachedTime) {
+			return "N/A";
 		}
-		return {
-			mostRecentCachedTime: timeString(dataStats.mostRecentCachedTime),
-		};
+		return timeString(dataStats.mostRecentCachedTime);
 	}, [dataStats]);
 	const hasCachedPosts = (dataStats?.feedTotal ?? 0) > 0;
 	const sourceStats = dataStats?.sourceStats ?? {};
