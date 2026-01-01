@@ -51,11 +51,9 @@ export default function App(): React.ReactElement {
 
 		// Service worker for github pages: https://gist.github.com/kosamari/7c5d1e8449b2fbc97d372675f16b566e
 		window.addEventListener("load", () => {
-			navigator.serviceWorker
-				.register("./service-worker.js")
-				.catch((error) => {
-					logger.error("Error registering service worker:", error);
-				});
+			navigator.serviceWorker.register("./service-worker.js").catch((error) => {
+				logger.error("Error registering service worker:", error);
+			});
 		});
 	}
 

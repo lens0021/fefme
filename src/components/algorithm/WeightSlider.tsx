@@ -55,10 +55,7 @@ export default function WeightSlider(props: WeightSliderProps) {
 		disabledKey,
 		false,
 	);
-	const sliderLabel = useMemo(
-		() => weightName,
-		[isDisabled, weightName],
-	);
+	const sliderLabel = useMemo(() => weightName, [isDisabled, weightName]);
 
 	const applyWeightValue = useCallback(
 		async (nextValue: number) => {

@@ -142,7 +142,11 @@ export default class TagsForFetchingToots {
 			[...newToots, ...(cachedToots as Toot[])],
 			this.logger,
 		);
-		cachedToots = truncateToLength(cachedToots, this.config.maxToots, this.logger);
+		cachedToots = truncateToLength(
+			cachedToots,
+			this.config.maxToots,
+			this.logger,
+		);
 		await Storage.set(this.cacheKey, cachedToots);
 		return newToots;
 	}
@@ -152,7 +156,6 @@ export default class TagsForFetchingToots {
 		await this.tagList.removeFollowedTags();
 		await this.tagList.removeInvalidTrendingTags();
 		this.tagList.removeKeywords(this.config.invalidTags || []);
-
 	}
 
 	/**

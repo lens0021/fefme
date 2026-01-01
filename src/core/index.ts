@@ -413,7 +413,10 @@ export default class TheAlgorithm {
 			}
 
 			const tagList = await TagsForFetchingToots.create(category);
-			await this.fetchAndMergeToots(tagList.getOlderToots(minId), tagList.logger);
+			await this.fetchAndMergeToots(
+				tagList.getOlderToots(minId),
+				tagList.logger,
+			);
 			await this.finishFeedUpdate();
 		} finally {
 			this.releaseLoadingMutex(LoadAction.TIMELINE_BACKFILL);
@@ -731,7 +734,10 @@ export default class TheAlgorithm {
 		return this.feed.filter((toot) => toot.sources?.includes(source));
 	}
 
-	private getSourceBounds(source: TootSource): { minId?: string; maxId?: string } {
+	private getSourceBounds(source: TootSource): {
+		minId?: string;
+		maxId?: string;
+	} {
 		const sourceToots = this.getTootsForSource(source);
 		const minMaxId = findMinMaxId(sourceToots);
 		if (!minMaxId) return {};
@@ -761,9 +767,7 @@ export default class TheAlgorithm {
 				const oldestById = sourceToots.find(
 					(toot) => `${toot.id}` === `${oldestId}`,
 				);
-				oldestIdCreatedAt = oldestById
-					? new Date(oldestById.createdAt)
-					: null;
+				oldestIdCreatedAt = oldestById ? new Date(oldestById.createdAt) : null;
 			}
 		}
 
@@ -880,10 +884,25 @@ export default class TheAlgorithm {
 			toot.isInTimeline(this.filters),
 		);
 
-		console.log("[filterFeedAndSetInApp] Feed before filtering:", this.feed.length, "toots");
-		console.log("[filterFeedAndSetInApp] Filtered timeline:", this.filteredTimeline.length, "toots");
-		const filteredSeenCount = this.filteredTimeline.filter(t => (t.numTimesShown ?? 0) > 0).length;
-		console.log("[filterFeedAndSetInApp] Seen in filtered timeline:", filteredSeenCount, "Unseen:", this.filteredTimeline.length - filteredSeenCount);
+		console.log(
+			"[filterFeedAndSetInApp] Feed before filtering:",
+			this.feed.length,
+			"toots",
+		);
+		console.log(
+			"[filterFeedAndSetInApp] Filtered timeline:",
+			this.filteredTimeline.length,
+			"toots",
+		);
+		const filteredSeenCount = this.filteredTimeline.filter(
+			(t) => (t.numTimesShown ?? 0) > 0,
+		).length;
+		console.log(
+			"[filterFeedAndSetInApp] Seen in filtered timeline:",
+			filteredSeenCount,
+			"Unseen:",
+			this.filteredTimeline.length - filteredSeenCount,
+		);
 
 		this.setTimelineInApp(this.filteredTimeline);
 
@@ -988,7 +1007,9 @@ export default class TheAlgorithm {
 	 */
 	private async loadCachedData(): Promise<void> {
 		const callId = Math.random().toString(36).substring(7);
-		console.log(`[loadCachedData #${callId}] START - Current filteredTimeline has ${this.filteredTimeline.length} toots`);
+		console.log(
+			`[loadCachedData #${callId}] START - Current filteredTimeline has ${this.filteredTimeline.length} toots`,
+		);
 
 		this.homeFeed = await Storage.getCoerced<Toot>(
 			CacheKey.HOME_TIMELINE_TOOTS,
@@ -1017,19 +1038,34 @@ export default class TheAlgorithm {
 
 		// Debug: Check filter state before updateBooleanFilterOptions
 		const typeFilter = this.filters.booleanFilters.type;
-		console.log("[loadCachedData] Before updateBooleanFilterOptions - Type filter excludedOptions:", typeFilter?.excludedOptions);
+		console.log(
+			"[loadCachedData] Before updateBooleanFilterOptions - Type filter excludedOptions:",
+			typeFilter?.excludedOptions,
+		);
 		console.log("[loadCachedData] Feed has", this.feed.length, "toots");
-		const seenCount = this.feed.filter(t => (t.numTimesShown ?? 0) > 0).length;
-		console.log("[loadCachedData] Seen toots in feed:", seenCount, "Unseen:", this.feed.length - seenCount);
+		const seenCount = this.feed.filter(
+			(t) => (t.numTimesShown ?? 0) > 0,
+		).length;
+		console.log(
+			"[loadCachedData] Seen toots in feed:",
+			seenCount,
+			"Unseen:",
+			this.feed.length - seenCount,
+		);
 
 		await updateBooleanFilterOptions(this.filters, this.feed);
 
 		// Debug: Check filter state after updateBooleanFilterOptions
-		console.log("[loadCachedData] After updateBooleanFilterOptions - Type filter excludedOptions:", typeFilter?.excludedOptions);
+		console.log(
+			"[loadCachedData] After updateBooleanFilterOptions - Type filter excludedOptions:",
+			typeFilter?.excludedOptions,
+		);
 
 		this.filterFeedAndSetInApp();
 
-		console.log(`[loadCachedData #${callId}] END - filteredTimeline now has ${this.filteredTimeline.length} toots`);
+		console.log(
+			`[loadCachedData #${callId}] END - filteredTimeline now has ${this.filteredTimeline.length} toots`,
+		);
 
 		loadCacheLogger.debugWithTraceObjs(
 			`Loaded ${this.feed.length} cached toots + trendingData (${this.timeline.length} after filtering)`,

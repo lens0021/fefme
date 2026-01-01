@@ -109,7 +109,6 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		}
 	}, [user?.server, user?.username]);
 
-
 	// Pass startedLoadAt as an arg every time because managing the react state of the last load is tricky
 	const setLoadState = useCallback(
 		(newIsLoading: boolean, startedLoadAt: Date) => {
@@ -229,11 +228,7 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		setIsLoading(true);
 		await algorithm.reset();
 		triggerFeedUpdate();
-	}, [
-		algorithm,
-		resetErrors,
-		triggerFeedUpdate,
-	]);
+	}, [algorithm, resetErrors, triggerFeedUpdate]);
 
 	// Save timeline on page unload to preserve read status
 	useEffect(() => {

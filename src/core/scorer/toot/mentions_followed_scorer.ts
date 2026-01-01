@@ -11,7 +11,7 @@ import TootScorer from "../toot_scorer";
  * @augments Scorer
  */
 export default class MentionsFollowedScorer extends TootScorer {
-description = "Favour posts that mention accounts you follow";
+	description = "Favour posts that mention accounts you follow";
 
 	constructor() {
 		super(ScoreName.MENTIONS_FOLLOWED);

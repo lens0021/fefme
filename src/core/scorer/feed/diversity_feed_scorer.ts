@@ -24,7 +24,7 @@ interface PenalizedObj extends NamedTootCount {
  * @augments Scorer
  */
 export default class DiversityFeedScorer extends FeedScorer {
-description = "Favour accounts that are posting a lot right now";
+	description = "Favour accounts that are posting a lot right now";
 
 	constructor() {
 		super(ScoreName.DIVERSITY);

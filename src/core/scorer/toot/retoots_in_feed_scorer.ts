@@ -8,7 +8,7 @@ import TootScorer from "../toot_scorer";
  * @augments Scorer
  */
 export default class RetootsInFeedScorer extends TootScorer {
-description = "Favour posts reposted by accounts you follow";
+	description = "Favour posts reposted by accounts you follow";
 
 	constructor() {
 		super(ScoreName.RETOOTED_IN_FEED);

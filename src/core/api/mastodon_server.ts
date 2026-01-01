@@ -8,11 +8,7 @@ import type { mastodon } from "masto";
 
 import Storage from "../Storage";
 import { config } from "../config";
-import {
-	FediverseCacheKey,
-	TrendingType,
-	simpleCacheKeyDict,
-} from "../enums";
+import { FediverseCacheKey, TrendingType, simpleCacheKeyDict } from "../enums";
 import {
 	countValues,
 	shuffle,

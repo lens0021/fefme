@@ -181,12 +181,15 @@ export default class BooleanFilter extends TootFilter {
 		if (this.propertyName === BooleanFilterName.TYPE) {
 			const isSeen = (toot.numTimesShown ?? 0) > 0;
 			if (isSeen || excludeOptions.length) {
-				console.log(`[BooleanFilter.isAllowed] Type filter - toot ${toot.id}:`, {
-					isSeen,
-					numTimesShown: toot.numTimesShown,
-					includeOptions,
-					excludeOptions,
-				});
+				console.log(
+					`[BooleanFilter.isAllowed] Type filter - toot ${toot.id}:`,
+					{
+						isSeen,
+						numTimesShown: toot.numTimesShown,
+						includeOptions,
+						excludeOptions,
+					},
+				);
 			}
 		}
 
@@ -195,7 +198,9 @@ export default class BooleanFilter extends TootFilter {
 			!TOOT_MATCHERS[this.propertyName](toot, includeOptions)
 		) {
 			if (this.propertyName === BooleanFilterName.TYPE) {
-				console.log(`[BooleanFilter.isAllowed] Excluded by include options - toot ${toot.id}`);
+				console.log(
+					`[BooleanFilter.isAllowed] Excluded by include options - toot ${toot.id}`,
+				);
 			}
 			return false;
 		}
@@ -205,7 +210,9 @@ export default class BooleanFilter extends TootFilter {
 			TOOT_MATCHERS[this.propertyName](toot, excludeOptions)
 		) {
 			if (this.propertyName === BooleanFilterName.TYPE) {
-				console.log(`[BooleanFilter.isAllowed] Excluded by exclude options - toot ${toot.id}`);
+				console.log(
+					`[BooleanFilter.isAllowed] Excluded by exclude options - toot ${toot.id}`,
+				);
 			}
 			return false;
 		}

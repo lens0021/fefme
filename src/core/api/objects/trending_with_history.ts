@@ -25,10 +25,7 @@ import type { mastodon } from "masto";
 import { config } from "../../config";
 import { average } from "../../helpers/collection_helpers";
 import { wordRegex } from "../../helpers/string_helpers";
-import type {
-	TrendingLink,
-	TrendingWithHistory,
-} from "../../types";
+import type { TrendingLink, TrendingWithHistory } from "../../types";
 
 /**
  * Decorate a Mastodon {@linkcode https://docs.joinmastodon.org/entities/PreviewCard/#trends-link TrendLink}
