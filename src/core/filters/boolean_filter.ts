@@ -172,10 +172,26 @@ export default class BooleanFilter extends TootFilter {
 				? this.selectedOptions
 				: [];
 
+		// Debug logging for type filter
+		if (this.propertyName === BooleanFilterName.TYPE) {
+			const isSeen = (toot.numTimesShown ?? 0) > 0;
+			if (isSeen || excludeOptions.length) {
+				console.log(`[BooleanFilter.isAllowed] Type filter - toot ${toot.id}:`, {
+					isSeen,
+					numTimesShown: toot.numTimesShown,
+					includeOptions,
+					excludeOptions,
+				});
+			}
+		}
+
 		if (
 			includeOptions.length &&
 			!TOOT_MATCHERS[this.propertyName](toot, includeOptions)
 		) {
+			if (this.propertyName === BooleanFilterName.TYPE) {
+				console.log(`[BooleanFilter.isAllowed] Excluded by include options - toot ${toot.id}`);
+			}
 			return false;
 		}
 
@@ -183,6 +199,9 @@ export default class BooleanFilter extends TootFilter {
 			excludeOptions.length &&
 			TOOT_MATCHERS[this.propertyName](toot, excludeOptions)
 		) {
+			if (this.propertyName === BooleanFilterName.TYPE) {
+				console.log(`[BooleanFilter.isAllowed] Excluded by exclude options - toot ${toot.id}`);
+			}
 			return false;
 		}
 
