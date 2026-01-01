@@ -40,7 +40,7 @@ export default function WeightSlider(props: WeightSliderProps) {
 		false,
 	);
 	const sliderLabel = useMemo(
-		() => (isDisabled ? `${weightName} (disabled)` : weightName),
+		() => weightName,
 		[isDisabled, weightName],
 	);
 
@@ -108,7 +108,7 @@ export default function WeightSlider(props: WeightSliderProps) {
 					: config.weights.defaultStepSize
 			}
 			value={userWeights[weightName]}
-			rightAddon={
+			Addon={
 				<label className="flex items-center gap-2 text-xs font-semibold text-[color:var(--color-muted-fg)] whitespace-nowrap">
 					<input
 						type="checkbox"
@@ -116,10 +116,9 @@ export default function WeightSlider(props: WeightSliderProps) {
 						checked={isDisabled}
 						onChange={(e) => handleToggleDisabled(e.target.checked)}
 					/>
-					<span className="relative inline-flex h-5 w-9 items-center rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-muted)] transition-colors peer-checked:border-[color:var(--color-primary)] peer-checked:bg-[color:var(--color-primary)]">
-						<span className="h-4 w-4 translate-x-0.5 rounded-full bg-[color:var(--color-card-bg)] shadow-sm transition-transform peer-checked:translate-x-4" />
+					<span className="relative inline-flex h-5 w-9 items-center rounded-full border border-[color:var(--color-primary)] bg-[color:var(--color-primary)] transition-colors peer-checked:border-[color:var(--color-border)] peer-checked:bg-[color:var(--color-muted)]">
+						<span className="h-4 w-4 translate-x-4 rounded-full bg-[color:var(--color-card-bg)] shadow-sm transition-transform peer-checked:translate-x-0.5" />
 					</span>
-					<span>Enabled</span>
 				</label>
 			}
 		/>
