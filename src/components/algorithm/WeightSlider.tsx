@@ -21,9 +21,8 @@ export default function WeightSlider(props: WeightSliderProps) {
 	const { updateWeights, userWeights, weightName } = props;
 	const { algorithm } = useAlgorithm();
 
-	if (!isFiniteNumber(userWeights[weightName])) return <></>;
-	const info = algorithm.weightsInfo[weightName];
-
+	// Calculate values needed for hooks
+	const info = algorithm?.weightsInfo[weightName];
 	const weightValues = Object.values(userWeights).filter(
 		(x) => !Number.isNaN(x),
 	) ?? [0];
@@ -31,10 +30,12 @@ export default function WeightSlider(props: WeightSliderProps) {
 		Math.min(...weightValues) - 1 * config.weights.scalingMultiplier;
 	const defaultMax =
 		Math.max(...weightValues) + 1 * config.weights.scalingMultiplier;
-	const minValue = info.minValue ?? defaultMin;
+	const minValue = info?.minValue ?? defaultMin;
 	const disabledValue = isNonScoreWeightName(weightName) ? minValue : 0;
 	const disabledKey = `fefme_weight_disabled_${weightName}`;
 	const backupKey = `fefme_weight_backup_${weightName}`;
+
+	// All hooks MUST be called before any early returns
 	const [isDisabled, setIsDisabled] = useLocalStorage<boolean>(
 		disabledKey,
 		false,
@@ -46,9 +47,13 @@ export default function WeightSlider(props: WeightSliderProps) {
 
 	const applyWeightValue = useCallback(
 		async (nextValue: number) => {
+			console.log(`[WeightSlider] applyWeightValue ${weightName}: ${userWeights[weightName]} → ${nextValue}`);
 			const newWeights = Object.assign({}, userWeights);
 			newWeights[weightName] = nextValue;
+			console.log(`[WeightSlider] About to call updateWeights with:`, newWeights);
+			console.log(`[WeightSlider] updateWeights is:`, updateWeights);
 			await updateWeights(newWeights);
+			console.log(`[WeightSlider] updateWeights completed`);
 		},
 		[updateWeights, userWeights, weightName],
 	);
@@ -63,9 +68,11 @@ export default function WeightSlider(props: WeightSliderProps) {
 
 	const handleToggleDisabled = useCallback(
 		async (nextDisabled: boolean) => {
+			console.log(`[WeightSlider] Toggle ${weightName}: ${isDisabled} → ${nextDisabled}`);
 			setIsDisabled(nextDisabled);
 			const currentValue = userWeights[weightName];
 			if (nextDisabled) {
+				console.log(`[WeightSlider] Disabling ${weightName}: ${currentValue} → ${disabledValue}`);
 				if (currentValue !== disabledValue) {
 					localStorage.setItem(backupKey, JSON.stringify(currentValue));
 				}
@@ -78,6 +85,7 @@ export default function WeightSlider(props: WeightSliderProps) {
 				const restoredValue = Number.isFinite(backupValue)
 					? backupValue
 					: currentValue;
+				console.log(`[WeightSlider] Enabling ${weightName}: ${currentValue} → ${restoredValue}`);
 				await applyWeightValue(restoredValue);
 			}
 		},
@@ -90,6 +98,11 @@ export default function WeightSlider(props: WeightSliderProps) {
 			weightName,
 		],
 	);
+
+	// Early return check AFTER all hooks
+	if (!isFiniteNumber(userWeights[weightName]) || !info) {
+		return null;
+	}
 
 	return (
 		<Slider

@@ -52,14 +52,23 @@ export default function WeightSetter() {
 	// Update the user weightings and save to localStorage
 	const updateWeights = useCallback(
 		async (newWeights: Weights): Promise<void> => {
-			if (!algorithm) return;
+			console.log("[WeightSetter] updateWeights START, algorithm:", algorithm);
+			if (!algorithm) {
+				console.log("[WeightSetter] No algorithm, returning early");
+				return;
+			}
 			try {
+				console.log("[WeightSetter] updateWeights() called with:", newWeights);
 				logger.log("updateWeights() called with:", newWeights);
 				setUserWeights(newWeights);
-				algorithm.updateUserWeights(newWeights);
+				console.log("[WeightSetter] Calling algorithm.updateUserWeights");
+				await algorithm.updateUserWeights(newWeights);
+				console.log("[WeightSetter] algorithm.updateUserWeights completed");
 				// Save to localStorage
 				localStorage.setItem(WEIGHTS_STORAGE_KEY, JSON.stringify(newWeights));
+				console.log("[WeightSetter] Saved to localStorage");
 			} catch (error) {
+				console.error("[WeightSetter] Error in updateWeights:", error);
 				logAndSetError(logger, error);
 			}
 		},
