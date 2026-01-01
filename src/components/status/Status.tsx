@@ -33,7 +33,7 @@ import { AgeIn, type Toot, timeString } from "../../core/index";
 import { config } from "../../config";
 import { executeWithLoadingState } from "../../helpers/async_helpers";
 import { getLogger } from "../../helpers/log_helpers";
-import { formatScore, formatScores } from "../../helpers/number_helpers";
+import { formatScore } from "../../helpers/number_helpers";
 import { openToot } from "../../helpers/ui";
 import { useAlgorithm } from "../../hooks/useAlgorithm";
 import useOnScreen from "../../hooks/useOnScreen";
@@ -125,7 +125,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 		showLinkPreviews,
 		status,
 	} = props;
-	const { isGoToSocialUser, isLoading } = useAlgorithm();
+	const { algorithm, isGoToSocialUser, isLoading } = useAlgorithm();
 	const { logAndSetFormattedError } = useError();
 	const contentClass =
 		"text-[15px] leading-relaxed text-[color:var(--color-fg)] break-words [&_a]:text-[color:var(--color-primary)] [&_a]:break-all [&_a:hover]:underline [&_p]:mb-2 [&_p:last-child]:mb-0";
@@ -259,29 +259,85 @@ export default function StatusComponent(props: StatusComponentProps) {
 				className="z-[2000] max-w-xs"
 			/>
 
-			<JsonModal
-				infoTxt="Scoring categories where the unweighted score is zero are not shown."
-				json={toot.scoreInfo ? (formatScores(toot.scoreInfo) as object) : {}}
-				jsonViewProps={{
-					collapsed: 3,
-					name: "post.scoreInfo",
-					style: scoreJsonStyle,
-				}}
-				setShow={setShowScoreModal}
-				show={showScoreModal}
-				subtitle={
-					<ul>
-						<li>
-							{"Poster:"}{" "}
-							<span className="font-medium">{parse(authorNameHTML)}</span>
-						</li>
-						<li>
-							{"Final Score:"} <code>{formatScore(toot.scoreInfo.score)}</code>
-						</li>
-					</ul>
-				}
-				title="This Post's Score"
-			/>
+			{/* Score Modal */}
+			{showScoreModal && (
+				<div
+					className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50"
+					onClick={() => setShowScoreModal(false)}
+				>
+					<div
+						className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] p-6 shadow-xl"
+						onClick={(e) => e.stopPropagation()}
+					>
+						<div className="mb-4 flex items-start justify-between">
+							<div>
+								<h2 className="text-2xl font-bold text-[color:var(--color-fg)]">
+									Post Score Breakdown
+								</h2>
+								<div className="mt-2 space-y-1 text-sm text-[color:var(--color-muted-fg)]">
+									<div>
+										<strong>Poster:</strong> {parse(authorNameHTML)}
+									</div>
+									<div>
+										<strong>Final Score:</strong>{" "}
+										<code className="rounded bg-[color:var(--color-muted)] px-2 py-1 text-[color:var(--color-fg)]">
+											{formatScore(toot.scoreInfo.score)}
+										</code>
+									</div>
+								</div>
+							</div>
+							<button
+								type="button"
+								onClick={() => setShowScoreModal(false)}
+								className="text-2xl text-[color:var(--color-muted-fg)] hover:text-[color:var(--color-fg)]"
+							>
+								×
+							</button>
+						</div>
+
+						<div className="space-y-3">
+							{Object.entries(toot.scoreInfo)
+								.filter(([key]) => key !== "score")
+								.map(([key, value]: [string, any]) => {
+									if (typeof value !== "object" || value.raw === 0) return null;
+
+									const weightInfo = algorithm?.weightsInfo[key];
+									const description = weightInfo?.description || key;
+
+									return (
+										<div
+											key={key}
+											className="rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-muted)] p-4"
+										>
+											<div className="mb-2 flex items-start justify-between">
+												<div className="flex-1">
+													<h3 className="font-semibold text-[color:var(--color-fg)]">
+														{key}
+													</h3>
+													<p className="text-sm text-[color:var(--color-muted-fg)]">
+														{description}
+													</p>
+												</div>
+												<div className="ml-4 text-right">
+													<div className="text-lg font-bold text-[color:var(--color-primary)]">
+														{formatScore(value.weighted || value.raw)}
+													</div>
+													<div className="text-xs text-[color:var(--color-muted-fg)]">
+														Raw: {formatScore(value.raw)}
+													</div>
+												</div>
+											</div>
+										</div>
+									);
+								})}
+						</div>
+
+						<div className="mt-4 text-xs text-[color:var(--color-muted-fg)]">
+							Note: Only showing categories with non-zero scores
+						</div>
+					</div>
+				</div>
+			)}
 
 			<JsonModal
 				dialogClassName="modal-xl"
@@ -496,8 +552,4 @@ export default function StatusComponent(props: StatusComponentProps) {
 
 const rawTootJson: CSSProperties = {
 	fontSize: 13,
-};
-
-const scoreJsonStyle: CSSProperties = {
-	fontSize: 16,
 };
