@@ -884,8 +884,25 @@ export default class TheAlgorithm {
 
 		this.trendingData = await Storage.getTrendingData();
 		this.filters = (await Storage.getFilters()) ?? buildNewFilterSettings();
+
+		// Debug: Check filter state before updateBooleanFilterOptions
+		const typeFilter = this.filters.booleanFilters.type;
+		console.log("[loadCachedData] Before updateBooleanFilterOptions - Type filter excludedOptions:", typeFilter?.excludedOptions);
+		console.log("[loadCachedData] Feed has", this.feed.length, "toots");
+		const seenCount = this.feed.filter(t => (t.numTimesShown ?? 0) > 0).length;
+		console.log("[loadCachedData] Seen toots in feed:", seenCount, "Unseen:", this.feed.length - seenCount);
+
 		await updateBooleanFilterOptions(this.filters, this.feed);
+
+		// Debug: Check filter state after updateBooleanFilterOptions
+		console.log("[loadCachedData] After updateBooleanFilterOptions - Type filter excludedOptions:", typeFilter?.excludedOptions);
+
 		this.filterFeedAndSetInApp();
+
+		const filteredSeenCount = this.timeline.filter(t => (t.numTimesShown ?? 0) > 0).length;
+		console.log("[loadCachedData] After filtering - Timeline has", this.timeline.length, "toots");
+		console.log("[loadCachedData] Seen in timeline:", filteredSeenCount, "Unseen:", this.timeline.length - filteredSeenCount);
+
 		loadCacheLogger.debugWithTraceObjs(
 			`Loaded ${this.feed.length} cached toots + trendingData (${this.timeline.length} after filtering)`,
 			this.trendingData,
