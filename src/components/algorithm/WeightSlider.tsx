@@ -110,6 +110,15 @@ export default function WeightSlider(props: WeightSliderProps) {
 		],
 	);
 
+	useEffect(() => {
+		const handleReset = () => {
+			setIsDisabled(false);
+		};
+		window.addEventListener("fefme-weights-reset", handleReset);
+		return () =>
+			window.removeEventListener("fefme-weights-reset", handleReset);
+	}, [setIsDisabled]);
+
 	// Early return check AFTER all hooks
 	// Only return null if we genuinely don't have info - don't hide sliders just because weights aren't loaded yet
 	if (!info) {

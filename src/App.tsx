@@ -66,24 +66,24 @@ export default function App(): React.ReactElement {
 				<div className="w-full max-w-2xl flex flex-col gap-4">
 					<ErrorHandler>
 						<AuthProvider>
-							<Header />
+							<AlgorithmProvider>
+								<Header />
 
-							<Routes>
-								<Route
-									path="/"
-									element={
-										<ProtectedRoute>
-											<AlgorithmProvider>
+								<Routes>
+									<Route
+										path="/"
+										element={
+											<ProtectedRoute>
 												<Feed />
-											</AlgorithmProvider>
-										</ProtectedRoute>
-									}
-								/>
+											</ProtectedRoute>
+										}
+									/>
 
-								<Route path="/callback" element={<CallbackPage />} />
-								<Route path="/login" element={<LoginPage />} />
-								<Route path="*" element={<NotFoundPage />} />
-							</Routes>
+									<Route path="/callback" element={<CallbackPage />} />
+									<Route path="/login" element={<LoginPage />} />
+									<Route path="*" element={<NotFoundPage />} />
+								</Routes>
+							</AlgorithmProvider>
 
 							<Footer />
 						</AuthProvider>

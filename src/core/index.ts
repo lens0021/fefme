@@ -29,11 +29,13 @@ import {
 	BooleanFilterName,
 	CacheKey,
 	FEDERATED_TIMELINE_SOURCE,
+	FediverseCacheKey,
 	LoadAction,
 	LogAction,
 	MediaCategory,
 	NonScoreWeightName,
 	ScoreName,
+	STORAGE_KEYS_WITH_TOOTS,
 	TagTootsCategory,
 	TrendingType,
 	TypeFilterName,
@@ -621,17 +623,39 @@ export default class TheAlgorithm {
 	 * @returns {Promise<void>}
 	 */
 	async resetSeenState(): Promise<void> {
-		this.feed.forEach((toot) => {
-			toot.numTimesShown = 0;
-			toot.realToot.numTimesShown = 0;
-		});
+		const resetToot = (toot: Toot) => {
+			toot.withRetoot.forEach((item) => {
+				item.numTimesShown = 0;
+			});
+		};
 
-		if (this.isLoading) {
-			await Storage.set(AlgorithmStorageKey.TIMELINE_TOOTS, this.feed);
-			this.totalNumTimesShown = 0;
-		} else {
-			await this.saveTimelineToCache();
+		this.feed.forEach(resetToot);
+		this.homeFeed.forEach(resetToot);
+		this.trendingData?.toots?.forEach(resetToot);
+
+		this.totalNumTimesShown = 0;
+
+		await Storage.set(AlgorithmStorageKey.TIMELINE_TOOTS, this.feed);
+		if (this.homeFeed.length) {
+			await Storage.set(CacheKey.HOME_TIMELINE_TOOTS, this.homeFeed);
 		}
+		if (this.trendingData?.toots?.length) {
+			await Storage.set(FediverseCacheKey.TRENDING_TOOTS, this.trendingData.toots);
+		}
+		for (const key of STORAGE_KEYS_WITH_TOOTS) {
+			if (
+				key === AlgorithmStorageKey.TIMELINE_TOOTS ||
+				key === CacheKey.HOME_TIMELINE_TOOTS ||
+				key === FediverseCacheKey.TRENDING_TOOTS
+			)
+				continue;
+			const cached = (await Storage.get(key)) as Toot[] | null;
+			if (!Array.isArray(cached) || cached.length === 0) continue;
+			cached.forEach(resetToot);
+			await Storage.set(key, cached);
+		}
+
+		await updateBooleanFilterOptions(this.filters, this.feed);
 		await this.scoreAndFilterFeed();
 	}
 

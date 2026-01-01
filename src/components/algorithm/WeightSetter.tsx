@@ -64,6 +64,14 @@ export default function WeightSetter() {
 		initWeights();
 	}, [initWeights]);
 
+	useEffect(() => {
+		const handleReset = () => {
+			initWeights();
+		};
+		window.addEventListener("fefme-weights-reset", handleReset);
+		return () => window.removeEventListener("fefme-weights-reset", handleReset);
+	}, [initWeights]);
+
 	// Update the user weightings and save to localStorage
 	const updateWeights = useCallback(
 		async (newWeights: Weights): Promise<void> => {
