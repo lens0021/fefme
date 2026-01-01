@@ -47,6 +47,7 @@ interface AlgoContext {
 	hideSensitiveCheckbox?: ReactElement;
 	lastLoadDurationSeconds?: number;
 	resetAlgorithm?: () => Promise<void>;
+	resetSeenState?: () => Promise<void>;
 	serverInfo?: MastodonServer;
 	selfTypeFilterMode?: "include" | "exclude" | "none";
 	setSelfTypeFilterMode?: (value: "include" | "exclude" | "none") => void;
@@ -230,6 +231,12 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		triggerFeedUpdate();
 	}, [algorithm, resetErrors, triggerFeedUpdate]);
 
+	const resetSeenState = useCallback(async () => {
+		resetErrors();
+		if (!algorithm) return;
+		await algorithm.resetSeenState();
+	}, [algorithm, resetErrors]);
+
 	// Save timeline on page unload to preserve read status
 	useEffect(() => {
 		if (!algorithm) return;
@@ -370,6 +377,7 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		isLoading,
 		lastLoadDurationSeconds,
 		resetAlgorithm,
+		resetSeenState,
 		serverInfo,
 		selfTypeFilterMode,
 		setSelfTypeFilterMode,

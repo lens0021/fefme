@@ -617,6 +617,25 @@ export default class TheAlgorithm {
 	}
 
 	/**
+	 * Reset only the "already seen" state for all cached toots.
+	 * @returns {Promise<void>}
+	 */
+	async resetSeenState(): Promise<void> {
+		this.feed.forEach((toot) => {
+			toot.numTimesShown = 0;
+			toot.realToot.numTimesShown = 0;
+		});
+
+		if (this.isLoading) {
+			await Storage.set(AlgorithmStorageKey.TIMELINE_TOOTS, this.feed);
+			this.totalNumTimesShown = 0;
+		} else {
+			await this.saveTimelineToCache();
+		}
+		await this.scoreAndFilterFeed();
+	}
+
+	/**
 	 * Save the current timeline to the browser storage. Used to save the state of {@linkcode Toot.numTimesShown}.
 	 * @returns {Promise<void>}
 	 */

@@ -11,7 +11,12 @@ import { useAuthContext } from "../hooks/useAuth";
 /** Header component on the feed page. */
 export default function Header(): JSX.Element {
 	const { user, logout, setApp } = useAuthContext();
-	const { algorithm, resetAlgorithm, setSelfTypeFilterMode } = useAlgorithm();
+	const {
+		algorithm,
+		resetAlgorithm,
+		resetSeenState,
+		setSelfTypeFilterMode,
+	} = useAlgorithm();
 
 	const reset = async () => {
 		if (
@@ -44,6 +49,16 @@ export default function Header(): JSX.Element {
 		localStorage.removeItem("type-filter-self");
 		algorithm?.updateFilters(buildNewFilterSettings());
 		setSelfTypeFilterMode?.("none");
+	};
+
+	const resetSeen = async () => {
+		if (
+			!(await confirm(
+				"Reset read/seen state for all cached posts? Filters and weights will stay.",
+			))
+		)
+			return;
+		await resetSeenState?.();
 	};
 
 	const handleLogout = () => {
@@ -105,6 +120,16 @@ export default function Header(): JSX.Element {
 									className="rounded-md border border-[color:var(--color-border)] px-2 py-1 text-xs font-semibold text-[color:var(--color-primary)]"
 								>
 									Reset filters
+								</button>
+							</div>
+							<div className="flex flex-col gap-1">
+								<span>Reset read/seen state for all cached posts.</span>
+								<button
+									type="button"
+									onClick={resetSeen}
+									className="rounded-md border border-[color:var(--color-border)] px-2 py-1 text-xs font-semibold text-[color:var(--color-primary)]"
+								>
+									Reset seen state
 								</button>
 							</div>
 							<div className="flex flex-col gap-1">
