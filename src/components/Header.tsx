@@ -2,6 +2,7 @@ import React from "react";
 
 import { FEDIALGO } from "../core/index";
 import { buildNewFilterSettings } from "../core/filters/feed_filters";
+import { VERSION } from "../version";
 
 import { confirm } from "./helpers/Confirmation";
 import { useAlgorithm } from "../hooks/useAlgorithm";
@@ -82,6 +83,9 @@ export default function Header(): JSX.Element {
 						Account & data reset
 					</summary>
 					<div className="absolute right-4 mt-2 w-64 rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] p-3 shadow-lg z-10">
+						<div className="mb-2 pb-2 border-b border-[color:var(--color-border)] text-[10px] text-[color:var(--color-muted-fg)]">
+							Version {VERSION}
+						</div>
 						<div className="flex flex-col gap-3 text-xs">
 							<div className="flex flex-col gap-1">
 								<span>Reset all feed weights to their defaults.</span>
