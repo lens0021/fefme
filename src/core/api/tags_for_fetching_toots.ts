@@ -11,7 +11,6 @@ import type { TagWithUsageCounts } from "../types";
  * Helper class for fetching toots for a list of tags, e.g. trending or particiapted tags.
  */
 import MastoApi from "./api";
-import MastodonServer from "./mastodon_server";
 import { tagInfoStr } from "./objects/tag";
 import type Toot from "./objects/toot";
 import TagList from "./tag_list";
@@ -40,7 +39,7 @@ const HASHTAG_TOOTS_CONFIG: Record<TagTootsCategory, TagTootsBuildConfig> = {
 		config: config.participatedTags,
 	},
 	[TagTootsCategory.TRENDING]: {
-		buildTagList: async () => await MastodonServer.fediverseTrendingTags(),
+		buildTagList: async () => new TagList([], TagTootsCategory.TRENDING),
 		config: config.trending.tags,
 	},
 };
@@ -112,10 +111,6 @@ export default class TagsForFetchingToots {
 		await this.tagList.removeInvalidTrendingTags();
 		this.tagList.removeKeywords(this.config.invalidTags || []);
 
-		if (this.cacheKey != TagTootsCategory.TRENDING) {
-			const trendingTags = await MastodonServer.fediverseTrendingTags();
-			this.tagList.removeKeywords(trendingTags.map((t) => t.name));
-		}
 	}
 
 	/**
@@ -138,7 +133,7 @@ export default class TagsForFetchingToots {
 			{
 				[TagTootsCategory.FAVOURITED]: TagList.buildFavouritedTags(),
 				[TagTootsCategory.PARTICIPATED]: TagList.buildParticipatedTags(),
-				[TagTootsCategory.TRENDING]: MastodonServer.fediverseTrendingTags(),
+				[TagTootsCategory.TRENDING]: new TagList([], TagTootsCategory.TRENDING),
 			},
 			new Logger("TagsForFetchingToots.rawTagLists()"),
 			(failedKey: TagTootsCategory) => new TagList([], failedKey),

@@ -14,7 +14,6 @@ import {
 	throwIfAccessTokenRevoked,
 	throwSanitizedRateLimitError,
 } from "./api/errors";
-import MastodonServer from "./api/mastodon_server";
 import Account from "./api/objects/account";
 import Toot, { earliestTootedAt, mostRecentTootedAt } from "./api/objects/toot";
 import TagList from "./api/tag_list";
@@ -30,7 +29,6 @@ import {
 	BooleanFilterName,
 	CacheKey,
 	FEDERATED_TIMELINE_SOURCE,
-	FediverseCacheKey,
 	LoadAction,
 	LogAction,
 	MediaCategory,
@@ -341,10 +339,6 @@ export default class TheAlgorithm {
 					MastoApi.instance.getHomeserverToots(),
 					loggers[CacheKey.HOMESERVER_TOOTS],
 				),
-				this.fetchAndMergeToots(
-					MastodonServer.fediverseTrendingToots(),
-					loggers[FediverseCacheKey.TRENDING_TOOTS],
-				),
 				// Federated timeline toots
 				MastoApi.instance
 					.getFederatedTimelineStatuses(40)
@@ -354,13 +348,10 @@ export default class TheAlgorithm {
 					.then((toots) =>
 						this.lockedMergeToFeed(toots, new Logger(FEDERATED_TIMELINE_SOURCE)),
 					),
-				...Object.values(TagTootsCategory).map(
-					async (key) => await tootsForHashtags(key),
-				),
+				...Object.values(TagTootsCategory)
+					.filter((key) => key !== TagTootsCategory.TRENDING)
+					.map(async (key) => await tootsForHashtags(key)),
 				// Other data fetchers
-				MastodonServer.getTrendingData().then(
-					(trendingData) => (this.trendingData = trendingData),
-				),
 				MastoApi.instance.getUserData(),
 				ScorerCache.prepareScorers(),
 			];
@@ -627,7 +618,7 @@ export default class TheAlgorithm {
 	 * @returns {Promise<TrendingData>}
 	 */
 	async refreshTrendingData(): Promise<TrendingData> {
-		this.trendingData = await MastodonServer.getTrendingData();
+		this.trendingData = EMPTY_TRENDING_DATA;
 		return this.trendingData;
 	}
 
@@ -893,7 +884,7 @@ export default class TheAlgorithm {
 			await Storage.set(AlgorithmStorageKey.TIMELINE_TOOTS, this.feed);
 		}
 
-		this.trendingData = await Storage.getTrendingData();
+		this.trendingData = EMPTY_TRENDING_DATA;
 		this.filters = (await Storage.getFilters()) ?? buildNewFilterSettings();
 
 		// Debug: Check filter state before updateBooleanFilterOptions
