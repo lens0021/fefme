@@ -141,6 +141,15 @@ const EMPTY_TRENDING_DATA: Readonly<TrendingData> = {
 	toots: [],
 };
 
+type SourceStats = {
+	source: TootSource;
+	total: number;
+	oldestCreatedAt: Date | null;
+	mostRecentCreatedAt: Date | null;
+	oldestId: string | null;
+	oldestIdCreatedAt: Date | null;
+};
+
 const DEFAULT_SET_TIMELINE_IN_APP = (_feed: Toot[]) =>
 	console.debug(`Default setTimelineInApp() called`);
 
@@ -363,7 +372,48 @@ export default class TheAlgorithm {
 
 		try {
 			this.homeFeed = await this.getHomeTimeline(true);
+			await this.finishFeedUpdate();
+		} finally {
+			this.releaseLoadingMutex(LoadAction.TIMELINE_BACKFILL);
+		}
+	}
+
+	/**
+	 * Trigger the fetching of additional earlier {@linkcode Toot}s from the federated timeline.
+	 * @returns {Promise<void>}
+	 */
+	async triggerFederatedTimelineBackFill(): Promise<void> {
+		await this.startAction(LoadAction.TIMELINE_BACKFILL);
+
+		try {
 			await this.mergeFederatedTimeline("older", 40);
+			await this.finishFeedUpdate();
+		} finally {
+			this.releaseLoadingMutex(LoadAction.TIMELINE_BACKFILL);
+		}
+	}
+
+	/**
+	 * Trigger the fetching of additional earlier {@linkcode Toot}s for a tag category.
+	 * @param {TagTootsCategory} category - Tag category to backfill.
+	 * @returns {Promise<void>}
+	 */
+	async triggerTagTimelineBackFill(category: TagTootsCategory): Promise<void> {
+		await this.startAction(LoadAction.TIMELINE_BACKFILL);
+		const hereLogger = loggers[LoadAction.TIMELINE_BACKFILL];
+
+		try {
+			const { minId } = this.getSourceBounds(category);
+			if (!minId) {
+				hereLogger.info(
+					`No cached toots found for ${category}, skipping tag backfill`,
+				);
+				await this.finishFeedUpdate();
+				return;
+			}
+
+			const tagList = await TagsForFetchingToots.create(category);
+			await this.fetchAndMergeToots(tagList.getOlderToots(minId), tagList.logger);
 			await this.finishFeedUpdate();
 		} finally {
 			this.releaseLoadingMutex(LoadAction.TIMELINE_BACKFILL);
@@ -674,12 +724,83 @@ export default class TheAlgorithm {
 		);
 	}
 
+	private getTootsForSource(source: TootSource): Toot[] {
+		if (source === CacheKey.HOME_TIMELINE_TOOTS) {
+			return this.homeFeed;
+		}
+		return this.feed.filter((toot) => toot.sources?.includes(source));
+	}
+
+	private getSourceBounds(source: TootSource): { minId?: string; maxId?: string } {
+		const sourceToots = this.getTootsForSource(source);
+		const minMaxId = findMinMaxId(sourceToots);
+		if (!minMaxId) return {};
+		return { minId: minMaxId.min, maxId: minMaxId.max };
+	}
+
+	private buildSourceStats(source: TootSource): SourceStats {
+		const sourceToots = this.getTootsForSource(source);
+		const total = sourceToots.length;
+		let oldestCreatedAt: Date | null = null;
+		let mostRecentCreatedAt: Date | null = null;
+		let oldestId: string | null = null;
+		let oldestIdCreatedAt: Date | null = null;
+
+		if (total > 0) {
+			const dates = sourceToots.map((toot) => new Date(toot.createdAt));
+			mostRecentCreatedAt = dates.reduce((latest, current) =>
+				current > latest ? current : latest,
+			);
+			oldestCreatedAt = dates.reduce((earliest, current) =>
+				current < earliest ? current : earliest,
+			);
+
+			const bounds = this.getSourceBounds(source);
+			oldestId = bounds.minId ?? null;
+			if (oldestId) {
+				const oldestById = sourceToots.find(
+					(toot) => `${toot.id}` === `${oldestId}`,
+				);
+				oldestIdCreatedAt = oldestById
+					? new Date(oldestById.createdAt)
+					: null;
+			}
+		}
+
+		return {
+			source,
+			total,
+			oldestCreatedAt,
+			mostRecentCreatedAt,
+			oldestId,
+			oldestIdCreatedAt,
+		};
+	}
+
+	private getSourceStats(): Record<TootSource, SourceStats> {
+		const sourcesToTrack: TootSource[] = [
+			CacheKey.HOME_TIMELINE_TOOTS,
+			FEDERATED_TIMELINE_SOURCE,
+			TagTootsCategory.FAVOURITED,
+			TagTootsCategory.PARTICIPATED,
+		];
+
+		return sourcesToTrack.reduce(
+			(stats, source) => {
+				stats[source] = this.buildSourceStats(source);
+				return stats;
+			},
+			{} as Record<TootSource, SourceStats>,
+		);
+	}
+
 	getDataStats(): {
 		feedTotal: number;
 		homeFeedTotal: number;
 		unseenTotal: number;
 		oldestCachedTime: Date | null;
 		mostRecentCachedTime: Date | null;
+		sourceStats: Record<TootSource, SourceStats>;
 	} {
 		const unseenTotal = this.feed.reduce(
 			(sum, toot) => sum + ((toot.numTimesShown ?? 0) > 0 ? 0 : 1),
@@ -705,6 +826,7 @@ export default class TheAlgorithm {
 			unseenTotal,
 			oldestCachedTime,
 			mostRecentCachedTime,
+			sourceStats: this.getSourceStats(),
 		};
 	}
 
@@ -821,12 +943,7 @@ export default class TheAlgorithm {
 	}
 
 	private getFederatedTimelineBounds(): { minId?: string; maxId?: string } {
-		const federatedToots = this.feed.filter((toot) =>
-			toot.sources?.includes(FEDERATED_TIMELINE_SOURCE),
-		);
-		const minMaxId = findMinMaxId(federatedToots);
-		if (!minMaxId) return {};
-		return { minId: minMaxId.min, maxId: minMaxId.max };
+		return this.getSourceBounds(FEDERATED_TIMELINE_SOURCE);
 	}
 
 	private async mergeFederatedTimeline(

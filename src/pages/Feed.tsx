@@ -10,6 +10,11 @@ import TheAlgorithm, {
 	optionalSuffix,
 	timeString,
 } from "../core/index";
+import {
+	CacheKey,
+	FEDERATED_TIMELINE_SOURCE,
+	TagTootsCategory,
+} from "../core/enums";
 
 import ApiErrorsPanel from "../components/ApiErrorsPanel";
 import FeedFiltersAccordionSection from "../components/algorithm/FeedFiltersAccordionSection";
@@ -37,6 +42,9 @@ export default function Feed() {
 		timeline,
 		triggerFeedUpdate,
 		triggerHomeTimelineBackFill,
+		triggerFederatedTimelineBackFill,
+		triggerFavouritedTagBackFill,
+		triggerParticipatedTagBackFill,
 		triggerMoarData,
 		triggerPullAllUserData,
 	} = useAlgorithm();
@@ -150,16 +158,66 @@ export default function Feed() {
 		return algorithm.getDataStats();
 	}, [algorithm, lastLoadDurationSeconds, numDisplayedToots, timeline.length]);
 
-	const { mostRecentCachedTime, oldestCachedTime } = useMemo(() => {
+	const { mostRecentCachedTime } = useMemo(() => {
 		if (!dataStats || !dataStats.oldestCachedTime || !dataStats.mostRecentCachedTime) {
-			return { mostRecentCachedTime: "N/A", oldestCachedTime: "N/A" };
+			return { mostRecentCachedTime: "N/A" };
 		}
 		return {
 			mostRecentCachedTime: timeString(dataStats.mostRecentCachedTime),
-			oldestCachedTime: timeString(dataStats.oldestCachedTime),
 		};
 	}, [dataStats]);
 	const hasCachedPosts = (dataStats?.feedTotal ?? 0) > 0;
+	const sourceStats = dataStats?.sourceStats ?? {};
+	const formatSourceOldest = (
+		sourceKey: string,
+		usesId: boolean,
+	): string => {
+		const stats = sourceStats[sourceKey];
+		if (!stats || stats.total === 0) return "No cached posts for this source yet.";
+		const oldestDate = stats.oldestCreatedAt
+			? timeString(stats.oldestCreatedAt)
+			: "N/A";
+		if (!usesId) return `Oldest: ${oldestDate}.`;
+		const oldestId = stats.oldestId || "N/A";
+		const oldestIdDate = stats.oldestIdCreatedAt
+			? timeString(stats.oldestIdCreatedAt)
+			: oldestDate;
+		return `Oldest id: ${oldestId} (${oldestIdDate}).`;
+	};
+	const sourceBackfills = useMemo(
+		() => [
+			{
+				key: CacheKey.HOME_TIMELINE_TOOTS,
+				label: "home timeline",
+				onClick: triggerHomeTimelineBackFill,
+				usesId: true,
+			},
+			{
+				key: FEDERATED_TIMELINE_SOURCE,
+				label: "federated timeline",
+				onClick: triggerFederatedTimelineBackFill,
+				usesId: true,
+			},
+			{
+				key: TagTootsCategory.FAVOURITED,
+				label: "favourited tags",
+				onClick: triggerFavouritedTagBackFill,
+				usesId: true,
+			},
+			{
+				key: TagTootsCategory.PARTICIPATED,
+				label: "participated tags",
+				onClick: triggerParticipatedTagBackFill,
+				usesId: true,
+			},
+		],
+		[
+			triggerFavouritedTagBackFill,
+			triggerFederatedTimelineBackFill,
+			triggerHomeTimelineBackFill,
+			triggerParticipatedTagBackFill,
+		],
+	);
 
 	return (
 		<div className="flex flex-col gap-4">
@@ -232,21 +290,37 @@ export default function Feed() {
 									<span>
 										{hasCachedPosts
 											? `Fetches posts created after your most recent cached post (${mostRecentCachedTime}), then re-scores the feed.`
-											: "Fetches your home timeline and trending posts, then scores and sorts them."}
+											: "Fetches your home timeline, federated timeline, and tag posts, then scores and sorts them."}
 									</span>
 
-									<button
-										type="button"
-										onClick={triggerHomeTimelineBackFill}
-										className="rounded-md border border-[color:var(--color-border)] px-2 py-1 text-left font-semibold text-[color:var(--color-primary)]"
-									>
-										Load older posts
-									</button>
-									<span>
-										{hasCachedPosts
-											? `Backfills older home-timeline posts starting from your current oldest cached post (${oldestCachedTime}).`
-											: "Backfills older home-timeline posts once you have cached posts to extend from."}
-									</span>
+									<div className="pt-1 text-[11px] font-semibold text-[color:var(--color-fg)]">
+										Load older posts by source
+									</div>
+									{sourceBackfills.map((source) => {
+										const stats = sourceStats[source.key];
+										const isDisabled = !stats || stats.total === 0;
+										const buttonClass = isDisabled
+											? "rounded-md border border-[color:var(--color-border)] px-2 py-1 text-left font-semibold text-[color:var(--color-muted-fg)] opacity-60"
+											: "rounded-md border border-[color:var(--color-border)] px-2 py-1 text-left font-semibold text-[color:var(--color-primary)]";
+										return (
+											<React.Fragment key={source.key}>
+												<button
+													type="button"
+													onClick={source.onClick}
+													disabled={isDisabled}
+													className={buttonClass}
+												>
+													Load older {source.label} posts
+												</button>
+												<span>
+													{`Backfills older ${source.label} posts. ${formatSourceOldest(
+														source.key,
+														source.usesId,
+													)}`}
+												</span>
+											</React.Fragment>
+										);
+									})}
 
 									<button
 										type="button"
@@ -359,13 +433,27 @@ export default function Feed() {
 										>
 											Load new posts
 										</button>
-										<button
-											type="button"
-											onClick={triggerHomeTimelineBackFill}
-											className="rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] px-4 py-2 font-semibold text-[color:var(--color-primary)] hover:bg-[color:var(--color-muted)]"
-										>
-											Load older posts
-										</button>
+										<div className="pt-1 text-xs text-[color:var(--color-muted-fg)]">
+											Load older posts by source (requires cached posts)
+										</div>
+										{sourceBackfills.map((source) => {
+											const stats = sourceStats[source.key];
+											const isDisabled = !stats || stats.total === 0;
+											const buttonClass = isDisabled
+												? "rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] px-4 py-2 font-semibold text-[color:var(--color-muted-fg)] opacity-60"
+												: "rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] px-4 py-2 font-semibold text-[color:var(--color-primary)] hover:bg-[color:var(--color-muted)]";
+											return (
+												<button
+													key={source.key}
+													type="button"
+													onClick={source.onClick}
+													disabled={isDisabled}
+													className={buttonClass}
+												>
+													Load older {source.label} posts
+												</button>
+											);
+										})}
 									</div>
 								</div>
 							))}

@@ -11,8 +11,9 @@ import type { TagWithUsageCounts } from "../types";
  * Helper class for fetching toots for a list of tags, e.g. trending or particiapted tags.
  */
 import MastoApi from "./api";
+import Storage from "../Storage";
 import { tagInfoStr } from "./objects/tag";
-import type Toot from "./objects/toot";
+import Toot from "./objects/toot";
 import TagList from "./tag_list";
 
 type TagTootsBuildConfig = {
@@ -103,6 +104,47 @@ export default class TagsForFetchingToots {
 			this.cacheKey,
 			this.config.maxToots,
 		);
+	}
+
+	/** Get older {@linkcode Toot}s for the list of tags and merge them into the cache. */
+	async getOlderToots(maxId: string | number | null): Promise<Toot[]> {
+		if (!maxId) return [];
+		const tags = this.topTags();
+		this.logger.log(
+			`getOlderToots() called for ${tags.length} tags with maxId ${maxId}`,
+		);
+
+		const results = await zipPromiseCalls(
+			tags.map((tag) => tag.name),
+			async (tagName) => {
+				return await MastoApi.instance.getStatusesForTag(
+					tagName,
+					this.logger,
+					this.config.numTootsPerTag,
+					{ maxId },
+				);
+			},
+			this.logger,
+		);
+
+		const statuses = Object.values(results).flat();
+		const newToots = await Toot.buildToots(statuses, this.cacheKey);
+		let cachedToots = await Storage.get(this.cacheKey);
+		if (!cachedToots) {
+			cachedToots = [];
+		} else if (!Array.isArray(cachedToots)) {
+			this.logger.logAndThrowError(
+				`Expected array at '${this.cacheKey}' but got`,
+				cachedToots,
+			);
+		}
+		cachedToots = Toot.dedupeToots(
+			[...newToots, ...(cachedToots as Toot[])],
+			this.logger,
+		);
+		cachedToots = truncateToLength(cachedToots, this.config.maxToots, this.logger);
+		await Storage.set(this.cacheKey, cachedToots);
+		return newToots;
 	}
 
 	/** Strip out tags we don't want to fetch toots for, e.g. followed, muted, invalid, or trending tags. */

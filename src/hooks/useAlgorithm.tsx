@@ -29,6 +29,7 @@ import {
 	addMimeExtensionsToServer,
 } from "../helpers/mastodon_helpers";
 import type { ErrorHandler } from "../types";
+import { TagTootsCategory } from "../core/enums";
 import { useAuthContext } from "./useAuth";
 import { useLocalStorage } from "./useLocalStorage";
 
@@ -53,6 +54,9 @@ interface AlgoContext {
 	timeline: Toot[];
 	triggerFeedUpdate?: () => void;
 	triggerHomeTimelineBackFill?: () => void;
+	triggerFederatedTimelineBackFill?: () => void;
+	triggerFavouritedTagBackFill?: () => void;
+	triggerParticipatedTagBackFill?: () => void;
 	triggerMoarData?: () => void;
 	triggerPullAllUserData?: () => void;
 }
@@ -194,6 +198,27 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 	);
 	const triggerHomeTimelineBackFill = useCallback(
 		() => algorithm && trigger(() => algorithm.triggerHomeTimelineBackFill()),
+		[algorithm, trigger],
+	);
+	const triggerFederatedTimelineBackFill = useCallback(
+		() =>
+			algorithm && trigger(() => algorithm.triggerFederatedTimelineBackFill()),
+		[algorithm, trigger],
+	);
+	const triggerFavouritedTagBackFill = useCallback(
+		() =>
+			algorithm &&
+			trigger(() =>
+				algorithm.triggerTagTimelineBackFill(TagTootsCategory.FAVOURITED),
+			),
+		[algorithm, trigger],
+	);
+	const triggerParticipatedTagBackFill = useCallback(
+		() =>
+			algorithm &&
+			trigger(() =>
+				algorithm.triggerTagTimelineBackFill(TagTootsCategory.PARTICIPATED),
+			),
 		[algorithm, trigger],
 	);
 	const triggerMoarData = useCallback(
@@ -365,6 +390,9 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		timeline,
 		triggerFeedUpdate,
 		triggerHomeTimelineBackFill,
+		triggerFederatedTimelineBackFill,
+		triggerFavouritedTagBackFill,
+		triggerParticipatedTagBackFill,
 		triggerMoarData,
 		triggerPullAllUserData,
 	};

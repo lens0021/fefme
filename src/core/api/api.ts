@@ -694,17 +694,28 @@ export default class MastoApi {
 		tagName: string,
 		logger: Logger,
 		numToots: number,
+		params?: { maxId?: string | number | null },
 	): Promise<TootLike[]> {
 		const startedAt = new Date();
+		const maxId = params?.maxId ?? null;
 
-		const results = await getPromiseResults<TootLike[]>([
-			this.searchForToots(tagName, logger.tempLogger("search"), numToots),
-			this.hashtagTimelineToots(
-				tagName,
-				logger.tempLogger("timeline"),
-				numToots,
-			),
-		]);
+		const results = maxId
+			? await getPromiseResults<TootLike[]>([
+					this.hashtagTimelineToots(
+						tagName,
+						logger.tempLogger("timeline"),
+						numToots,
+						maxId,
+					),
+				])
+			: await getPromiseResults<TootLike[]>([
+					this.searchForToots(tagName, logger.tempLogger("search"), numToots),
+					this.hashtagTimelineToots(
+						tagName,
+						logger.tempLogger("timeline"),
+						numToots,
+					),
+				]);
 
 		if (results.rejectedReasons.length) {
 			const accessRevokedError = results.rejectedReasons.find((e) =>
@@ -723,9 +734,13 @@ export default class MastoApi {
 		}
 
 		const toots = results.fulfilled.flat();
+		const searchCount = maxId ? 0 : results.fulfilled[0]?.length || 0;
+		const timelineCount = maxId
+			? results.fulfilled[0]?.length || 0
+			: results.fulfilled[1]?.length || 0;
 		const msg =
-			`#${tagName}: search endpoint got ${results.fulfilled[0]?.length || 0} toots, ` +
-			`hashtag timeline got ${results.fulfilled[1]?.length || 0} ` +
+			`#${tagName}: search endpoint got ${searchCount} toots, ` +
+			`hashtag timeline got ${timelineCount} ` +
 			`${ageString(startedAt)} (total ${toots.length}, oldest=${quotedISOFmt(earliestTootedAt(toots))}`;
 		logger.trace(`${msg}, newest=${quotedISOFmt(mostRecentTootedAt(toots))})`);
 		return toots;
@@ -768,6 +783,7 @@ export default class MastoApi {
 		tagName: string,
 		logger: Logger,
 		maxRecords?: number,
+		maxId?: string | number | null,
 	): Promise<Toot[]> {
 		maxRecords = maxRecords || config.api.defaultRecordsPerPage;
 		const releaseSemaphore = await lockExecution(this.requestSemphore, logger);
@@ -779,6 +795,7 @@ export default class MastoApi {
 				fetchGenerator: () => this.api.v1.timelines.tag.$select(tagName).list,
 				logger,
 				maxRecords,
+				maxId: maxId ?? undefined,
 				// hashtag timeline toots are not cached as a group, they're pulled in small amounts and used
 				// to create other sets of toots from a lot of small requests, e.g. PARTICIPATED_TAG_TOOTS
 				skipCache: true,
