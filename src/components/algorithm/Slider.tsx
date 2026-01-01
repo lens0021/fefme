@@ -13,7 +13,7 @@ interface SliderProps {
 	minValue: number;
 	maxValue: number;
 	onChange: (e: ChangeEvent<HTMLInputElement>) => Promise<void>;
-	rightAddon?: React.ReactNode;
+	Addon?: React.ReactNode;
 	stepSize?: number;
 	value: number;
 }
@@ -27,7 +27,7 @@ export default function Slider(props: SliderProps) {
 		minValue,
 		maxValue,
 		onChange,
-		rightAddon,
+		Addon: rightAddon,
 		stepSize,
 		value,
 	} = props;
@@ -45,23 +45,21 @@ export default function Slider(props: SliderProps) {
 	}
 
 	return (
-		<div className="me-2" key={`${label}_sliderForm`}>
-			<div className={`text-sm ${disabled ? "opacity-60" : ""}`}>
-				<div className="flex items-start justify-between gap-3">
-					<div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-						<span className="font-semibold">{label}</span>
-						{description && (
-							<span className="text-[color:var(--color-muted-fg)]">
-								{description}
-							</span>
-						)}
-					</div>
-					{rightAddon && <div className="shrink-0">{rightAddon}</div>}
+		<div className="mb-4" key={`${label}_sliderForm`}>
+			<div className={`${disabled ? "opacity-60" : ""}`}>
+				<div className="flex items-center gap-2 mb-2">
+					<span className="font-semibold text-sm">{label}</span>
+					{rightAddon && <div>{rightAddon}</div>}
+					{description && (
+						<span className="text-xs text-[color:var(--color-muted-fg)]">
+							{description}
+						</span>
+					)}
 				</div>
-				<div className="mt-2 flex items-center gap-3">
+				<div className="flex items-center gap-3">
 					{!hideValueBox && (
-						<div className="rounded bg-[color:var(--color-card-bg)] self-center border border-[color:var(--color-border)] px-2 pt-0.5 min-w-[3.5rem]">
-							<span className="font-mono text-xs text-right block">
+						<div className="rounded bg-[color:var(--color-card-bg)] border border-[color:var(--color-border)] px-2 py-1 min-w-[3.5rem]">
+							<span className="font-mono text-xs text-center block">
 								{value?.toFixed(decimals)}
 							</span>
 						</div>
