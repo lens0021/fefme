@@ -81,9 +81,7 @@ const TOOT_MATCHERS: Record<BooleanFilterName, TootMatcher> = {
 		return selectedOptions.some((source) => sources.includes(source));
 	},
 	[BooleanFilterName.TYPE]: (toot: Toot, selectedOptions: string[]) => {
-		return selectedOptions.some((v) =>
-			TYPE_FILTERS[v as TypeFilterName](toot),
-		);
+		return selectedOptions.some((v) => TYPE_FILTERS[v as TypeFilterName](toot));
 	},
 	[BooleanFilterName.USER]: (toot: Toot, selectedOptions: string[]) => {
 		return selectedOptions.includes(toot.realToot.account.webfingerURI);

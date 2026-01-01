@@ -507,25 +507,25 @@ export default function StatusComponent(props: StatusComponentProps) {
 						</div>
 					)}
 
-				{(toot.repliesCount > 0 || !!toot.inReplyToAccountId) && (
-					<p className="pt-2">
-						<button
-							type="button"
-							onClick={(e) => {
-						openToot(toot, e, isGoToSocialUser).catch((err) => {
-							logger.warn(
-								"Failed to resolve toot, opening original URL instead:",
-								err,
-							);
-							window.open(toot.url, "_blank");
-						});
-					}}
-							className="text-gray-500 text-[11px] p-0 border-0 bg-transparent cursor-pointer"
-						>
-							↗ Open Thread
-						</button>
-					</p>
-				)}
+					{(toot.repliesCount > 0 || !!toot.inReplyToAccountId) && (
+						<p className="pt-2">
+							<button
+								type="button"
+								onClick={(e) => {
+									openToot(toot, e, isGoToSocialUser).catch((err) => {
+										logger.warn(
+											"Failed to resolve toot, opening original URL instead:",
+											err,
+										);
+										window.open(toot.url, "_blank");
+									});
+								}}
+								className="text-gray-500 text-[11px] p-0 border-0 bg-transparent cursor-pointer"
+							>
+								↗ Open Thread
+							</button>
+						</p>
+					)}
 
 					{/* Actions (retoot, favorite, show score, etc) that appear in bottom panel of post */}
 					<div

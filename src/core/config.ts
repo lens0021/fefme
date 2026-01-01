@@ -263,12 +263,12 @@ class Config implements ConfigType {
 				initialMaxRecords: MAX_ENDPOINT_RECORDS_TO_PULL,
 				minutesUntilStale: 4 * MINUTES_IN_HOUR,
 			},
-		[FediverseCacheKey.POPULAR_SERVERS]: {
-			minutesUntilStale: 5 * MINUTES_IN_DAY,
-		},
-		[FediverseCacheKey.TRENDING_TAGS]: {
-			minutesUntilStale: 6 * MINUTES_IN_HOUR,
-		},
+			[FediverseCacheKey.POPULAR_SERVERS]: {
+				minutesUntilStale: 5 * MINUTES_IN_DAY,
+			},
+			[FediverseCacheKey.TRENDING_TAGS]: {
+				minutesUntilStale: 6 * MINUTES_IN_HOUR,
+			},
 			[FediverseCacheKey.TRENDING_TOOTS]: {
 				minutesUntilStale: 4 * MINUTES_IN_HOUR,
 			},

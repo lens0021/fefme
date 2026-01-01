@@ -640,7 +640,10 @@ export default class TheAlgorithm {
 			await Storage.set(CacheKey.HOME_TIMELINE_TOOTS, this.homeFeed);
 		}
 		if (this.trendingData?.toots?.length) {
-			await Storage.set(FediverseCacheKey.TRENDING_TOOTS, this.trendingData.toots);
+			await Storage.set(
+				FediverseCacheKey.TRENDING_TOOTS,
+				this.trendingData.toots,
+			);
 		}
 		for (const key of STORAGE_KEYS_WITH_TOOTS) {
 			if (

@@ -2,7 +2,10 @@ import React from "react";
 
 import { FEDIALGO } from "../core/index";
 import { buildNewFilterSettings } from "../core/filters/feed_filters";
-import { DEFAULT_WEIGHTS, WeightPresetLabel } from "../core/scorer/weight_presets";
+import {
+	DEFAULT_WEIGHTS,
+	WeightPresetLabel,
+} from "../core/scorer/weight_presets";
 import { VERSION } from "../version";
 
 import { confirm } from "./helpers/Confirmation";
@@ -12,12 +15,8 @@ import { useAuthContext } from "../hooks/useAuth";
 /** Header component on the feed page. */
 export default function Header(): JSX.Element {
 	const { user, logout, setApp } = useAuthContext();
-	const {
-		algorithm,
-		resetAlgorithm,
-		resetSeenState,
-		setSelfTypeFilterMode,
-	} = useAlgorithm();
+	const { algorithm, resetAlgorithm, resetSeenState, setSelfTypeFilterMode } =
+		useAlgorithm();
 
 	const reset = async () => {
 		if (
@@ -37,10 +36,7 @@ export default function Header(): JSX.Element {
 		)
 			return;
 		await algorithm?.updateUserWeightsToPreset(WeightPresetLabel.DEFAULT);
-		localStorage.setItem(
-			"fefme_user_weights",
-			JSON.stringify(DEFAULT_WEIGHTS),
-		);
+		localStorage.setItem("fefme_user_weights", JSON.stringify(DEFAULT_WEIGHTS));
 		Object.keys(DEFAULT_WEIGHTS).forEach((weightName) => {
 			localStorage.removeItem(`fefme_weight_disabled_${weightName}`);
 			localStorage.removeItem(`fefme_weight_backup_${weightName}`);

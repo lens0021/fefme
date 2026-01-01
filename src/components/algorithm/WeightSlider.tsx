@@ -115,8 +115,7 @@ export default function WeightSlider(props: WeightSliderProps) {
 			setIsDisabled(false);
 		};
 		window.addEventListener("fefme-weights-reset", handleReset);
-		return () =>
-			window.removeEventListener("fefme-weights-reset", handleReset);
+		return () => window.removeEventListener("fefme-weights-reset", handleReset);
 	}, [setIsDisabled]);
 
 	// Early return check AFTER all hooks

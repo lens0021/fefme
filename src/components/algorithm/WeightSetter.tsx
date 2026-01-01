@@ -11,6 +11,7 @@ import {
 	type WeightName,
 	type Weights,
 } from "../../core/index";
+import { isWeightName } from "../../core/enums";
 import { getLogger } from "../../helpers/log_helpers";
 import { useAlgorithm } from "../../hooks/useAlgorithm";
 import Accordion from "../helpers/Accordion";
@@ -19,11 +20,6 @@ import WeightSlider from "./WeightSlider";
 
 const logger = getLogger("WeightSetter");
 const WEIGHTS_STORAGE_KEY = "fefme_user_weights";
-const VALID_WEIGHT_NAMES = new Set([
-	...Object.values(ScoreName),
-	...Object.values(NonScoreWeightName),
-]);
-
 export default function WeightSetter() {
 	const { algorithm } = useAlgorithm();
 	const { logAndSetError } = useError();
@@ -39,7 +35,7 @@ export default function WeightSetter() {
 				const baseWeights = await algorithm.getUserWeights();
 				const weights = Object.entries(storedWeights).reduce(
 					(cleaned, [key, value]) => {
-						if (!VALID_WEIGHT_NAMES.has(key)) return cleaned;
+						if (!isWeightName(key)) return cleaned;
 						if (Number.isFinite(value)) {
 							cleaned[key as WeightName] = Number(value);
 						}
@@ -109,8 +105,8 @@ export default function WeightSetter() {
 			) : (
 				<>
 					<div className="px-4">
-						{Object.values(NonScoreWeightName).map((weight) =>
-							makeWeightSlider(weight),
+						{(Object.values(NonScoreWeightName) as NonScoreWeightName[]).map(
+							(weight) => makeWeightSlider(weight),
 						)}
 					</div>
 					<div className="h-3" />
@@ -120,7 +116,7 @@ export default function WeightSetter() {
 							Weightings
 						</p>
 
-						{Object.values(ScoreName)
+						{(Object.values(ScoreName) as ScoreName[])
 							.sort()
 							.map((scoreName) => makeWeightSlider(scoreName))}
 					</div>
