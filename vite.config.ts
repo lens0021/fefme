@@ -27,6 +27,7 @@ export default defineConfig(({ mode }) => {
 		build: {
 			outDir: env.BUILD_DIR || "docs",
 			sourcemap: mode === "development",
+			chunkSizeWarningLimit: 2000,
 		},
 
 		server: {
