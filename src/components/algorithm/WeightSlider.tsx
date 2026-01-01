@@ -47,13 +47,9 @@ export default function WeightSlider(props: WeightSliderProps) {
 
 	const applyWeightValue = useCallback(
 		async (nextValue: number) => {
-			console.log(`[WeightSlider] applyWeightValue ${weightName}: ${userWeights[weightName]} → ${nextValue}`);
 			const newWeights = Object.assign({}, userWeights);
 			newWeights[weightName] = nextValue;
-			console.log(`[WeightSlider] About to call updateWeights with:`, newWeights);
-			console.log(`[WeightSlider] updateWeights is:`, updateWeights);
 			await updateWeights(newWeights);
-			console.log(`[WeightSlider] updateWeights completed`);
 		},
 		[updateWeights, userWeights, weightName],
 	);
@@ -68,11 +64,9 @@ export default function WeightSlider(props: WeightSliderProps) {
 
 	const handleToggleDisabled = useCallback(
 		async (nextDisabled: boolean) => {
-			console.log(`[WeightSlider] Toggle ${weightName}: ${isDisabled} → ${nextDisabled}`);
 			setIsDisabled(nextDisabled);
 			const currentValue = userWeights[weightName];
 			if (nextDisabled) {
-				console.log(`[WeightSlider] Disabling ${weightName}: ${currentValue} → ${disabledValue}`);
 				if (currentValue !== disabledValue) {
 					localStorage.setItem(backupKey, JSON.stringify(currentValue));
 				}
@@ -85,7 +79,6 @@ export default function WeightSlider(props: WeightSliderProps) {
 				const restoredValue = Number.isFinite(backupValue)
 					? backupValue
 					: currentValue;
-				console.log(`[WeightSlider] Enabling ${weightName}: ${currentValue} → ${restoredValue}`);
 				await applyWeightValue(restoredValue);
 			}
 		},
