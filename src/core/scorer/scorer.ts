@@ -193,9 +193,7 @@ export default abstract class Scorer {
 				}
 				// TIME_DECAY can be 0 (neutral) but not negative
 				if (weightName === NonScoreWeightName.TIME_DECAY && value < 0) {
-					throw new Error(
-						`Non-score weight ${weightName} cannot be negative!`,
-					);
+					throw new Error(`Non-score weight ${weightName} cannot be negative!`);
 				}
 				// TRENDING has no restrictions beyond being finite
 			}

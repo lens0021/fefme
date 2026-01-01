@@ -534,7 +534,10 @@ export default function StatusComponent(props: StatusComponentProps) {
 						)}
 
 					{/* Actions (retoot, favorite, show score, etc) that appear in bottom panel of post */}
-					<div className="flex flex-wrap items-center justify-between gap-2" ref={statusRef}>
+					<div
+						className="flex flex-wrap items-center justify-between gap-2"
+						ref={statusRef}
+					>
 						<div className="flex flex-wrap items-center gap-2">
 							{!toot.isDM && buildActionButton(TootAction.Reblog)}
 							{buildActionButton(TootAction.Favourite)}
