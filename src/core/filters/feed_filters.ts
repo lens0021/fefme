@@ -228,6 +228,11 @@ export async function updateBooleanFilterOptions(
 		if (sourceSet.size === 0) {
 			// Add "Unknown" as a source when the toot has no sources
 			sourceSet.add(UNKNOWN_SOURCE);
+			// Also update the toot's sources array so filters work correctly
+			toot.sources = [UNKNOWN_SOURCE];
+			if (toot.realToot && toot.realToot !== toot) {
+				toot.realToot.sources = [UNKNOWN_SOURCE];
+			}
 		}
 		sourceSet.forEach((source) => {
 			optionLists[BooleanFilterName.SOURCE].incrementCount(source);
