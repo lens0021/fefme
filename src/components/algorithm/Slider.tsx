@@ -57,13 +57,6 @@ export default function Slider(props: SliderProps) {
 					)}
 				</div>
 				<div className="flex items-center gap-3">
-					{!hideValueBox && (
-						<div className="rounded bg-[color:var(--color-card-bg)] border border-[color:var(--color-border)] px-2 py-1 min-w-[3.5rem]">
-							<span className="font-mono text-xs text-center block">
-								{value?.toFixed(decimals)}
-							</span>
-						</div>
-					)}
 					<div className="flex-1 min-w-[6rem]">
 						<input
 							type="range"
@@ -77,6 +70,13 @@ export default function Slider(props: SliderProps) {
 							value={value}
 						/>
 					</div>
+					{!hideValueBox && (
+						<div className="rounded bg-[color:var(--color-card-bg)] border border-[color:var(--color-border)] px-2 py-1 min-w-[3.5rem]">
+							<span className="font-mono text-xs text-center block">
+								{value?.toFixed(decimals)}
+							</span>
+						</div>
+					)}
 				</div>
 			</div>
 		</div>
