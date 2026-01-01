@@ -162,8 +162,16 @@ export default function StatusComponent(props: StatusComponentProps) {
 		// Pre-emptively resolve the post ID as it appears on screen to speed up future interactions
 		// TODO: disabled this for now as it increases storage demands for small instances
 		// toot.resolveID().catch((e) => logger.error(`Error resolving toot ID: ${toot.description}`, e));
-		toot.numTimesShown = (toot.numTimesShown || 0) + 1;
-	}, [isLoading, isOnScreen, toot]);
+		const incrementSeen = (target: Toot) => {
+			target.numTimesShown = (target.numTimesShown || 0) + 1;
+		};
+		incrementSeen(status);
+		if (status !== toot) {
+			incrementSeen(toot);
+		}
+
+		algorithm?.saveTimelineToCache?.();
+	}, [algorithm, isLoading, isOnScreen, status, toot]);
 
 	// Build the account link(s) for the reblogger(s) that appears at top of a retoot
 	const rebloggersLinks = useMemo(

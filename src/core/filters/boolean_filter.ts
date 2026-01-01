@@ -44,7 +44,8 @@ export const TYPE_FILTERS: Record<TypeFilterName, TypeFilter> = {
 	[TypeFilterName.PRIVATE]: (toot) => toot.realToot.isPrivate,
 	[TypeFilterName.REPLIES]: (toot) => !!toot.realToot.inReplyToId,
 	[TypeFilterName.RETOOTS]: (toot) => !!toot.reblog,
-	[TypeFilterName.SEEN]: (toot) => (toot.numTimesShown ?? 0) > 0,
+	[TypeFilterName.SEEN]: (toot) =>
+		(toot.numTimesShown ?? 0) > 0 || (toot.realToot.numTimesShown ?? 0) > 0,
 	[TypeFilterName.SENSITIVE]: (toot) => toot.realToot.sensitive,
 	[TypeFilterName.SPOILERED]: (toot) => !isEmptyStr(toot.realToot.spoilerText),
 	[TypeFilterName.TRENDING_TAGS]: (toot) =>
