@@ -76,7 +76,6 @@ import type {
 	TrendingLink,
 } from "../../types";
 import MastoApi from "../api";
-import MastodonServer from "../mastodon_server";
 import UserData from "../user_data";
 import Account from "./account";
 import { isValidForSubstringSearch, repairTag } from "./tag";
@@ -1196,12 +1195,8 @@ export default class Toot implements TootObj {
 		const startedAt = new Date();
 
 		const userData = await MastoApi.instance.getUserData();
-		const trendingTags = (
-			await MastodonServer.fediverseTrendingTags()
-		).topObjs();
-		const trendingLinks = isDeepInspect
-			? await MastodonServer.fediverseTrendingLinks()
-			: []; // Skip trending links
+		const trendingTags: TagWithUsageCounts[] = [];
+		const trendingLinks: TrendingLink[] = [];
 		let completedToots: TootLike[] = [];
 		let incompleteToots = toots;
 
