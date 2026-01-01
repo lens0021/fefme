@@ -22,7 +22,6 @@ import {
 	faReply,
 	faRetweet,
 	faRobot,
-	faUpRightFromSquare,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import parse from "html-react-parser";
@@ -39,7 +38,6 @@ import { openToot } from "../../helpers/ui";
 import { useAlgorithm } from "../../hooks/useAlgorithm";
 import useOnScreen from "../../hooks/useOnScreen";
 import { useError } from "../helpers/ErrorHandler";
-import JsonModal from "../helpers/JsonModal";
 import NewTabLink from "../helpers/NewTabLink";
 import ActionButton, { type ButtonAction, TootAction } from "./ActionButton";
 import MultimediaNode from "./MultimediaNode";
@@ -63,7 +61,6 @@ enum InfoIconType {
 	Mention = "You're Mentioned",
 	Read = "Already Seen",
 	Reply = "Reply",
-	ShowToot = "Show Raw Post JSON",
 	TrendingLink = "Contains Trending Link",
 	TrendingToot = "Trending Post",
 }
@@ -79,7 +76,6 @@ const INFO_ICONS: Record<InfoIconType, IconInfo> = {
 	[InfoIconType.Mention]: { icon: faBolt, color: config.theme.light.success },
 	[InfoIconType.Read]: { icon: faEye, color: config.theme.light.info },
 	[InfoIconType.Reply]: { icon: faReply, color: config.theme.light.primary },
-	[InfoIconType.ShowToot]: { icon: faUpRightFromSquare },
 	[InfoIconType.TrendingLink]: {
 		icon: faLink,
 		color: config.theme.trendingTagColor,
@@ -164,7 +160,6 @@ export default function StatusComponent(props: StatusComponentProps) {
 	const isOnScreen = useOnScreen(statusRef);
 
 	const [showScoreModal, setShowScoreModal] = React.useState<boolean>(false);
-	const [showTootModal, setShowTootModal] = React.useState<boolean>(false);
 
 	// useEffect to handle things we want to do when the post makes its first appearnace on screen
 	useEffect(() => {
@@ -351,22 +346,6 @@ export default function StatusComponent(props: StatusComponentProps) {
 				</div>
 			)}
 
-			<JsonModal
-				dialogClassName="modal-xl"
-				json={status}
-				jsonViewProps={{
-					collapsed: 1,
-					displayArrayKey: true,
-					indentWidth: 8,
-					name: "post",
-					style: rawTootJson,
-					theme: "brewer",
-				}}
-				setShow={setShowTootModal}
-				show={showTootModal}
-				title="Raw Post Object"
-			/>
-
 			<div
 				aria-label={ariaLabel}
 				className="mb-4 rounded-2xl border p-4 shadow-sm focus-within:ring-2 focus-within:ring-[color:var(--color-primary)]"
@@ -437,17 +416,6 @@ export default function StatusComponent(props: StatusComponentProps) {
 								<span className="text-[color:var(--color-muted-fg)]">
 									({formatRelativeTime(toot.createdAt)})
 								</span>
-							</button>
-
-							<button
-								type="button"
-								onClick={(e) => {
-									e.preventDefault();
-									setShowTootModal(true);
-								}}
-								className="ml-2 inline-flex items-center text-[color:var(--color-muted-fg)] hover:text-[color:var(--color-fg)]"
-							>
-								{infoIcon(InfoIconType.ShowToot)}
 							</button>
 						</div>
 
@@ -566,10 +534,12 @@ export default function StatusComponent(props: StatusComponentProps) {
 						)}
 
 					{/* Actions (retoot, favorite, show score, etc) that appear in bottom panel of post */}
-					<div className="flex flex-wrap items-center gap-2" ref={statusRef}>
-						{!toot.isDM && buildActionButton(TootAction.Reblog)}
-						{buildActionButton(TootAction.Favourite)}
-						{buildActionButton(TootAction.Bookmark)}
+					<div className="flex flex-wrap items-center justify-between gap-2" ref={statusRef}>
+						<div className="flex flex-wrap items-center gap-2">
+							{!toot.isDM && buildActionButton(TootAction.Reblog)}
+							{buildActionButton(TootAction.Favourite)}
+							{buildActionButton(TootAction.Bookmark)}
+						</div>
 						{buildActionButton(TootAction.Score, () => setShowScoreModal(true))}
 					</div>
 				</div>
@@ -577,7 +547,3 @@ export default function StatusComponent(props: StatusComponentProps) {
 		</div>
 	);
 }
-
-const rawTootJson: CSSProperties = {
-	fontSize: 13,
-};

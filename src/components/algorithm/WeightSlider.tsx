@@ -69,7 +69,13 @@ export default function WeightSlider(props: WeightSliderProps) {
 	useEffect(() => {
 		if (!isDisabled) return;
 		const currentValue = userWeights[weightName];
-		if (currentValue !== disabledValue) {
+		// Only apply disabled value if current value is defined and different
+		// This prevents unnecessary updates that could hide other sliders
+		if (
+			currentValue !== undefined &&
+			currentValue !== disabledValue &&
+			Math.abs(currentValue - disabledValue) > 0.0001
+		) {
 			applyWeightValue(disabledValue).catch(() => {});
 		}
 	}, [applyWeightValue, disabledValue, isDisabled, userWeights, weightName]);
@@ -105,7 +111,13 @@ export default function WeightSlider(props: WeightSliderProps) {
 	);
 
 	// Early return check AFTER all hooks
-	if (!isFiniteNumber(userWeights[weightName]) || !info) {
+	// Only return null if we genuinely don't have info - don't hide sliders just because weights aren't loaded yet
+	if (!info) {
+		return null;
+	}
+
+	// If userWeights hasn't loaded this weight yet, don't render (but don't hide enabled weights)
+	if (!isFiniteNumber(userWeights[weightName])) {
 		return null;
 	}
 
@@ -134,8 +146,8 @@ export default function WeightSlider(props: WeightSliderProps) {
 						checked={isDisabled}
 						onChange={(e) => handleToggleDisabled(e.target.checked)}
 					/>
-					<span className="relative inline-flex h-5 w-9 items-center rounded-full border border-[color:var(--color-primary)] bg-[color:var(--color-primary)] transition-colors peer-checked:border-[color:var(--color-border)] peer-checked:bg-[color:var(--color-muted)]">
-						<span className="h-4 w-4 translate-x-4 rounded-full bg-[color:var(--color-card-bg)] shadow-sm transition-transform peer-checked:translate-x-0.5" />
+					<span className="relative inline-flex h-5 w-9 items-center rounded-full border border-[color:var(--color-primary)] bg-[color:var(--color-primary)] transition-colors duration-200 ease-in-out peer-checked:border-[color:var(--color-border)] peer-checked:bg-[color:var(--color-muted)]">
+						<span className="h-4 w-4 translate-x-4 rounded-full bg-[color:var(--color-card-bg)] shadow-sm transition-transform duration-200 ease-in-out peer-checked:translate-x-0.5" />
 					</span>
 				</label>
 			}
