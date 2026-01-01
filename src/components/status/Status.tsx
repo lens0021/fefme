@@ -325,7 +325,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 												</div>
 												<div className="ml-4 text-right">
 													<div className="text-lg font-bold text-[color:var(--color-primary)]">
-														{formatScore(value.weighted || value.raw)}
+														{formatScore(value.weighted ?? value.raw)}
 													</div>
 													<div className="text-xs text-[color:var(--color-muted-fg)]">
 														Raw: {formatScore(value.raw)}

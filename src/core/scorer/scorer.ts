@@ -183,14 +183,21 @@ export default abstract class Scorer {
 			if (!isFinite(value))
 				throw new Error(`Weight ${weightName} is missing from weights object!`);
 
-			if (
-				isNonScoreWeightName(weightName) &&
-				weightName != NonScoreWeightName.TRENDING &&
-				value <= 0
-			) {
-				throw new Error(
-					`Non-score weight ${weightName} must be greater than 0!`,
-				);
+			// Validate NonScoreWeight constraints
+			if (isNonScoreWeightName(weightName)) {
+				// OUTLIER_DAMPENER must be > 0 (used in division: 1 / outlierDampener)
+				if (weightName === NonScoreWeightName.OUTLIER_DAMPENER && value <= 0) {
+					throw new Error(
+						`Non-score weight ${weightName} must be greater than 0!`,
+					);
+				}
+				// TIME_DECAY can be 0 (neutral) but not negative
+				if (weightName === NonScoreWeightName.TIME_DECAY && value < 0) {
+					throw new Error(
+						`Non-score weight ${weightName} cannot be negative!`,
+					);
+				}
+				// TRENDING has no restrictions beyond being finite
 			}
 		});
 	}
