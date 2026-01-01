@@ -885,7 +885,7 @@ export default class TheAlgorithm {
 		this.trendingData = await Storage.getTrendingData();
 		this.filters = (await Storage.getFilters()) ?? buildNewFilterSettings();
 		await updateBooleanFilterOptions(this.filters, this.feed);
-		this.filterFeedAndSetInApp();
+		// Don't call filterFeedAndSetInApp() here - filters will be applied later in useAlgorithm
 		loadCacheLogger.debugWithTraceObjs(
 			`Loaded ${this.feed.length} cached toots + trendingData`,
 			this.trendingData,
