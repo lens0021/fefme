@@ -10,7 +10,6 @@ import Storage from "../Storage";
 import { config } from "../config";
 import {
 	FediverseCacheKey,
-	TagTootsCategory,
 	TrendingType,
 	simpleCacheKeyDict,
 } from "../enums";
@@ -29,20 +28,14 @@ import type {
 	InstanceResponse,
 	MastodonInstance,
 	MastodonInstances,
-	TagWithUsageCounts,
-	TrendingData,
 	TrendingLink,
 	TrendingObj,
 } from "../types";
 import MastoApi from "./api";
-import Toot from "./objects/toot";
 import {
 	decorateLinkHistory,
-	decorateTagHistory,
-	setTrendingRankToAvg,
 	uniquifyTrendingObjs,
 } from "./objects/trending_with_history";
-import TagList from "./tag_list";
 
 type InstanceDict = Record<string, MastodonInstance>;
 
@@ -126,39 +119,6 @@ export default class MastodonServer {
 			numLinks,
 		);
 		return trendingLinks.map(decorateLinkHistory);
-	}
-
-	/**
-	 * Fetch {@linkcode Toot}s that are trending on this server.
-	 * Note: Returned {@linkcode Toot}s have not had {@linkcode Toot.completeProperties} called yet.
-	 * @returns {Promise<Toot[]>} Array of trending Toot objects.
-	 */
-	async fetchTrendingStatuses(): Promise<Toot[]> {
-		const toots = await this.fetchTrending<mastodon.v1.Status>(
-			TrendingType.STATUSES,
-		);
-
-		return toots.map((t, i) => {
-			const toot = Toot.build(t);
-			toot.sources = [FediverseCacheKey.TRENDING_TOOTS];
-			// Inject toots with a trendingRank score that is reverse-ordered. e.g most popular
-			// trending toot gets numTrendingTootsPerServer points, least trending gets 1).
-			toot.trendingRank = 1 + (toots.length || 0) - i;
-			return toot;
-		});
-	}
-
-	/**
-	 * Get the tags that are trending on this server.
-	 * @returns {Promise<TagWithUsageCounts[]>} Array of trending tags with usage counts.
-	 */
-	async fetchTrendingTags(): Promise<TagWithUsageCounts[]> {
-		const numTags = config.trending.tags.numTagsPerServer;
-		const trendingTags = await this.fetchTrending<TagWithUsageCounts>(
-			TrendingType.TAGS,
-			numTags,
-		);
-		return trendingTags.map(decorateTagHistory);
 	}
 
 	///////////////////////////////////
@@ -255,50 +215,6 @@ export default class MastodonServer {
 	}
 
 	/**
-	 * Get the top trending tags from a bunch of servers, minus any invalid or muted tags.
-	 * @static
-	 * @returns {Promise<TagList>} {@linkcode TagList} of trending tags across all servers.
-	 */
-	static async fediverseTrendingTags(): Promise<TagList> {
-		const tags = await this.getTrendingObjsFromAllServers<TagWithUsageCounts>({
-			key: FediverseCacheKey.TRENDING_TAGS,
-			serverFxn: (server) => server.fetchTrendingTags(),
-			processingFxn: async (tags) => {
-				const trendingTagList = new TagList(tags, TagTootsCategory.TRENDING);
-				await trendingTagList.removeInvalidTrendingTags();
-				return uniquifyTrendingObjs(
-					trendingTagList.objs,
-					(t) => (t as TagWithUsageCounts).name,
-				);
-			},
-		});
-
-		return new TagList(tags, TagTootsCategory.TRENDING);
-	}
-
-	/**
-	 * Pull public top trending {@linkcode Toot}s on popular mastodon servers including
-	 * from accounts user doesn't follow.
-	 * @static
-	 * @returns {Promise<Toot[]>} Array of trending Toots across all servers.
-	 */
-	static async fediverseTrendingToots(): Promise<Toot[]> {
-		const cacheKey = FediverseCacheKey.TRENDING_TOOTS;
-
-		return await this.getTrendingObjsFromAllServers<Toot>({
-			key: cacheKey,
-			serverFxn: (server) => server.fetchTrendingStatuses(),
-			processingFxn: async (toots) => {
-				setTrendingRankToAvg(toots);
-				const trendingToots = await Toot.buildToots(toots, cacheKey);
-				return trendingToots.sort(
-					(a, b) => (b.trendingRank || 0) - (a.trendingRank || 0),
-				);
-			},
-		});
-	}
-
-	/**
 	 * Get the server names that are most relevant to the user, meaning servers that a
 	 * lot of the accounts the user follows live on.
 	 * @static
@@ -323,23 +239,6 @@ export default class MastodonServer {
 		} finally {
 			releaseMutex();
 		}
-	}
-
-	/**
-	 * Collect all three kinds of trending data (links, tags, {@linkcode Toot}s) in one call.
-	 * @static
-	 * @returns {Promise<TrendingData>} Object containing trending links, tags, toots, and servers.
-	 */
-	static async getTrendingData(): Promise<TrendingData> {
-		// TODO: would this be parallelized even without Promise.all?
-		const [links, tags, toots, servers] = await Promise.all([
-			this.fediverseTrendingLinks(),
-			this.fediverseTrendingTags(),
-			this.fediverseTrendingToots(),
-			this.getMastodonInstances(),
-		]);
-
-		return { links, servers, tags, toots };
 	}
 
 	///////////////////////////////////////

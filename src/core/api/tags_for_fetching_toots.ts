@@ -133,7 +133,9 @@ export default class TagsForFetchingToots {
 			{
 				[TagTootsCategory.FAVOURITED]: TagList.buildFavouritedTags(),
 				[TagTootsCategory.PARTICIPATED]: TagList.buildParticipatedTags(),
-				[TagTootsCategory.TRENDING]: new TagList([], TagTootsCategory.TRENDING),
+				[TagTootsCategory.TRENDING]: Promise.resolve(
+					new TagList([], TagTootsCategory.TRENDING),
+				),
 			},
 			new Logger("TagsForFetchingToots.rawTagLists()"),
 			(failedKey: TagTootsCategory) => new TagList([], failedKey),

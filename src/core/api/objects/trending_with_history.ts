@@ -23,16 +23,12 @@
 import type { mastodon } from "masto";
 
 import { config } from "../../config";
-import { average, groupBy } from "../../helpers/collection_helpers";
+import { average } from "../../helpers/collection_helpers";
 import { wordRegex } from "../../helpers/string_helpers";
 import type {
-	Hashtag,
-	TagWithUsageCounts,
 	TrendingLink,
 	TrendingWithHistory,
 } from "../../types";
-import { repairTag } from "./tag";
-import type Toot from "./toot";
 
 /**
  * Decorate a Mastodon {@linkcode https://docs.joinmastodon.org/entities/PreviewCard/#trends-link TrendLink}
@@ -44,18 +40,6 @@ export function decorateLinkHistory(link: mastodon.v1.TrendLink): TrendingLink {
 	const newLink = link as TrendingLink;
 	newLink.regex = wordRegex(newLink.url);
 	return decorateHistoryScores(newLink);
-}
-
-/**
- * Decorate a mastodon {@linkcode https://docs.joinmastodon.org/entities/PreviewCard/#trends-link Tag} with
- * computed history data, adding {@linkcode numToots} & {@linkcode numAccounts} properties.
- * @param {Hashtag} tag - The Tag object to decorate.
- * @returns {TagWithUsageCounts} The decorated Tag object.
- */
-export function decorateTagHistory(tag: Hashtag): TagWithUsageCounts {
-	const newTag = tag as TagWithUsageCounts;
-	repairTag(newTag);
-	return decorateHistoryScores(newTag);
 }
 
 /**
@@ -97,22 +81,6 @@ export function uniquifyTrendingObjs<T extends TrendingWithHistory>(
 		(a, b) => (b.numAccounts || 0) - (a.numAccounts || 0),
 	);
 	return sortedObjs as T[];
-}
-
-/**
- * A toot can trend on multiple servers in which case we set trendingRank for all to the avg
- * // TODO: maybe we should add the # of servers to the avg?
- * @param {Toot[]} rankedToots - Array of toots with trendingRank set.
- */
-export function setTrendingRankToAvg(rankedToots: Toot[]): void {
-	const tootsByURI = groupBy<Toot>(rankedToots, (toot) => toot.realURI);
-
-	Object.values(tootsByURI).forEach((uriToots) => {
-		const avgScore = average(
-			uriToots.map((t) => t.realToot.trendingRank) as number[],
-		);
-		uriToots.forEach((toot) => (toot.trendingRank = avgScore));
-	});
 }
 
 /**

@@ -9,7 +9,6 @@ import type { mastodon } from "masto";
 import MastoApi from "./api/api";
 import Account from "./api/objects/account";
 import Toot, { mostRecentTootedAt } from "./api/objects/toot";
-import TagList from "./api/tag_list";
 import UserData from "./api/user_data";
 import { config } from "./config";
 import {
@@ -20,8 +19,6 @@ import {
 	STORAGE_KEYS_WITH_ACCOUNTS,
 	STORAGE_KEYS_WITH_TOOTS,
 	type StorageKey,
-	TagTootsCategory,
-	TrendingType,
 	isApiCacheKey,
 } from "./enums";
 import {
@@ -41,13 +38,9 @@ import type {
 	CacheableApiObj,
 	FeedFilterSettings,
 	FeedFilterSettingsSerialized,
-	MastodonInstances,
 	StorableObj,
 	StorableWithTimestamp,
 	StringNumberDict,
-	TagWithUsageCounts,
-	TrendingData,
-	TrendingLink,
 	WeightName,
 	Weights,
 } from "./types";
@@ -161,23 +154,6 @@ export default class Storage {
 		} else {
 			return withStaleness.obj as T;
 		}
-	}
-
-	/** Get trending tags, toots, and links as a single TrendingData object. */
-	static async getTrendingData(): Promise<TrendingData> {
-		const servers = (await this.get(FediverseCacheKey.POPULAR_SERVERS)) || {};
-		const trendingTags = await this.getCoerced<TagWithUsageCounts>(
-			FediverseCacheKey.TRENDING_TAGS,
-		);
-
-		return {
-			[TrendingType.LINKS]: await this.getCoerced<TrendingLink>(
-				FediverseCacheKey.TRENDING_LINKS,
-			),
-			[TrendingType.SERVERS]: servers as MastodonInstances,
-			[TrendingType.TAGS]: new TagList(trendingTags, TagTootsCategory.TRENDING),
-			toots: await this.getCoerced<Toot>(FediverseCacheKey.TRENDING_TOOTS),
-		};
 	}
 
 	/** Return the user's stored timeline weightings or the default weightings if none are found. */
