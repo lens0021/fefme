@@ -17,6 +17,7 @@ import TheAlgorithm, {
 } from "./core/index";
 
 import type { TrendingPanelName } from "./components/TrendingSection";
+import { formatSourceLabel } from "./helpers/source_labels";
 import { nTimes } from "./helpers/string_helpers";
 import { SwitchType, THEME, type ThemeConfig } from "./helpers/styles";
 import type {
@@ -278,6 +279,10 @@ const config: Readonly<ConfigType> = {
 							text: "You used this language",
 						},
 					},
+				},
+				[BooleanFilterName.SOURCE]: {
+					position: 3,
+					formatLabel: formatSourceLabel,
 				},
 				[BooleanFilterName.SERVER]: {
 					position: 6,

@@ -219,6 +219,10 @@ export async function updateBooleanFilterOptions(
 			toot.realToot.language!,
 			decorateLanguage,
 		);
+		const sourceSet = new Set(toot.sources ?? []);
+		sourceSet.forEach((source) => {
+			optionLists[BooleanFilterName.SOURCE].incrementCount(source);
+		});
 
 		// Aggregate counts for each kind ("type") of toot
 		Object.entries(TYPE_FILTERS).forEach(([name, typeFilter]) => {

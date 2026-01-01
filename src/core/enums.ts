@@ -156,6 +156,7 @@ export enum BooleanFilterName {
 	APP = "app",
 	HASHTAG = "hashtag",
 	LANGUAGE = "language",
+	SOURCE = "source",
 	SERVER = "server",
 	TYPE = "type",
 	USER = "user",

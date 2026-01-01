@@ -73,6 +73,11 @@ const TOOT_MATCHERS: Record<BooleanFilterName, TootMatcher> = {
 			toot.realToot.language || config.locale.defaultLanguage,
 		);
 	},
+	[BooleanFilterName.SOURCE]: (toot: Toot, selectedOptions: string[]) => {
+		return selectedOptions.some((source) =>
+			(toot.sources ?? []).includes(source),
+		);
+	},
 	[BooleanFilterName.TYPE]: (toot: Toot, selectedOptions: string[]) => {
 		return selectedOptions.some((v) => TYPE_FILTERS[v as TypeFilterName](toot));
 	},

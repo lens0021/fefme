@@ -34,6 +34,7 @@ import { config } from "../../config";
 import { executeWithLoadingState } from "../../helpers/async_helpers";
 import { getLogger } from "../../helpers/log_helpers";
 import { formatScore } from "../../helpers/number_helpers";
+import { formatSourceLabel } from "../../helpers/source_labels";
 import { openToot } from "../../helpers/ui";
 import { useAlgorithm } from "../../hooks/useAlgorithm";
 import useOnScreen from "../../hooks/useOnScreen";
@@ -133,6 +134,11 @@ export default function StatusComponent(props: StatusComponentProps) {
 
 	// If it's a retoot set 'toot' to the original post
 	const toot = status.realToot;
+	const sourceLabels = useMemo(() => {
+		const sources = toot.sources ?? [];
+		const uniqueSources = Array.from(new Set(sources));
+		return uniqueSources.map(formatSourceLabel);
+	}, [toot.sources]);
 
 	if (!toot.mediaAttachments) {
 		logger.error(
@@ -391,6 +397,22 @@ export default function StatusComponent(props: StatusComponentProps) {
 								{toot.containsTagsMsg() && infoIcon(InfoIconType.Hashtags)}
 								{toot.isDM && infoIcon(InfoIconType.DM)}
 								{toot.account.bot && infoIcon(InfoIconType.Bot)}
+							</span>
+
+							<span className="flex flex-wrap items-center gap-1 text-[11px] text-[color:var(--color-muted-fg)]">
+								<span>Sources:</span>
+								{sourceLabels.length ? (
+									sourceLabels.map((source, index) => (
+										<span
+											key={`${source}-${index}`}
+											className="rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-muted)] px-2 py-[1px]"
+										>
+											{source}
+										</span>
+									))
+								) : (
+									<span>Unknown</span>
+								)}
 							</span>
 
 							<button
