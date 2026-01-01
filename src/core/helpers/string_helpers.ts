@@ -18,7 +18,7 @@ export const KILOBYTE = 1024;
 export const MEGABYTE = KILOBYTE * 1024;
 
 // String constants
-export const FEDIALGO = "FediAlgo";
+export const FEDIALGO = "Fefme";
 export const NULL = "<<NULL>>";
 export const TELEMETRY = "TELEMETRY";
 const UNKNOWN_SERVER = "unknown.server";
