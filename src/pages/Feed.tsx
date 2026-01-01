@@ -56,7 +56,6 @@ export default function Feed() {
 	);
 	const [scrollPercentage, setScrollPercentage] = useState(0);
 	const [thread, setThread] = useState<Toot[]>([]);
-	const lastAutoBackfillSize = useRef<number | null>(null);
 
 	// Checkboxes for persistent user settings state variables
 	// TODO: the returned checkboxTooltip is shared by all tooltips which kind of sucks
@@ -102,16 +101,6 @@ export default function Feed() {
 
 		// If the user scrolls to the bottom of the page, show more posts
 		if (isBottom && visibleTimeline.length) showMoreToots();
-		if (
-			isBottom &&
-			!isLoading &&
-			visibleTimeline.length &&
-			numDisplayedToots >= visibleTimeline.length &&
-			lastAutoBackfillSize.current !== visibleTimeline.length
-		) {
-			lastAutoBackfillSize.current = visibleTimeline.length;
-			triggerHomeTimelineBackFill?.();
-		}
 		// If there's less than numDisplayedToots in the feed set numDisplayedToots to the # of posts in the feed
 		if (visibleTimeline.length && visibleTimeline.length < numDisplayedToots)
 			setNumDisplayedToots(visibleTimeline.length);
@@ -143,7 +132,6 @@ export default function Feed() {
 		isBottom,
 		isLoading,
 		numDisplayedToots,
-		triggerHomeTimelineBackFill,
 		visibleTimeline.length,
 	]);
 
@@ -168,6 +156,11 @@ export default function Feed() {
 	}, [dataStats]);
 	const hasCachedPosts = (dataStats?.feedTotal ?? 0) > 0;
 	const sourceStats = dataStats?.sourceStats ?? {};
+	const isEndOfCachedFeed =
+		isBottom &&
+		!isLoading &&
+		visibleTimeline.length > 0 &&
+		numDisplayedToots >= visibleTimeline.length;
 	const formatSourceOldest = (
 		sourceKey: string,
 		usesId: boolean,
@@ -415,6 +408,13 @@ export default function Feed() {
 								status={toot}
 							/>
 						))}
+
+						{isEndOfCachedFeed && (
+							<div className="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] p-4 text-sm text-[color:var(--color-muted-fg)]">
+								You have reached the end of cached posts. Use "Load older posts by
+								source" in Data Loading & History to backfill more.
+							</div>
+						)}
 
 						{visibleTimeline.length === 0 &&
 							(isLoading ? (
