@@ -4,7 +4,7 @@
 import isFiniteNumber from "lodash/isFinite";
 import { useCallback, useEffect, useMemo } from "react";
 import type { StringNumberDict, WeightName } from "../../core/index";
-import { isNonScoreWeightName } from "../../core/enums";
+import { NonScoreWeightName, isNonScoreWeightName } from "../../core/enums";
 
 import { config } from "../../config";
 import { useAlgorithm } from "../../hooks/useAlgorithm";
@@ -16,6 +16,19 @@ interface WeightSliderProps {
 	userWeights: StringNumberDict;
 	weightName: WeightName;
 }
+
+/**
+ * Neutral values for NonScoreWeights when disabled.
+ * These values result in no effect on the final score:
+ * - TIME_DECAY: 0 → timeDecayMultiplier = 1 (no time decay)
+ * - TRENDING: 1 → trendingMultiplier = 1 (no trending bonus/penalty)
+ * - OUTLIER_DAMPENER: 1 → exponent = 1 (no dampening)
+ */
+const NEUTRAL_VALUES: Record<NonScoreWeightName, number> = {
+	[NonScoreWeightName.TIME_DECAY]: 0,
+	[NonScoreWeightName.TRENDING]: 1,
+	[NonScoreWeightName.OUTLIER_DAMPENER]: 1,
+};
 
 export default function WeightSlider(props: WeightSliderProps) {
 	const { updateWeights, userWeights, weightName } = props;
@@ -31,7 +44,9 @@ export default function WeightSlider(props: WeightSliderProps) {
 	const defaultMax =
 		Math.max(...weightValues) + 1 * config.weights.scalingMultiplier;
 	const minValue = info?.minValue ?? defaultMin;
-	const disabledValue = isNonScoreWeightName(weightName) ? minValue : 0;
+	const disabledValue = isNonScoreWeightName(weightName)
+		? NEUTRAL_VALUES[weightName as NonScoreWeightName]
+		: 0;
 	const disabledKey = `fefme_weight_disabled_${weightName}`;
 	const backupKey = `fefme_weight_backup_${weightName}`;
 
