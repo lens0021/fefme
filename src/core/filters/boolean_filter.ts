@@ -80,17 +80,9 @@ const TOOT_MATCHERS: Record<BooleanFilterName, TootMatcher> = {
 		return selectedOptions.some((source) => sources.includes(source));
 	},
 	[BooleanFilterName.TYPE]: (toot: Toot, selectedOptions: string[]) => {
-		const matches = selectedOptions.some((v) => {
-			const result = TYPE_FILTERS[v as TypeFilterName](toot);
-			// Debug: Log seen filter specifically
-			if (v === "seen") {
-				console.log(
-					`🔍FILTER_BUG Checking 'seen' for toot ${toot.id}: numTimesShown=${toot.numTimesShown}, result=${result}`,
-				);
-			}
-			return result;
-		});
-		return matches;
+		return selectedOptions.some((v) =>
+			TYPE_FILTERS[v as TypeFilterName](toot),
+		);
 	},
 	[BooleanFilterName.USER]: (toot: Toot, selectedOptions: string[]) => {
 		return selectedOptions.includes(toot.realToot.account.webfingerURI);
@@ -188,23 +180,11 @@ export default class BooleanFilter extends TootFilter {
 				? this.selectedOptions
 				: [];
 
-		// Debug logging for type filter to track filtering issues
-		if (this.propertyName === BooleanFilterName.TYPE && excludeOptions.length) {
-			console.log(`🔍FILTER_BUG Checking toot ${toot.id}:`, {
-				numTimesShown: toot.numTimesShown,
-				excludeOptions,
-				includeOptions,
-			});
-		}
-
 		// Check if toot matches include filter
 		if (
 			includeOptions.length &&
 			!TOOT_MATCHERS[this.propertyName](toot, includeOptions)
 		) {
-			if (this.propertyName === BooleanFilterName.TYPE) {
-				console.log(`🔍FILTER_BUG ❌ Toot ${toot.id} excluded by include filter`);
-			}
 			return false;
 		}
 
@@ -213,14 +193,7 @@ export default class BooleanFilter extends TootFilter {
 			excludeOptions.length &&
 			TOOT_MATCHERS[this.propertyName](toot, excludeOptions)
 		) {
-			if (this.propertyName === BooleanFilterName.TYPE) {
-				console.log(`🔍FILTER_BUG ❌ Toot ${toot.id} excluded by exclude filter`);
-			}
 			return false;
-		}
-
-		if (this.propertyName === BooleanFilterName.TYPE && excludeOptions.length) {
-			console.log(`🔍FILTER_BUG ✅ Toot ${toot.id} allowed`);
 		}
 
 		return true;

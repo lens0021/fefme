@@ -4,7 +4,6 @@
  */
 import { Mutex } from "async-mutex";
 
-import { ageString } from "../helpers/time_helpers";
 import type FeedScorer from "./feed_scorer";
 import type Scorer from "./scorer";
 import type TootScorer from "./toot_scorer";
@@ -45,9 +44,6 @@ export default class ScorerCache {
 			if (scorersToPrepare.length == 0) return;
 			await Promise.all(
 				scorersToPrepare.map((scorer) => scorer.fetchRequiredData()),
-			);
-			console.log(
-				`[ScorerCache] ${this.tootScorers.length} scorers ready ${ageString(startedAt)}`,
 			);
 		} finally {
 			releaseMutex();
