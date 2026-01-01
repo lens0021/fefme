@@ -424,7 +424,7 @@ export default class MastoApi {
 
 	/**
 	 * Get the Mastodon server domains that the user has blocked.
-	 * Safe domain for testing: https://universeodon.com/@memes@pl.m0e.space
+	 * Safe domain for testing: https://mastodon.social/@memes@pl.m0e.space
 	 * @returns {Promise<string[]>} Set of blocked domains.
 	 */
 	async getBlockedDomains(): Promise<string[]> {
@@ -901,7 +901,7 @@ export default class MastoApi {
 	 * Resolves a foreign server toot URI to one on the user's local server using the v2 search API.
 	 * @param {Toot} toot - The toot to resolve.
 	 * @returns {Promise<Toot>} The resolved toot.
-	 * @example "https://fosstodon.org/@kate/114360290341300577" => "https://universeodon.com/@kate@fosstodon.org/114360290578867339"
+	 * @example "https://fosstodon.org/@kate/114360290341300577" => "https://mastodon.social/@kate@fosstodon.org/114360290578867339"
 	 */
 	async resolveToot(toot: Toot): Promise<Toot> {
 		const logger = getLogger("resolveToot()", toot.realURI);

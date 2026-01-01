@@ -77,7 +77,6 @@ type FediverseConfig = {
 	foreignLanguageServers: Readonly<Record<string, string[]>>;
 	minServerMAU: number;
 	noMauServers: string[];
-	noTrendingLinksServers: string[];
 	numServersToCheck: number;
 };
 
@@ -136,10 +135,6 @@ type TootsConfig = {
 	truncateFullTimelineToLength: number;
 };
 
-type TrendingLinksConfig = {
-	numTrendingLinksPerServer: number;
-};
-
 interface TrendingTagsConfig extends TagTootsConfig {
 	numTagsPerServer: number;
 }
@@ -150,7 +145,6 @@ type TrendingTootsConfig = {
 
 type TrendingConfig = {
 	daysToCountTrendingData: number;
-	links: Readonly<TrendingLinksConfig>;
 	tags: Readonly<TrendingTagsConfig>;
 	toots: Readonly<TrendingTootsConfig>;
 };
@@ -269,15 +263,15 @@ class Config implements ConfigType {
 				initialMaxRecords: MAX_ENDPOINT_RECORDS_TO_PULL,
 				minutesUntilStale: 4 * MINUTES_IN_HOUR,
 			},
-			[FediverseCacheKey.POPULAR_SERVERS]: {
-				minutesUntilStale: 5 * MINUTES_IN_DAY,
-			},
-			[FediverseCacheKey.TRENDING_LINKS]: {
-				minutesUntilStale: 4 * MINUTES_IN_HOUR,
-			},
-			[FediverseCacheKey.TRENDING_TAGS]: {
-				minutesUntilStale: 6 * MINUTES_IN_HOUR,
-			},
+		[FediverseCacheKey.POPULAR_SERVERS]: {
+			minutesUntilStale: 5 * MINUTES_IN_DAY,
+		},
+		[FediverseCacheKey.TRENDING_LINKS]: {
+			minutesUntilStale: 4 * MINUTES_IN_HOUR,
+		},
+		[FediverseCacheKey.TRENDING_TAGS]: {
+			minutesUntilStale: 6 * MINUTES_IN_HOUR,
+		},
 			[FediverseCacheKey.TRENDING_TOOTS]: {
 				minutesUntilStale: 4 * MINUTES_IN_HOUR,
 			},
@@ -317,7 +311,7 @@ class Config implements ConfigType {
 			"c.im",
 			"hachyderm.io",
 			"infosec.exchange",
-			"universeodon.com",
+			"mastodon.art",
 			"kolektiva.social",
 			"mastodonapp.uk",
 			"ioc.exchange",
@@ -404,14 +398,6 @@ class Config implements ConfigType {
 			"mathstodon.xyz",
 			"mstdn.social", // blocked by CORS
 			"threads.net",
-		],
-		// Servers that don't support trending links
-		noTrendingLinksServers: [
-			"chaos.social",
-			"fediscience.org",
-			"mastodon.cloud",
-			"med-mastodon.com",
-			"toot.io",
 		],
 	};
 

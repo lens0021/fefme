@@ -102,7 +102,6 @@ import RetootsInFeedScorer from "./scorer/toot/retoots_in_feed_scorer";
 import FavouritedTagsScorer, {
 	HashtagParticipationScorer,
 } from "./scorer/toot/tag_scorer_factory";
-import TrendingLinksScorer from "./scorer/toot/trending_links_scorer";
 import TrendingTagsScorer from "./scorer/toot/trending_tags_scorer";
 import type TootScorer from "./scorer/toot_scorer";
 import {
@@ -262,7 +261,6 @@ export default class TheAlgorithm {
 		new NumRepliesScorer(),
 		new NumRetootsScorer(),
 		new RetootsInFeedScorer(),
-		new TrendingLinksScorer(),
 		new TrendingTagsScorer(),
 		new TrendingTootScorer(),
 		new VideoAttachmentScorer(),
@@ -884,24 +882,8 @@ export default class TheAlgorithm {
 			toot.isInTimeline(this.filters),
 		);
 
-		console.log(
-			"[filterFeedAndSetInApp] Feed before filtering:",
-			this.feed.length,
-			"toots",
-		);
-		console.log(
-			"[filterFeedAndSetInApp] Filtered timeline:",
-			this.filteredTimeline.length,
-			"toots",
-		);
-		const filteredSeenCount = this.filteredTimeline.filter(
-			(t) => (t.numTimesShown ?? 0) > 0,
-		).length;
-		console.log(
-			"[filterFeedAndSetInApp] Seen in filtered timeline:",
-			filteredSeenCount,
-			"Unseen:",
-			this.filteredTimeline.length - filteredSeenCount,
+		logger.debug(
+			`Filtered ${this.feed.length} toots → ${this.filteredTimeline.length} visible`,
 		);
 
 		this.setTimelineInApp(this.filteredTimeline);
@@ -918,7 +900,7 @@ export default class TheAlgorithm {
 	}
 
 	/**
-	 * Do some final cleanup and scoring operations on the feed.
+	 * Do some final cleanup and scoring operations on the feed after new toots have been fetched.
 	 * @private
 	 * @returns {Promise<void>}
 	 */
@@ -927,11 +909,17 @@ export default class TheAlgorithm {
 		const hereLogger = loggers[action];
 		this.loadingStatus = config.locale.messages[action];
 
-		// Now that all data has arrived go back over the feed and do the slow calculations of trendingLinks etc.
 		hereLogger.debug(`${this.loadingStatus}...`);
+
+		// Complete toots (calculate trending links, etc.) and remove any invalid ones
 		await Toot.completeToots(this.feed, hereLogger);
 		this.feed = await Toot.removeInvalidToots(this.feed, hereLogger);
+
+		// Update filter options to include new hashtags, users, languages, etc. from newly fetched toots
+		// scanForTags=true performs additional hashtag scanning in toot text
 		await updateBooleanFilterOptions(this.filters, this.feed, true);
+
+		// Score all toots and apply filters to update the UI
 		await this.scoreAndFilterFeed();
 
 		if (this.loadStartedAt) {
@@ -1006,18 +994,16 @@ export default class TheAlgorithm {
 	 * @returns {Promise<void>}
 	 */
 	private async loadCachedData(): Promise<void> {
-		const callId = Math.random().toString(36).substring(7);
-		console.log(
-			`[loadCachedData #${callId}] START - Current filteredTimeline has ${this.filteredTimeline.length} toots`,
-		);
-
+		// Load cached toots and trending data
 		this.homeFeed = await Storage.getCoerced<Toot>(
 			CacheKey.HOME_TIMELINE_TOOTS,
 		);
 		this.feed = await Storage.getCoerced<Toot>(
 			AlgorithmStorageKey.TIMELINE_TOOTS,
 		);
+		this.trendingData = EMPTY_TRENDING_DATA;
 
+		// Truncate if timeline is at max capacity
 		if (this.feed.length == config.toots.maxTimelineLength) {
 			const numToClear =
 				config.toots.maxTimelineLength -
@@ -1033,44 +1019,20 @@ export default class TheAlgorithm {
 			await Storage.set(AlgorithmStorageKey.TIMELINE_TOOTS, this.feed);
 		}
 
-		this.trendingData = EMPTY_TRENDING_DATA;
+		// Load filter settings from storage
 		this.filters = (await Storage.getFilters()) ?? buildNewFilterSettings();
 
-		// Debug: Check filter state before updateBooleanFilterOptions
-		const typeFilter = this.filters.booleanFilters.type;
-		console.log(
-			"[loadCachedData] Before updateBooleanFilterOptions - Type filter excludedOptions:",
-			typeFilter?.excludedOptions,
-		);
-		console.log("[loadCachedData] Feed has", this.feed.length, "toots");
-		const seenCount = this.feed.filter(
-			(t) => (t.numTimesShown ?? 0) > 0,
-		).length;
-		console.log(
-			"[loadCachedData] Seen toots in feed:",
-			seenCount,
-			"Unseen:",
-			this.feed.length - seenCount,
-		);
-
-		await updateBooleanFilterOptions(this.filters, this.feed);
-
-		// Debug: Check filter state after updateBooleanFilterOptions
-		console.log(
-			"[loadCachedData] After updateBooleanFilterOptions - Type filter excludedOptions:",
-			typeFilter?.excludedOptions,
-		);
-
-		this.filterFeedAndSetInApp();
-
-		console.log(
-			`[loadCachedData #${callId}] END - filteredTimeline now has ${this.filteredTimeline.length} toots`,
-		);
-
-		loadCacheLogger.debugWithTraceObjs(
-			`Loaded ${this.feed.length} cached toots + trendingData (${this.timeline.length} after filtering)`,
-			this.trendingData,
-		);
+		// Only update filter options if we have cached toots
+		// (this also modifies toots to add "Unknown" source where needed)
+		if (this.feed.length > 0) {
+			await updateBooleanFilterOptions(this.filters, this.feed);
+			this.filterFeedAndSetInApp();
+			loadCacheLogger.debug(
+				`Loaded ${this.feed.length} cached toots (${this.filteredTimeline.length} after filtering)`,
+			);
+		} else {
+			loadCacheLogger.debug("No cached toots found");
+		}
 	}
 
 	/**

@@ -196,9 +196,8 @@ const config: Readonly<ConfigType> = {
 			website: HOMEPAGE,
 		},
 		defaultServer: "mastodon.social",
-		developerMastodonUrl: "https://universeodon.com/@cryptadamist",
-		headerIconUrl:
-			"https://media.universeodon.com/accounts/avatars/109/363/179/904/598/380/original/eecdc2393e75e8bf.jpg",
+		developerMastodonUrl: "https://mastodon.social/@cryptadamist",
+		headerIconUrl: "/assets/logo.svg",
 		issuesUrl: ISSUES_URL,
 		repoName: HOMEPAGE_URL ? HOMEPAGE_URL.pathname.split("/").pop() : null,
 		repoUrl: GITHUB_REPO_URL,

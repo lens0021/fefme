@@ -24,14 +24,9 @@ import type {
 	InstanceResponse,
 	MastodonInstance,
 	MastodonInstances,
-	TrendingLink,
 	TrendingObj,
 } from "../types";
 import MastoApi from "./api";
-import {
-	decorateLinkHistory,
-	uniquifyTrendingObjs,
-} from "./objects/trending_with_history";
 
 type InstanceDict = Record<string, MastodonInstance>;
 
@@ -95,26 +90,6 @@ export default class MastodonServer {
 				.warn(`Error for server '${this.domain}'`, error);
 			return null;
 		}
-	}
-
-	/**
-	 * Get the links that are trending on this server.
-	 * @returns {Promise<TrendingLink[]>} Array of trending links.
-	 */
-	async fetchTrendingLinks(): Promise<TrendingLink[]> {
-		if (config.fediverse.noTrendingLinksServers.includes(this.domain)) {
-			this.logger.debug(
-				`Trending links are not available for '${this.domain}', skipping...`,
-			);
-			return [];
-		}
-
-		const numLinks = config.trending.links.numTrendingLinksPerServer;
-		const trendingLinks = await this.fetchTrending<TrendingLink>(
-			TrendingType.LINKS,
-			numLinks,
-		);
-		return trendingLinks.map(decorateLinkHistory);
 	}
 
 	///////////////////////////////////
@@ -194,21 +169,6 @@ export default class MastodonServer {
 	//////////////////////////////////////////////////////////////////////////////////////////////////
 	// Static Methods (mostly for calling instance methods on the top 30 or so servers in parallel) //
 	//////////////////////////////////////////////////////////////////////////////////////////////////
-
-	/**
-	 * Get the top trending links from a bunch of servers in the fediverse.
-	 * @static
-	 * @returns {Promise<TrendingLink[]>} Array of trending links across all servers.
-	 */
-	static async fediverseTrendingLinks(): Promise<TrendingLink[]> {
-		return await this.getTrendingObjsFromAllServers<TrendingLink>({
-			key: FediverseCacheKey.TRENDING_LINKS,
-			serverFxn: (server) => server.fetchTrendingLinks(),
-			processingFxn: async (links) => {
-				return uniquifyTrendingObjs<TrendingLink>(links, (link) => link.url);
-			},
-		});
-	}
 
 	/**
 	 * Get the server names that are most relevant to the user, meaning servers that a

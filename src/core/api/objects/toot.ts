@@ -671,7 +671,7 @@ export default class Toot implements TootObj {
 	/**
 	 * Make an API call to get this {@linkcode Toot}'s URL on the Fefme user's home server instead of on
 	 * the {@linkcode Toot}'s home server.
-	 * @example "https://fosstodon.org/@kate/114360290341300577" => "https://universeodon.com/@kate@fosstodon.org/114360290578867339"
+	 * @example "https://fosstodon.org/@kate/114360290341300577" => "https://mastodon.social/@kate@fosstodon.org/114360290578867339"
 	 * @returns {Promise<string>} The home server URL.
 	 */
 	async localServerUrl(): Promise<string> {

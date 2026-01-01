@@ -43,8 +43,8 @@ export default function AuthProvider(props: PropsWithChildren) {
 	// {
 	//     access_token: "xyssdsfdnffdwf"
 	//     id: "10936317990452342342"
-	//     profilePicture: "https://media.universeodon.com/accounts/avatars/109/363/179/904/598/380/original/dfnwodfnow.jpg"
-	//     server: "https://universeodon.com"
+	//     profilePicture: "https://files.mastodon.social/accounts/avatars/000/000/000/000/000/000/original/example.jpg"
+	//     server: "https://mastodon.social"
 	//     username: "cryptadamus"
 	// }
 	const setLoggedInUser = useCallback(
@@ -74,7 +74,7 @@ export default function AuthProvider(props: PropsWithChildren) {
 
 			// POST to oauthRevokeURL throws error but log shows "Status code: 200" so I think it works? Hard to
 			// get at the actual status code variable (it's only in the low level logs).
-			// Error: "Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://universeodon.com/oauth/revoke. (Reason: CORS header ‘Access-Control-Allow-Origin’ missing). Status code: 200.""
+			// Error: "Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at https://mastodon.social/oauth/revoke. (Reason: CORS header ‘Access-Control-Allow-Origin’ missing). Status code: 200.""
 			try {
 				const _logoutResponse = await axios.post(oauthRevokeURL, body);
 			} catch (error) {
