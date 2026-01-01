@@ -323,13 +323,6 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 				: undefined;
 
 			const setState = (state: "include" | "exclude" | "neutral") => {
-				if (
-					isTypeFilter &&
-					state !== "neutral" &&
-					selfTypeFilterMode !== "none"
-				) {
-					setSelfTypeFilterMode?.("none");
-				}
 				filter.updateOption(option.name, state);
 				algorithm.updateFilters(algorithm.filters);
 			};
