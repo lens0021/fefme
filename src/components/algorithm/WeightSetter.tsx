@@ -19,6 +19,10 @@ import WeightSlider from "./WeightSlider";
 
 const logger = getLogger("WeightSetter");
 const WEIGHTS_STORAGE_KEY = "fefme_user_weights";
+const VALID_WEIGHT_NAMES = new Set([
+	...Object.values(ScoreName),
+	...Object.values(NonScoreWeightName),
+]);
 
 export default function WeightSetter() {
 	const { algorithm } = useAlgorithm();
@@ -31,7 +35,18 @@ export default function WeightSetter() {
 		try {
 			const savedWeights = localStorage.getItem(WEIGHTS_STORAGE_KEY);
 			if (savedWeights) {
-				const weights = JSON.parse(savedWeights);
+				const storedWeights = JSON.parse(savedWeights) as Weights;
+				const baseWeights = await algorithm.getUserWeights();
+				const weights = Object.entries(storedWeights).reduce(
+					(cleaned, [key, value]) => {
+						if (!VALID_WEIGHT_NAMES.has(key)) return cleaned;
+						if (Number.isFinite(value)) {
+							cleaned[key as WeightName] = Number(value);
+						}
+						return cleaned;
+					},
+					{ ...baseWeights },
+				);
 				logger.log("Loaded weights from localStorage:", weights);
 				algorithm.updateUserWeights(weights);
 				setUserWeights(weights);

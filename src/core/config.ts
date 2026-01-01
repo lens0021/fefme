@@ -266,9 +266,6 @@ class Config implements ConfigType {
 		[FediverseCacheKey.POPULAR_SERVERS]: {
 			minutesUntilStale: 5 * MINUTES_IN_DAY,
 		},
-		[FediverseCacheKey.TRENDING_LINKS]: {
-			minutesUntilStale: 4 * MINUTES_IN_HOUR,
-		},
 		[FediverseCacheKey.TRENDING_TAGS]: {
 			minutesUntilStale: 6 * MINUTES_IN_HOUR,
 		},
@@ -333,7 +330,7 @@ class Config implements ConfigType {
 			// "baraag.net",                 // very NSFW (anime porn)
 			// "mstdn.social",               // Slow, blocked by CORS
 			// "mastodon.lol",               // Doesn't return MAU data
-			// "fosstodon.org",              // Doesn't support trending links/toots
+			// "fosstodon.org",              // Doesn't support trending toots
 			// "mastodon.technology",        // Doesn't return MAU data
 			// "mathstodon.xyz",             // Doesn't return MAU data
 		],
@@ -3517,9 +3514,6 @@ class Config implements ConfigType {
 
 	trending = {
 		daysToCountTrendingData: 3, // Look at this many days of user counts when assessing trending data
-		links: {
-			numTrendingLinksPerServer: 20, // How many trending links to pull from each server
-		},
 		tags: {
 			invalidTags: [
 				// Tags that are too generic to be considered trending

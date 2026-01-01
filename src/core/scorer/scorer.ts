@@ -33,7 +33,6 @@ const LOG_PREFIX = "Scorer";
 const SCORE_MUTEX = new Mutex();
 
 const TRENDING_WEIGHTS = new Set([
-	ScoreName.TRENDING_LINKS,
 	ScoreName.TRENDING_TAGS,
 	ScoreName.TRENDING_TOOTS,
 ]);

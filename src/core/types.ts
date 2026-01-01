@@ -203,7 +203,6 @@ export type TootScores = Record<ScoreName, WeightedScore>;
 
 // TODO: "toots" is different from TrendingType.STATUSES ("statuses" is a Mastodon API type)
 export type TrendingData = {
-	[TrendingType.LINKS]: TrendingLink[];
 	[TrendingType.SERVERS]: MastodonInstances;
 	[TrendingType.TAGS]: TagList;
 	toots: Toot[];

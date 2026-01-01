@@ -20,6 +20,7 @@ import {
 	STORAGE_KEYS_WITH_TOOTS,
 	type StorageKey,
 	isApiCacheKey,
+	isWeightName,
 } from "./enums";
 import {
 	buildFiltersFromArgs,
@@ -161,6 +162,15 @@ export default class Storage {
 		const weights = (await this.get(AlgorithmStorageKey.WEIGHTS)) as Weights;
 		if (!weights) return JSON.parse(JSON.stringify(DEFAULT_WEIGHTS)) as Weights;
 		let shouldSave = false;
+
+		// Remove any keys that no longer map to a known weight name.
+		Object.keys(weights).forEach((key) => {
+			if (!isWeightName(key)) {
+				logger.warn(`Removing unknown weight "${key}" from saved weights`);
+				delete weights[key as WeightName];
+				shouldSave = true;
+			}
+		});
 
 		// If there are stored weights set any missing values to the default (possible in case of upgrades)
 		Object.entries(DEFAULT_WEIGHTS).forEach(([key, defaultValue]) => {

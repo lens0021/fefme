@@ -16,7 +16,6 @@ import {
 	faEye,
 	faFireFlameCurved,
 	faHashtag,
-	faLink,
 	faLock,
 	faPencil,
 	faReply,
@@ -61,7 +60,6 @@ enum InfoIconType {
 	Mention = "You're Mentioned",
 	Read = "Already Seen",
 	Reply = "Reply",
-	TrendingLink = "Contains Trending Link",
 	TrendingToot = "Trending Post",
 }
 
@@ -76,10 +74,6 @@ const INFO_ICONS: Record<InfoIconType, IconInfo> = {
 	[InfoIconType.Mention]: { icon: faBolt, color: config.theme.light.success },
 	[InfoIconType.Read]: { icon: faEye, color: config.theme.light.info },
 	[InfoIconType.Reply]: { icon: faReply, color: config.theme.light.primary },
-	[InfoIconType.TrendingLink]: {
-		icon: faLink,
-		color: config.theme.trendingTagColor,
-	},
 	[InfoIconType.TrendingToot]: {
 		icon: faFireFlameCurved,
 		color: config.theme.trendingTagColor,
@@ -372,8 +366,6 @@ export default function StatusComponent(props: StatusComponentProps) {
 								{toot.inReplyToAccountId && infoIcon(InfoIconType.Reply)}
 								{(toot.trendingRank || 0) > 0 &&
 									infoIcon(InfoIconType.TrendingToot)}
-								{(toot.trendingLinks?.length || 0) > 0 &&
-									infoIcon(InfoIconType.TrendingLink)}
 								{toot.containsUserMention() && infoIcon(InfoIconType.Mention)}
 								{toot.containsTagsMsg() && infoIcon(InfoIconType.Hashtags)}
 								{toot.isDM && infoIcon(InfoIconType.DM)}

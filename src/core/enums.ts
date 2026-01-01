@@ -72,7 +72,6 @@ export enum CacheKey {
 export enum FediverseCacheKey {
 	POPULAR_SERVERS = "FediversePopularServers",
 	TRENDING_TAGS = "FediverseTrendingTags",
-	TRENDING_LINKS = "FediverseTrendingLinks",
 	TRENDING_TOOTS = "FediverseTrendingToots",
 }
 
@@ -121,7 +120,6 @@ export enum ScoreName {
 	NUM_RETOOTS = "NumRetoots",
 	PARTICIPATED_TAGS = "ParticipatedTags",
 	RETOOTED_IN_FEED = "RetootedInFeed",
-	TRENDING_LINKS = "TrendingLinks",
 	TRENDING_TAGS = "TrendingTags",
 	TRENDING_TOOTS = "TrendingToots",
 	VIDEO_ATTACHMENTS = "VideoAttachments",
@@ -142,7 +140,6 @@ export enum MediaCategory {
  * @enum {string}
  */
 export enum TrendingType {
-	LINKS = "links",
 	SERVERS = "servers", // Not necessarily really a trending data type but for now...
 	STATUSES = "statuses",
 	TAGS = "tags",
@@ -184,7 +181,6 @@ export enum TypeFilterName {
 	SEEN = "seen",
 	SENSITIVE = "sensitive",
 	SPOILERED = "spoilered",
-	TRENDING_LINKS = "trending links",
 	TRENDING_TAGS = "trending hashtags",
 	TRENDING_TOOTS = "trending toots",
 	VIDEOS = "videos",

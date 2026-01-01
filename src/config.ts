@@ -423,11 +423,6 @@ const config: Readonly<ConfigType> = {
 				objTypeLabel: "of your favourite hashtags",
 				title: "Hashtags You Often Favourite",
 			},
-			[TrendingType.LINKS]: {
-				hasCustomStyle: true, // TODO: this sucks
-				initialNumShown: 30,
-				objTypeLabel: `trending ${TrendingType.LINKS}`,
-			},
 			[TagTootsCategory.PARTICIPATED]: {
 				initialNumShown: 40,
 				objTypeLabel: "of your hashtags",
@@ -435,7 +430,7 @@ const config: Readonly<ConfigType> = {
 			},
 			[TrendingType.SERVERS]: {
 				description:
-					"The Mastodon servers all these trending links, posts, and hashtags came from, sorted by the percentage of that server's monthly active users you follow:",
+					"The Mastodon servers these trending posts and hashtags came from, sorted by the percentage of that server's monthly active users you follow:",
 				initialNumShown: 40, // TODO: unused
 				title: "Servers Telling Us What's Trending In The Fediverse",
 			},

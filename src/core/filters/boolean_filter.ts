@@ -36,8 +36,7 @@ export const TYPE_FILTERS: Record<TypeFilterName, TypeFilter> = {
 	[TypeFilterName.FOLLOWED_HASHTAGS]: (toot) =>
 		!!toot.realToot.followedTags?.length,
 	[TypeFilterName.IMAGES]: (toot) => !!toot.realToot.imageAttachments?.length,
-	[TypeFilterName.LINKS]: (toot) =>
-		!!(toot.realToot.card || toot.realToot.trendingLinks?.length),
+	[TypeFilterName.LINKS]: (toot) => !!toot.realToot.card,
 	[TypeFilterName.MENTIONS]: (toot) => toot.containsUserMention(),
 	[TypeFilterName.POLLS]: (toot) => !!toot.realToot.poll,
 	[TypeFilterName.PARTICIPATED_TAGS]: (toot) =>
@@ -48,8 +47,6 @@ export const TYPE_FILTERS: Record<TypeFilterName, TypeFilter> = {
 	[TypeFilterName.SEEN]: (toot) => (toot.numTimesShown ?? 0) > 0,
 	[TypeFilterName.SENSITIVE]: (toot) => toot.realToot.sensitive,
 	[TypeFilterName.SPOILERED]: (toot) => !isEmptyStr(toot.realToot.spoilerText),
-	[TypeFilterName.TRENDING_LINKS]: (toot) =>
-		!!toot.realToot.trendingLinks?.length,
 	[TypeFilterName.TRENDING_TAGS]: (toot) =>
 		!!toot.realToot.trendingTags?.length,
 	[TypeFilterName.TRENDING_TOOTS]: (toot) => !!toot.realToot.trendingRank,

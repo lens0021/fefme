@@ -26,7 +26,6 @@ export type TrendingListObj = TrendingObj | string;
 export type TrendingPanelName =
 	| TagTootsCategory
 	| "toots"
-	| TrendingType.LINKS
 	| TrendingType.SERVERS;
 
 export type LinkRenderer = {
@@ -57,7 +56,7 @@ interface TrendingObjsProps extends TrendingPropsBase {
 // One of tagList or trendingObjs must be provided in TrendingProps.
 type TrendingProps = TrendingTagListProps | TrendingObjsProps;
 
-/** Component for displaying a list of trending links, posts, or hashtags. */
+/** Component for displaying a list of trending posts or hashtags. */
 export default function TrendingSection(props: TrendingProps) {
 	const { linkRenderer, objRenderer, tagList, trendingObjs } = props;
 	const panelType = props.panelType ?? (tagList?.source as TrendingPanelName);

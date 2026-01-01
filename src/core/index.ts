@@ -134,7 +134,6 @@ import {
 } from "./types";
 
 const EMPTY_TRENDING_DATA: Readonly<TrendingData> = {
-	links: [],
 	tags: new TagList([], TagTootsCategory.TRENDING),
 	servers: {},
 	toots: [],
@@ -194,7 +193,7 @@ interface AlgorithmArgs {
  * @property {number} [lastLoadTimeInSeconds] - Duration of the last load in seconds
  * @property {string | null} loadingStatus - String describing load activity
  * @property {Toot[]} timeline - The current filtered timeline
- * @property {TrendingData} trendingData - Trending data (links, tags, servers, toots)
+ * @property {TrendingData} trendingData - Trending data (tags, servers, toots)
  * @property {UserData} userData - User data for scoring and filtering
  * @property {WeightInfoDict} weightsInfo - Info about all scoring weights
  */
@@ -911,7 +910,7 @@ export default class TheAlgorithm {
 
 		hereLogger.debug(`${this.loadingStatus}...`);
 
-		// Complete toots (calculate trending links, etc.) and remove any invalid ones
+		// Complete toots (calculate trending tags, etc.) and remove any invalid ones
 		await Toot.completeToots(this.feed, hereLogger);
 		this.feed = await Toot.removeInvalidToots(this.feed, hereLogger);
 
