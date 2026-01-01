@@ -495,7 +495,7 @@ class Config implements ConfigType {
 		maxTimelineLength: 3_000, // Max toots to keep in browser storage. Larger cache doesn't seem to impact performance much
 		minCharsForLanguageDetect: 8, // Min number of characters in a toot before we try to detect its language
 		minToSkipFilterUpdates: 300, // Min timeline toots before we start getting choosy about calling updateFilterOptions()
-		saveChangesIntervalSeconds: 30, // How often to check for updates to toots' numTimesShown
+		saveChangesIntervalSeconds: 5, // How often to check for updates to toots' numTimesShown
 		truncateFullTimelineToLength: 2_000, // If on startup the timeline is full, truncate it to this length
 		tagOnlyStrings: new Set<string>([
 			// These strings can only be matched as tags, not as content

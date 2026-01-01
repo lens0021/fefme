@@ -323,6 +323,20 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		triggerFeedUpdate,
 	]);
 
+	// Save timeline on page unload to preserve read status
+	useEffect(() => {
+		if (!algorithm) return;
+
+		const handleBeforeUnload = () => {
+			algorithm.saveTimelineToCache().catch((err) => {
+				logger.error("Failed to save timeline on unload:", err);
+			});
+		};
+
+		window.addEventListener("beforeunload", handleBeforeUnload);
+		return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+	}, [algorithm]);
+
 	// Initial load of the feed
 	useEffect(() => {
 		if (algorithm || !user || !api) return;

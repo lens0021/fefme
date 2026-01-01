@@ -224,6 +224,7 @@ export default class TheAlgorithm {
 	private mergeMutex = new Mutex();
 	private numUnscannedToots = 0; // Keep track of how many new toots were merged into the feed but not into the filter options
 	private numTriggers = 0; // How many times has a load been triggered, only matters for QUICK_LOAD mode
+	private currentAction?: LoadAction; // Track the current action to determine appropriate loading messages
 	private _releaseLoadingMutex?: ConcurrencyLockRelease; // Mutex release function for loading state
 	// Background tasks
 	private cacheUpdater?: ReturnType<typeof setInterval>;
@@ -875,7 +876,7 @@ export default class TheAlgorithm {
 		this.trendingData = await Storage.getTrendingData();
 		this.filters = (await Storage.getFilters()) ?? buildNewFilterSettings();
 		await updateBooleanFilterOptions(this.filters, this.feed);
-		this.setTimelineInApp(this.feed);
+		this.filterFeedAndSetInApp();
 		loadCacheLogger.debugWithTraceObjs(
 			`Loaded ${this.feed.length} cached toots + trendingData`,
 			this.trendingData,
@@ -942,8 +943,11 @@ export default class TheAlgorithm {
 
 		await this.scoreAndFilterFeed();
 		// Update loadingStatus and log telemetry
-		const statusMsgFxn = config.locale.messages[LoadAction.FEED_UPDATE];
-		this.loadingStatus = statusMsgFxn(this.feed, this.mostRecentHomeTootAt());
+		// Don't overwrite loading status for timeline backfill (loading older posts)
+		if (this.currentAction !== LoadAction.TIMELINE_BACKFILL) {
+			const statusMsgFxn = config.locale.messages[LoadAction.FEED_UPDATE];
+			this.loadingStatus = statusMsgFxn(this.feed, this.mostRecentHomeTootAt());
+		}
 		hereLogger.logTelemetry(
 			`Merged ${newToots.length} new toots into ${numTootsBefore} timeline toots`,
 			startedAt,
@@ -968,6 +972,7 @@ export default class TheAlgorithm {
 	 */
 	private releaseLoadingMutex(logPrefix: LoadAction): void {
 		this.loadingStatus = null;
+		this.currentAction = undefined;
 
 		if (this._releaseLoadingMutex) {
 			loggers[logPrefix].info(`Finished, releasing mutex...`);
@@ -1049,6 +1054,7 @@ export default class TheAlgorithm {
 			throw new Error(config.locale.messages.isBusy);
 		}
 
+		this.currentAction = logPrefix;
 		this.loadStartedAt = new Date();
 		this._releaseLoadingMutex = await lockExecution(this.loadingMutex, logger);
 		this.loadingStatus =
