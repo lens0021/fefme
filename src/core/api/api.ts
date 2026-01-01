@@ -541,20 +541,6 @@ export default class MastoApi {
 	}
 
 	/**
-	 * Get recent public {@linkcode Toot}s on the user's home server.
-	 * @param {ApiParams} params
-	 * @returns {Promise<Toot[]>} Array of public toots from the home server.
-	 */
-	async getHomeserverToots(params?: ApiParams): Promise<Toot[]> {
-		return (await this.getApiObjsAndUpdate<mastodon.v1.Status>({
-			cacheKey: CacheKey.HOMESERVER_TOOTS,
-			fetchGenerator: () => this.api.v1.timelines.public.list,
-			local: true,
-			...(params || {}),
-		})) as Toot[];
-	}
-
-	/**
 	 * Get recent public toots from the federated timeline.
 	 * @param {number} [limit=40] - Maximum number of toots to fetch.
 	 * @returns {Promise<mastodon.v1.Status[]>} Array of raw Mastodon statuses.

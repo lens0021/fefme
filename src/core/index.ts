@@ -335,10 +335,6 @@ export default class TheAlgorithm {
 			const dataLoads: Promise<unknown>[] = [
 				// Toot fetchers
 				this.getHomeTimeline().then((toots) => (this.homeFeed = toots)),
-				this.fetchAndMergeToots(
-					MastoApi.instance.getHomeserverToots(),
-					loggers[CacheKey.HOMESERVER_TOOTS],
-				),
 				// Federated timeline toots
 				MastoApi.instance
 					.getFederatedTimelineStatuses(40)

@@ -57,7 +57,6 @@ export enum CacheKey {
 	FOLLOWERS = "Followers",
 	HASHTAG_TOOTS = "HashtagToots", // TODO: there's nothing actually stored here but it's a flag for Toot serialization
 	HOME_TIMELINE_TOOTS = "HomeTimelineToots", // Toots that the API returns for the home timeline
-	HOMESERVER_TOOTS = "HomeserverToots",
 	INSTANCE_INFO = "InstanceInfo",
 	MUTED_ACCOUNTS = "MutedAccounts",
 	NOTIFICATIONS = "Notifications",
