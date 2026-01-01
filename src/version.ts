@@ -1,5 +1,7 @@
 /**
- * Application version (independent from package.json)
- * Update this with each commit
+ * Application version (from package.json as SSOT)
+ * Update package.json version with each commit
  */
-export const VERSION = "1.3.0";
+import packageJson from "../package.json";
+
+export const VERSION = packageJson.version;
