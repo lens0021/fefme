@@ -49,6 +49,7 @@ import NumericFilter from "./filters/numeric_filter";
 import {
 	computeMinMax,
 	makeChunks,
+	findMinMaxId,
 	sortKeysByValue,
 	truncateToLength,
 } from "./helpers/collection_helpers";
@@ -336,14 +337,7 @@ export default class TheAlgorithm {
 				// Toot fetchers
 				this.getHomeTimeline().then((toots) => (this.homeFeed = toots)),
 				// Federated timeline toots
-				MastoApi.instance
-					.getFederatedTimelineStatuses(40)
-					.then((statuses) =>
-						Toot.buildToots(statuses, FEDERATED_TIMELINE_SOURCE),
-					)
-					.then((toots) =>
-						this.lockedMergeToFeed(toots, new Logger(FEDERATED_TIMELINE_SOURCE)),
-					),
+				this.mergeFederatedTimeline("newer", 40),
 				...Object.values(TagTootsCategory)
 					.filter((key) => key !== TagTootsCategory.TRENDING)
 					.map(async (key) => await tootsForHashtags(key)),
@@ -369,6 +363,7 @@ export default class TheAlgorithm {
 
 		try {
 			this.homeFeed = await this.getHomeTimeline(true);
+			await this.mergeFederatedTimeline("older", 40);
 			await this.finishFeedUpdate();
 		} finally {
 			this.releaseLoadingMutex(LoadAction.TIMELINE_BACKFILL);
@@ -394,9 +389,7 @@ export default class TheAlgorithm {
 	 * @param {number} [limit=40] - Maximum number of toots to fetch.
 	 */
 	async triggerFederatedTimelineMerge(limit = 40): Promise<void> {
-		const statuses =
-			await MastoApi.instance.getFederatedTimelineStatuses(limit);
-		await this.mergeExternalStatuses(statuses, FEDERATED_TIMELINE_SOURCE);
+		await this.mergeFederatedTimeline("newer", limit);
 	}
 
 	/**
@@ -825,6 +818,28 @@ export default class TheAlgorithm {
 			mergeTootsToFeed: this.lockedMergeToFeed.bind(this),
 			moar: moreOldToots,
 		});
+	}
+
+	private getFederatedTimelineBounds(): { minId?: string; maxId?: string } {
+		const federatedToots = this.feed.filter((toot) =>
+			toot.sources?.includes(FEDERATED_TIMELINE_SOURCE),
+		);
+		const minMaxId = findMinMaxId(federatedToots);
+		if (!minMaxId) return {};
+		return { minId: minMaxId.min, maxId: minMaxId.max };
+	}
+
+	private async mergeFederatedTimeline(
+		direction: "newer" | "older",
+		limit = 40,
+	): Promise<void> {
+		const { minId, maxId } = this.getFederatedTimelineBounds();
+		const statuses = await MastoApi.instance.getFederatedTimelineStatuses({
+			limit,
+			minId: direction === "newer" ? maxId : null,
+			maxId: direction === "older" ? minId : null,
+		});
+		await this.mergeExternalStatuses(statuses, FEDERATED_TIMELINE_SOURCE);
 	}
 
 	/**

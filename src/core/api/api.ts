@@ -542,13 +542,29 @@ export default class MastoApi {
 
 	/**
 	 * Get recent public toots from the federated timeline.
-	 * @param {number} [limit=40] - Maximum number of toots to fetch.
+	 * @param {object} [params] - Optional pagination params.
+	 * @param {number} [params.limit=40] - Maximum number of toots to fetch.
+	 * @param {string | number | null} [params.maxId] - Fetch toots older than this ID.
+	 * @param {string | number | null} [params.minId] - Fetch toots newer than this ID.
 	 * @returns {Promise<mastodon.v1.Status[]>} Array of raw Mastodon statuses.
 	 */
-	async getFederatedTimelineStatuses(
-		limit = 40,
-	): Promise<mastodon.v1.Status[]> {
-		return await this.api.v1.timelines.public.list({ local: false, limit });
+	async getFederatedTimelineStatuses(params?: {
+		limit?: number;
+		maxId?: string | number | null;
+		minId?: string | number | null;
+	}): Promise<mastodon.v1.Status[]> {
+		const { limit = 40, maxId, minId } = params ?? {};
+		const apiParams: {
+			local: boolean;
+			limit: number;
+			maxId?: string;
+			minId?: string;
+		} = { local: false, limit };
+
+		if (maxId) apiParams.maxId = `${maxId}`;
+		if (minId) apiParams.minId = `${minId}`;
+
+		return await this.api.v1.timelines.public.list(apiParams);
 	}
 
 	/**
