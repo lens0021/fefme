@@ -56,6 +56,7 @@ export default function Feed() {
 	);
 	const [scrollPercentage, setScrollPercentage] = useState(0);
 	const [thread, setThread] = useState<Toot[]>([]);
+	const dataLoadingRef = useRef<HTMLDivElement>(null);
 
 	// Checkboxes for persistent user settings state variables
 	// TODO: the returned checkboxTooltip is shared by all tooltips which kind of sucks
@@ -232,7 +233,8 @@ export default function Feed() {
 								{hideSensitiveCheckbox}
 							</div>
 						</Accordion>
-						<Accordion variant="top" title="Data Loading & History">
+						<div ref={dataLoadingRef}>
+							<Accordion variant="top" title="Data Loading & History">
 							<div className="flex flex-col gap-3 p-3 text-xs text-[color:var(--color-muted-fg)]">
 								{dataStats && (
 									<div className="rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] p-2 text-[11px] text-[color:var(--color-fg)]">
@@ -340,7 +342,8 @@ export default function Feed() {
 									</span>
 								</div>
 							</div>
-						</Accordion>
+							</Accordion>
+						</div>
 
 						{thread.length > 0 && (
 							<Accordion
@@ -411,8 +414,20 @@ export default function Feed() {
 
 						{isEndOfCachedFeed && (
 							<div className="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] p-4 text-sm text-[color:var(--color-muted-fg)]">
-								You have reached the end of cached posts. Use "Load older posts by
-								source" in Data Loading & History to backfill more.
+								You have reached the end of cached posts. Use{" "}
+								<button
+									type="button"
+									className="font-semibold text-[color:var(--color-primary)] underline underline-offset-2"
+									onClick={() =>
+										dataLoadingRef.current?.scrollIntoView({
+											behavior: "smooth",
+											block: "start",
+										})
+									}
+								>
+									Data Loading & History
+								</button>{" "}
+								to backfill more.
 							</div>
 						)}
 
