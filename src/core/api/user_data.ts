@@ -1,6 +1,6 @@
 /**
  * @fileoverview Methods for dealing with data about the user currently using
- * fedialgo - background data for the scorers and so on.
+ * fefme - background data for the scorers and so on.
  */
 import type { mastodon } from "masto";
 
@@ -84,7 +84,7 @@ export default class UserData {
 	/**
 	 * Alternate constructor for the {@linkcode UserData} object to build itself from the API (or cache).
 	 * @static
-	 * @returns {Promise<UserData>} {@linkcode UserData} instance populated with the fedialgo user's data.
+	 * @returns {Promise<UserData>} {@linkcode UserData} instance populated with the fefme user's data.
 	 */
 	static async build(): Promise<UserData> {
 		const waitTime = new WaitTime();

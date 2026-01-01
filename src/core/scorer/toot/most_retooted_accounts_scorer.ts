@@ -12,7 +12,7 @@ import AccountScorer from "./acccount_scorer";
  * @augments Scorer
  */
 export default class MostRetootedAccountsScorer extends AccountScorer {
-	description = "Favour accounts you often retoot";
+description = "Favour accounts you often repost";
 
 	constructor() {
 		super(ScoreName.MOST_RETOOTED_ACCOUNTS);

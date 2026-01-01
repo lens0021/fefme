@@ -644,7 +644,7 @@ export default class TheAlgorithm {
 	}
 
 	/**
-	 * True if FediAlgo user is on a GoToSocial instance instead of plain vanilla Mastodon.
+	 * True if Fefme user is on a GoToSocial instance instead of plain vanilla Mastodon.
 	 * @returns {boolean}
 	 */
 	async isGoToSocialUser(): Promise<boolean> {

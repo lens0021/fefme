@@ -6,8 +6,8 @@
  *       process.env['FEDIALGO_DEBUG'];
  *
  * But this DOES NOT work:
- *       const fedialgoDebug = 'FEDIALGO_DEBUG';
- *       process.env[fedialgoDebug];
+ *       const fefmeDebug = 'FEDIALGO_DEBUG';
+ *       process.env[fefmeDebug];
  *
  * This happens because in the browser process.env isn't a true environment - instead webpack manually
  * replaces references to process.env.VAR_NAME at build time
@@ -38,9 +38,9 @@ const envVars = {
 };
 
 const envVarLogLines = Object.entries(envVars).map(([k, v]) => `${k}="${v}"`);
-const bracketedFediAlgo = bracketed(FEDIALGO);
+const bracketedFefme = bracketed(FEDIALGO);
 console.debug(
-	bracketedFediAlgo +
+	bracketedFefme +
 		" " +
-		envVarLogLines.join("\n" + " ".repeat(bracketedFediAlgo.length + 1)),
+		envVarLogLines.join("\n" + " ".repeat(bracketedFefme.length + 1)),
 );

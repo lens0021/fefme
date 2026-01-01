@@ -41,13 +41,13 @@ const createTagScorerClass = (
 // Tag-based scorer classes
 export default class FavouritedTagsScorer extends createTagScorerClass(
 	ScoreName.FAVOURITED_TAGS,
-	"Favour toots containing hashtags you favourite",
+	"Favour posts containing hashtags you favourite",
 	() => TagList.buildFavouritedTags(),
 ) {}
 
 export class HashtagParticipationScorer extends createTagScorerClass(
 	ScoreName.PARTICIPATED_TAGS,
-	"Favour hastags you've tooted about",
+	"Favour hashtags you've posted about",
 	() => TagList.buildParticipatedTags(),
 	Math.sqrt, // Use square root to prevent runaway scores for hashtags like #uspol
 ) {}

@@ -1,5 +1,5 @@
 /**
- * @fileoverview FediAlgo logger.
+ * @fileoverview Fefme logger.
  */
 import { isNil, isNull } from "lodash";
 
@@ -37,7 +37,7 @@ const PREFIXERS = [
 
 /**
  * Standardized logger for consistent, prefixed, and optionally colorized logging throughout
- * FediAlgo. Supports multiple log levels, custom prefixes, telemetry, and error handling utilities.
+ * Fefme. Supports multiple log levels, custom prefixes, telemetry, and error handling utilities.
  * @class
  * @property {string} logPrefix - The formatted prefix for all log messages from this logger.
  * @property {string[]} prefixes - The list of prefix strings used to build the logPrefix.

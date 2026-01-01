@@ -10,7 +10,7 @@ import AccountScorer from "./acccount_scorer";
  * @augments Scorer
  */
 export default class InteractionsScorer extends AccountScorer {
-	description = "Favour accounts that interact with your toots";
+description = "Favour accounts that interact with your posts";
 
 	constructor() {
 		super(ScoreName.INTERACTIONS);

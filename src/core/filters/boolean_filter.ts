@@ -22,7 +22,7 @@ type TootMatcher = (toot: Toot, selectedOptions: string[]) => boolean;
 type TypeFilter = (toot: Toot) => boolean;
 export type BooleanFilterOptionState = "include" | "exclude" | "neutral";
 
-const SOURCE_FILTER_DESCRIPTION = "Choose what kind of toots are in your feed";
+const SOURCE_FILTER_DESCRIPTION = "Choose what kind of posts are in your feed";
 
 // Type-based filters for toots. Defining a new filter just requires adding a new TypeFilterName
 // and a function that matches the toot.
@@ -140,7 +140,7 @@ export default class BooleanFilter extends TootFilter {
 		} else {
 			const descriptionWord =
 				propertyName == BooleanFilterName.HASHTAG ? "including" : "from";
-			description = `Show only toots ${descriptionWord} these ${propertyName}s`;
+			description = `Show only posts ${descriptionWord} these ${propertyName}s`;
 		}
 
 		super({ description, invertSelection, propertyName });

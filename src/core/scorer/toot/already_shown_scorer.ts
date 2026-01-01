@@ -13,7 +13,7 @@ import TootScorer from "../toot_scorer";
  * @augments Scorer
  */
 export default class AlreadyShownScorer extends TootScorer {
-	description = "Favour toots marked as already seen";
+description = "Favour posts marked as already seen";
 
 	constructor() {
 		super(ScoreName.ALREADY_SHOWN);

@@ -64,7 +64,7 @@ interface AlgoContext {
 const AlgorithmContext = createContext<AlgoContext>({ timeline: [] });
 export const useAlgorithm = () => useContext(AlgorithmContext);
 
-/** Manage FediAlgo algorithm state. */
+/** Manage Fefme algorithm state. */
 export default function AlgorithmProvider(props: PropsWithChildren) {
 	const { logout, user } = useAuthContext();
 	const { logAndSetFormattedError, resetErrors } = useError();
@@ -161,7 +161,7 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		],
 	);
 
-	// Wrapper for calls to FediAlgo TheAlgorithm class that can throw a "busy" error
+	// Wrapper for calls to Fefme TheAlgorithm class that can throw a "busy" error
 	const triggerLoadFxn = useCallback(
 		(
 			loadFxn: () => Promise<void>,

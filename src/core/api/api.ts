@@ -218,7 +218,7 @@ export const apiLogger = getLogger();
 
 /**
  * Singleton class for interacting with the authenticated
- * {@link https://docs.joinmastodon.org/client/intro/ Mastodon API} on the FediAlgo user's home server
+ * {@link https://docs.joinmastodon.org/client/intro/ Mastodon API} on the Fefme user's home server
  * (unauthenticated calls are handled by the {@linkcode MastodonServer} class).
  * Handles caching, concurrency, and provides methods for fetching and updating Mastodon data.
  *

@@ -96,7 +96,7 @@ export default class Storage {
 			// TODO: remove this logic eventually, it's only for upgrading existing users
 			// Code to handle upgrades of existing users who won't have the updatedAt / value format in browser storage
 			logger.warn(
-				`No updatedAt found for "${key}", likely due to a fedialgo upgrade. Clearing cache.`,
+				`No updatedAt found for "${key}", likely due to a fefme upgrade. Clearing cache.`,
 			);
 			await this.remove(key);
 			return null;
@@ -462,10 +462,10 @@ export default class Storage {
 		}
 	}
 
-	// Store the fedialgo user's Account object
+	// Store the fefme user's Account object
 	// TODO: the storage key is not prepended with the user ID (maybe that's OK?)
 	private static async setIdentity(user: Account) {
-		logger.trace(`Setting fedialgo user identity to:`, user);
+		logger.trace(`Setting fefme user identity to:`, user);
 		await localForage.setItem(AlgorithmStorageKey.USER, instanceToPlain(user));
 	}
 

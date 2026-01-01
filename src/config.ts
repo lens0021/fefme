@@ -284,8 +284,13 @@ const config: Readonly<ConfigType> = {
 				},
 				[BooleanFilterName.TYPE]: {
 					position: 1,
-					formatLabel: (name: string) =>
-						name === "me" ? "Me" : capitalCase(name),
+					formatLabel: (name: string) => {
+						if (name === "me") return "Me";
+						const normalized = name
+							.replace("retoots", "reposts")
+							.replace("toots", "posts");
+						return capitalCase(normalized);
+					},
 				},
 				[BooleanFilterName.USER]: {
 					position: 4,

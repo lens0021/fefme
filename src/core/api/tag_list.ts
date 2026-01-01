@@ -100,7 +100,7 @@ export default class TagList extends CountedList<TagWithUsageCounts> {
 		return this.getObj(tag.name);
 	}
 
-	/** Remove any hashtags that are followed by the FediAlgo user. */
+	/** Remove any hashtags that are followed by the Fefme user. */
 	async removeFollowedTags(): Promise<void> {
 		const followedKeywords = (await MastoApi.instance.getFollowedTags()).map(
 			(t) => t.name,

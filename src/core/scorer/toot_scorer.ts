@@ -10,7 +10,7 @@ import Scorer from "./scorer";
 
 /**
  * Base class for a {@linkcode Scorer} that can score a {@linkcode Toot} based solely on the properties of
- * that {@linkcode Toot}, optionally coupled with the fedialgo user's account data. Most importantly a
+ * that {@linkcode Toot}, optionally coupled with the fefme user's account data. Most importantly a
  * {@linkcode TootScorer} does *not* require information about any other {@linkcode Toot}s in the feed
  * (unlike a {@linkcode FeedScorer}, which requires knowledge of the entire timeline to render a score).
  * @memberof module:toot_scorers

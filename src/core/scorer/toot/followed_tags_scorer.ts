@@ -9,7 +9,7 @@ import TootScorer from "../toot_scorer";
  * @augments Scorer
  */
 export default class FollowedTagsScorer extends TootScorer {
-	description = "Favour toots containing hashtags you follow";
+description = "Favour posts containing hashtags you follow";
 
 	constructor() {
 		super(ScoreName.FOLLOWED_TAGS);

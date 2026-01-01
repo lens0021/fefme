@@ -30,7 +30,7 @@ import useOnScreen from "../hooks/useOnScreen";
 
 const logger = getLogger("Feed");
 
-/** Component to display the FediAlgo user's timeline. */
+/** Component to display the Fefme user's timeline. */
 export default function Feed() {
 	const {
 		algorithm,
@@ -136,7 +136,7 @@ export default function Feed() {
 		visibleTimeline.length,
 	]);
 
-	// TODO: probably easier to not rely on fedialgo's measurement of the last load time; we can easily track it ourselves.
+	// TODO: probably easier to not rely on fefme's measurement of the last load time; we can easily track it ourselves.
 	let footerMsg = `Scored ${(visibleTimeline.length || 0).toLocaleString()} posts`;
 	footerMsg += optionalSuffix(
 		lastLoadDurationSeconds,

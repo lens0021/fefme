@@ -28,25 +28,25 @@ const createPropertyScorerClass = (
 // Property accessor scorer classes
 export default class NumFavouritesScorer extends createPropertyScorerClass(
 	ScoreName.NUM_FAVOURITES,
-	"Favour toots favourited by your server's users",
+	"Favour posts favourited by your server's users",
 	(toot) => toot.realToot.favouritesCount,
 ) {}
 
 export class NumRepliesScorer extends createPropertyScorerClass(
 	ScoreName.NUM_REPLIES,
-	"Favour toots with lots of replies",
+	"Favour posts with lots of replies",
 	(toot) => toot.realToot.repliesCount,
 ) {}
 
 export class NumRetootsScorer extends createPropertyScorerClass(
 	ScoreName.NUM_RETOOTS,
-	"Favour toots that are retooted a lot",
+	"Favour posts that are reposted a lot",
 	(toot) => toot.realToot.reblogsCount,
 ) {}
 
 export class ImageAttachmentScorer extends createPropertyScorerClass(
 	ScoreName.IMAGE_ATTACHMENTS,
-	"Favour toots with images",
+	"Favour posts with images",
 	(toot) => toot.realToot.imageAttachments.length,
 ) {}
 
@@ -58,6 +58,6 @@ export class VideoAttachmentScorer extends createPropertyScorerClass(
 
 export class TrendingTootScorer extends createPropertyScorerClass(
 	ScoreName.TRENDING_TOOTS,
-	"Favour toots that are trending in the Fediverse",
+	"Favour posts that are trending in the Fediverse",
 	(toot) => toot.realToot.trendingRank,
 ) {}

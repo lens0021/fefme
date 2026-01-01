@@ -21,7 +21,7 @@ const TAG_HIGHLIGHT_LABELS: Record<TagTootsCategory, string> = {
 	[TagTootsCategory.TRENDING]: "Colour Trending",
 };
 
-// Only invert selection requires a call to fedialgo's updateFilters() method
+// Only invert selection requires a call to fefme's updateFilters() method
 const SKIP_UPDATE_FILTERS_SWITCHES = [
 	...Object.values(TagTootsCategory),
 	SwitchType.HIGHLIGHTS_ONLY,

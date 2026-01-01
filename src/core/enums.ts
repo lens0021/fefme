@@ -1,5 +1,5 @@
 /**
- * Enums (and a few enum related helper methods and constants) used by FediAlgo.
+ * Enums (and a few enum related helper methods and constants) used by Fefme.
  * @module enums
  */
 

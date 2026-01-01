@@ -112,7 +112,7 @@ const tootLogger = new Logger("Toot");
 const repairLogger = tootLogger.tempLogger("repairToot");
 
 /**
- * Extension of mastodon.v1.Status data object with additional properties used by fedialgo
+ * Extension of mastodon.v1.Status data object with additional properties used by fefme
  * that should be serialized to storage.
  */
 export interface SerializableToot extends mastodon.v1.Status {
@@ -193,7 +193,7 @@ interface TootObj extends SerializableToot {
  * @property {string} homeserver - The homeserver of the author of the toot.
  * @property {boolean} isDM - True if the toot is a direct message (DM) to the user.
  * @property {boolean} isFollowed - True if this toot is from a followed account or contains a followed tag.
- * @property {boolean} isLocal - True if this toot is from the FediAlgo user's home server.
+ * @property {boolean} isLocal - True if this toot is from the Fefme user's home server.
  * @property {boolean} isPrivate - True if it's for followers only.
  * @property {boolean} isTrending - True if it's a trending toot or contains any trending hashtags or links.
  * @property {string} lastEditedAt - The date when the toot was last edited, or createdAt if never edited.
@@ -414,7 +414,7 @@ export default class Toot implements TootObj {
 		tootObj.url = toot.url;
 		tootObj.visibility = toot.visibility;
 
-		// Unique to fedialgo
+		// Unique to fefme
 		tootObj.numTimesShown = toot.numTimesShown || 0;
 		tootObj.completedAt = toot.completedAt;
 		tootObj.followedTags = toot.followedTags;
@@ -504,7 +504,7 @@ export default class Toot implements TootObj {
 	}
 
 	/**
-	 * Returns {@linkcode true} if the fedialgo user is mentioned in this {@linkcode Toot}.
+	 * Returns {@linkcode true} if the fefme user is mentioned in this {@linkcode Toot}.
 	 * @returns {boolean}
 	 */
 	containsUserMention(): boolean {
@@ -669,7 +669,7 @@ export default class Toot implements TootObj {
 	}
 
 	/**
-	 * Make an API call to get this {@linkcode Toot}'s URL on the FediAlgo user's home server instead of on
+	 * Make an API call to get this {@linkcode Toot}'s URL on the Fefme user's home server instead of on
 	 * the {@linkcode Toot}'s home server.
 	 * @example "https://fosstodon.org/@kate/114360290341300577" => "https://universeodon.com/@kate@fosstodon.org/114360290578867339"
 	 * @returns {Promise<string>} The home server URL.
@@ -1053,7 +1053,7 @@ export default class Toot implements TootObj {
 	}
 
 	/**
-	 * Returns true if this toot is by the fedialgo user.
+	 * Returns true if this toot is by the fefme user.
 	 * @private
 	 */
 	private isUsersOwnToot(): boolean {
