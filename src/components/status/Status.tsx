@@ -27,6 +27,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import parse from "html-react-parser";
 import { LazyLoadImage } from "react-lazy-load-image-component";
+import { Tooltip } from "react-tooltip";
 import { AgeIn, type Toot, timeString } from "../../core/index";
 
 import { config } from "../../config";
@@ -45,6 +46,8 @@ import Poll from "./Poll";
 import PreviewCard from "./PreviewCard";
 
 const logger = getLogger("StatusComponent");
+
+const ICON_TOOLTIP_ANCHOR = "status-icon-tooltip";
 
 type IconInfo = {
 	icon: IconDefinition;
@@ -222,12 +225,17 @@ export default function StatusComponent(props: StatusComponentProps) {
 
 			const style = color ? { color } : undefined;
 			return (
-				<FontAwesomeIcon
-					className="mr-[3px]"
-					icon={iconInfo.icon}
-					style={style}
-					title={title}
-				/>
+				<span
+					className="cursor-help"
+					data-tooltip-id={ICON_TOOLTIP_ANCHOR}
+					data-tooltip-content={title}
+				>
+					<FontAwesomeIcon
+						className="mr-[3px]"
+						icon={iconInfo.icon}
+						style={style}
+					/>
+				</span>
 			);
 		},
 		[toot, toot.editedAt, toot.followedTags, toot.trendingTags],
@@ -243,6 +251,14 @@ export default function StatusComponent(props: StatusComponentProps) {
 
 	return (
 		<div>
+			<Tooltip
+				id={ICON_TOOLTIP_ANCHOR}
+				place="top"
+				clickable
+				openOnClick
+				className="z-[2000] max-w-xs"
+			/>
+
 			<JsonModal
 				infoTxt="Scoring categories where the unweighted score is zero are not shown."
 				json={toot.scoreInfo ? (formatScores(toot.scoreInfo) as object) : {}}
