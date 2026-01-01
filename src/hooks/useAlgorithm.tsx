@@ -74,7 +74,15 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 	>();
 	const [lastLoadStartedAt, setLastLoadStartedAt] = useState<Date>(new Date());
 	const [serverInfo, setServerInfo] = useState<MastodonServer>(null); // Instance info for the user's server
-	const [timeline, setTimeline] = useState<Toot[]>([]);
+	const [timeline, setTimelineRaw] = useState<Toot[]>([]);
+
+	// Wrapped setTimeline with logging
+	const setTimeline = (feed: Toot[]) => {
+		const seenCount = feed.filter(t => (t.numTimesShown ?? 0) > 0).length;
+		console.log("[useAlgorithm] setTimeline called with", feed.length, "toots");
+		console.log("[useAlgorithm] Seen in new timeline:", seenCount, "Unseen:", feed.length - seenCount);
+		setTimelineRaw(feed);
+	};
 
 	// TODO: this doesn't make any API calls yet, right?
 	const api = useMemo(() => {

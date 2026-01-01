@@ -205,7 +205,7 @@ export default class TheAlgorithm {
 		return this.loadingMutex.isLocked();
 	}
 	get timeline(): Toot[] {
-		return [...this.feed];
+		return [...this.filteredTimeline];
 	}
 	get userData(): UserData {
 		return MastoApi.instance.userData || new UserData();
@@ -215,6 +215,7 @@ export default class TheAlgorithm {
 	private setTimelineInApp: (feed: Toot[]) => void; // Optional callback to set the feed in the app using this package
 	// Other private variables
 	private feed: Toot[] = [];
+	private filteredTimeline: Toot[] = []; // The filtered timeline that's actually displayed
 	private homeFeed: Toot[] = []; // Just the toots pulled from the home timeline
 	private hasProvidedAnyTootsToClient = false; // Flag to indicate if the feed has been set in the app
 	private loadStartedAt: Date | undefined = new Date(); // Timestamp of when the feed started loading
@@ -567,6 +568,7 @@ export default class TheAlgorithm {
 			this.numTriggers = 0;
 			this.trendingData = EMPTY_TRENDING_DATA;
 			this.feed = [];
+			this.filteredTimeline = [];
 			this.setTimelineInApp([]);
 
 			// Call other classes' reset methods
@@ -772,20 +774,26 @@ export default class TheAlgorithm {
 	 * @returns {Toot[]} The filtered feed.
 	 */
 	private filterFeedAndSetInApp(): Toot[] {
-		const filteredFeed = this.feed.filter((toot) =>
+		this.filteredTimeline = this.feed.filter((toot) =>
 			toot.isInTimeline(this.filters),
 		);
-		this.setTimelineInApp(filteredFeed);
+
+		console.log("[filterFeedAndSetInApp] Feed before filtering:", this.feed.length, "toots");
+		console.log("[filterFeedAndSetInApp] Filtered timeline:", this.filteredTimeline.length, "toots");
+		const filteredSeenCount = this.filteredTimeline.filter(t => (t.numTimesShown ?? 0) > 0).length;
+		console.log("[filterFeedAndSetInApp] Seen in filtered timeline:", filteredSeenCount, "Unseen:", this.filteredTimeline.length - filteredSeenCount);
+
+		this.setTimelineInApp(this.filteredTimeline);
 
 		if (!this.hasProvidedAnyTootsToClient && this.feed.length > 0) {
 			this.hasProvidedAnyTootsToClient = true;
 			logger.logTelemetry(
-				`First ${filteredFeed.length} toots sent to client`,
+				`First ${this.filteredTimeline.length} toots sent to client`,
 				this.loadStartedAt,
 			);
 		}
 
-		return filteredFeed;
+		return this.filteredTimeline;
 	}
 
 	/**
@@ -860,6 +868,9 @@ export default class TheAlgorithm {
 	 * @returns {Promise<void>}
 	 */
 	private async loadCachedData(): Promise<void> {
+		const callId = Math.random().toString(36).substring(7);
+		console.log(`[loadCachedData #${callId}] START - Current filteredTimeline has ${this.filteredTimeline.length} toots`);
+
 		this.homeFeed = await Storage.getCoerced<Toot>(
 			CacheKey.HOME_TIMELINE_TOOTS,
 		);
@@ -899,9 +910,7 @@ export default class TheAlgorithm {
 
 		this.filterFeedAndSetInApp();
 
-		const filteredSeenCount = this.timeline.filter(t => (t.numTimesShown ?? 0) > 0).length;
-		console.log("[loadCachedData] After filtering - Timeline has", this.timeline.length, "toots");
-		console.log("[loadCachedData] Seen in timeline:", filteredSeenCount, "Unseen:", this.timeline.length - filteredSeenCount);
+		console.log(`[loadCachedData #${callId}] END - filteredTimeline now has ${this.filteredTimeline.length} toots`);
 
 		loadCacheLogger.debugWithTraceObjs(
 			`Loaded ${this.feed.length} cached toots + trendingData (${this.timeline.length} after filtering)`,
