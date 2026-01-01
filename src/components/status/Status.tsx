@@ -296,44 +296,48 @@ export default function StatusComponent(props: StatusComponentProps) {
 						</div>
 
 						<div className="space-y-3">
-							{Object.entries(toot.scoreInfo)
-								.filter(([key]) => key !== "score")
-								.map(([key, value]: [string, any]) => {
-									if (typeof value !== "object" || value.raw === 0) return null;
+							{Object.entries(toot.scoreInfo?.scores ?? {}).map(([key, value]) => {
+								if (value.raw === 0 && value.weighted === 0) return null;
 
-									const weightInfo = algorithm?.weightsInfo[key];
-									const description = weightInfo?.description || key;
+								const weightInfo = algorithm?.weightsInfo[key];
+								const description = weightInfo?.description || key;
 
-									return (
-										<div
-											key={key}
-											className="rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-muted)] p-4"
-										>
-											<div className="mb-2 flex items-start justify-between">
-												<div className="flex-1">
-													<h3 className="font-semibold text-[color:var(--color-fg)]">
-														{key}
-													</h3>
-													<p className="text-sm text-[color:var(--color-muted-fg)]">
-														{description}
-													</p>
+								return (
+									<div
+										key={key}
+										className="rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-muted)] p-4"
+									>
+										<div className="mb-2 flex items-start justify-between">
+											<div className="flex-1">
+												<h3 className="font-semibold text-[color:var(--color-fg)]">
+													{key}
+												</h3>
+												<p className="text-sm text-[color:var(--color-muted-fg)]">
+													{description}
+												</p>
+											</div>
+											<div className="ml-4 text-right">
+												<div className="text-lg font-bold text-[color:var(--color-primary)]">
+													{formatScore(value.weighted || value.raw)}
 												</div>
-												<div className="ml-4 text-right">
-													<div className="text-lg font-bold text-[color:var(--color-primary)]">
-														{formatScore(value.weighted || value.raw)}
-													</div>
-													<div className="text-xs text-[color:var(--color-muted-fg)]">
-														Raw: {formatScore(value.raw)}
-													</div>
+												<div className="text-xs text-[color:var(--color-muted-fg)]">
+													Raw: {formatScore(value.raw)}
 												</div>
 											</div>
 										</div>
-									);
-								})}
+									</div>
+								);
+							})}
 						</div>
 
 						<div className="mt-4 text-xs text-[color:var(--color-muted-fg)]">
-							Note: Only showing categories with non-zero scores
+							<div>Note: Only showing categories with non-zero scores</div>
+							<div className="mt-1">
+								Raw: {formatScore(toot.scoreInfo.rawScore)} · Weighted:{" "}
+								{formatScore(toot.scoreInfo.weightedScore)} · Time decay:{" "}
+								{formatScore(toot.scoreInfo.timeDecayMultiplier)} · Trending:{" "}
+								{formatScore(toot.scoreInfo.trendingMultiplier)}
+							</div>
 						</div>
 					</div>
 				</div>
