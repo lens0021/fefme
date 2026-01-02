@@ -469,7 +469,7 @@ class Config implements ConfigType {
 		batchCompleteSleepBetweenMS: 210, // How long to wait between batches of Toot.completeProperties() calls
 		completeAfterMinutes: MINUTES_IN_DAY, // Toots younger than this will periodically have their derived fields reevaluated by Toot.completeToot()
 		filterUpdateBatchSize: 240, // How many new Toots before calling updateFilterOptions()
-		maxAgeInDays: 7, // How long to keep toots in the cache before removing them
+		maxAgeInDays: 1, // How long to keep toots in the cache before removing them
 		maxContentPreviewChars: 110, // How many characters to show in a Toot preview
 		maxTimelineLength: 3_000, // Max toots to keep in browser storage. Larger cache doesn't seem to impact performance much
 		minCharsForLanguageDetect: 8, // Min number of characters in a toot before we try to detect its language
