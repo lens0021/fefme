@@ -59,7 +59,7 @@ interface AlgoContext {
 	selfTypeFilterMode?: "include" | "exclude" | "none";
 	setSelfTypeFilterMode?: (value: "include" | "exclude" | "none") => void;
 	showFilterHighlights?: boolean;
-	pendingTimelineReason?: PendingTimelineReason | null;
+	pendingTimelineReasons?: PendingTimelineReason[];
 	timeline: Toot[];
 	triggerFilterUpdate?: (filters: FeedFilterSettings) => Promise<void>;
 	triggerFeedUpdate?: () => void;
@@ -100,15 +100,17 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 	const lastUserIdRef = React.useRef<string | null>(null);
 	const allowTimelineUpdatesRef = React.useRef(true);
 	const pendingTimelineRef = React.useRef<Toot[] | null>(null);
-	const pendingTimelineReasonRef =
-		React.useRef<PendingTimelineReason | null>(null);
+	const pendingTimelineReasonsRef = React.useRef<Set<PendingTimelineReason>>(
+		new Set(),
+	);
 	const queuedRebuildRef = React.useRef<{
 		reason: PendingTimelineReason;
 		run: () => Promise<void>;
 	} | null>(null);
 	const rebuildInFlightRef = React.useRef(false);
-	const [pendingTimelineReason, setPendingTimelineReason] =
-		useState<PendingTimelineReason | null>(null);
+	const [pendingTimelineReasons, setPendingTimelineReasons] = useState<
+		PendingTimelineReason[]
+	>([]);
 
 	// TODO: this doesn't make any API calls yet, right?
 	const api = useMemo(() => {
@@ -275,7 +277,8 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		setTimeline(pendingTimeline);
 		pendingTimelineRef.current = null;
 		setHasPendingTimeline(false);
-		setPendingTimelineReason(null);
+		pendingTimelineReasonsRef.current = new Set();
+		setPendingTimelineReasons([]);
 		Storage.set(AlgorithmStorageKey.VISIBLE_TIMELINE_TOOTS, pendingTimeline)
 			.then(() =>
 				Storage.remove(AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_TOOTS),
@@ -320,10 +323,10 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 			hasInitializedRef.current = false;
 			allowTimelineUpdatesRef.current = true;
 			pendingTimelineRef.current = null;
-			pendingTimelineReasonRef.current = null;
+			pendingTimelineReasonsRef.current = new Set();
 			setHasInitialCache(false);
 			setHasPendingTimeline(false);
-			setPendingTimelineReason(null);
+			setPendingTimelineReasons([]);
 			return;
 		}
 
@@ -332,10 +335,10 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 			hasInitializedRef.current = false;
 			allowTimelineUpdatesRef.current = true;
 			pendingTimelineRef.current = null;
-			pendingTimelineReasonRef.current = null;
+			pendingTimelineReasonsRef.current = new Set();
 			setHasInitialCache(false);
 			setHasPendingTimeline(false);
-			setPendingTimelineReason(null);
+			setPendingTimelineReasons([]);
 		}
 	}, [user?.id]);
 
@@ -343,14 +346,15 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		async (reason: PendingTimelineReason, run: () => Promise<void>) => {
 			if (!algorithm) return;
 			if (rebuildInFlightRef.current) {
+				pendingTimelineReasonsRef.current.add(reason);
 				queuedRebuildRef.current = { reason, run };
 				return;
 			}
 
 			rebuildInFlightRef.current = true;
-			pendingTimelineReasonRef.current = reason;
+			pendingTimelineReasonsRef.current = new Set([reason]);
 			setHasPendingTimeline(false);
-			setPendingTimelineReason(null);
+			setPendingTimelineReasons([]);
 			setIsRebuildLoading(true);
 
 			const previousAllowTimelineUpdates = allowTimelineUpdatesRef.current;
@@ -367,12 +371,12 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 
 				if (pendingTimelineRef.current) {
 					setHasPendingTimeline(true);
-					setPendingTimelineReason(
-						pendingTimelineReasonRef.current ?? reason,
+					setPendingTimelineReasons(
+						Array.from(pendingTimelineReasonsRef.current),
 					);
 				}
 
-				pendingTimelineReasonRef.current = null;
+				pendingTimelineReasonsRef.current = new Set();
 				const queued = queuedRebuildRef.current;
 				queuedRebuildRef.current = null;
 				if (queued) {
@@ -461,12 +465,17 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 					pendingTimelineRef.current = null;
 					setTimeline(pendingTimeline ?? algo.timeline);
 					setHasPendingTimeline(false);
-					setPendingTimelineReason(null);
+					pendingTimelineReasonsRef.current = new Set();
+					setPendingTimelineReasons([]);
 				} else {
 					setHasPendingTimeline(!!pendingTimelineRef.current);
-					setPendingTimelineReason(
-						pendingTimelineRef.current ? "new-posts" : null,
-					);
+					if (pendingTimelineRef.current) {
+						pendingTimelineReasonsRef.current = new Set(["new-posts"]);
+						setPendingTimelineReasons(["new-posts"]);
+					} else {
+						pendingTimelineReasonsRef.current = new Set();
+						setPendingTimelineReasons([]);
+					}
 				}
 			};
 
@@ -534,7 +543,7 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		isGoToSocialUser,
 		isLoading,
 		lastLoadDurationSeconds,
-		pendingTimelineReason,
+		pendingTimelineReasons,
 		resetAlgorithm,
 		resetSeenState,
 		serverInfo,

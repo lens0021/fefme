@@ -42,7 +42,7 @@ export default function Feed() {
 		isLoading,
 		lastLoadDurationSeconds,
 		currentUserWebfinger,
-		pendingTimelineReason,
+		pendingTimelineReasons,
 		selfTypeFilterMode,
 		timeline,
 		triggerFeedUpdate,
@@ -76,6 +76,14 @@ export default function Feed() {
 	const numShownToots = Math.max(defaultNumDisplayedToots, numDisplayedToots);
 	const showInitialLoading = isLoading && !hasInitialCache;
 	const showRebuildLoading = isRebuildLoading && hasInitialCache;
+	const hasFilterReason = pendingTimelineReasons?.includes("filters") ?? false;
+	const hasWeightReason = pendingTimelineReasons?.includes("weights") ?? false;
+	const bubbleLabel =
+		hasFilterReason || hasWeightReason
+			? hasFilterReason && !hasWeightReason
+				? "Apply filters"
+				: "Update feed"
+			: "New posts";
 	const visibleTimeline = useMemo(() => {
 		if (selfTypeFilterMode === "none" || !currentUserWebfinger) return timeline;
 		const shouldInvert = selfTypeFilterMode === "exclude";
@@ -499,21 +507,11 @@ export default function Feed() {
 									applyPendingTimeline?.();
 									window.scrollTo({ top: 0, behavior: "smooth" });
 								}}
-								aria-label={
-									pendingTimelineReason === "filters"
-										? "Apply filter changes"
-										: pendingTimelineReason === "weights"
-											? "Apply feed changes"
-											: "Show new posts"
-								}
+								aria-label={bubbleLabel}
 								className="pointer-events-auto rounded-full bg-[color:var(--color-primary)] px-4 py-2 text-sm font-semibold text-white shadow-lg transition hover:scale-[1.02]"
 								data-testid="refresh-bubble"
 							>
-								{pendingTimelineReason === "filters"
-									? "Apply filters"
-									: pendingTimelineReason === "weights"
-										? "Update feed"
-										: "New posts"}
+								{bubbleLabel}
 							</button>
 						</div>
 					)}
