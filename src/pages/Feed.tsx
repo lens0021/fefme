@@ -371,16 +371,14 @@ export default function Feed() {
 							</Accordion>
 						)}
 
-						{showInitialLoading && (
+						{(showInitialLoading || showRebuildLoading) && (
 							<div className="flex items-center gap-3 mb-2">
 								<div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
-								<p>{`${algorithm?.loadingStatus || READY_TO_LOAD_MSG}...`}</p>
-							</div>
-						)}
-						{showRebuildLoading && (
-							<div className="flex items-center gap-3 mb-2">
-								<div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
-								<p>Rebuilding feed...</p>
+								<p>
+									{showRebuildLoading
+										? "Rebuilding feed..."
+										: `${algorithm?.loadingStatus || READY_TO_LOAD_MSG}...`}
+								</p>
 							</div>
 						)}
 
