@@ -12,20 +12,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Development
 ```bash
-npm run dev          # Start dev server (opens http://localhost:3000)
-npm run build        # TypeScript + Vite production build → docs/
-npm run preview      # Preview production build
-npm run tsc          # Type check only (no emit)
+npm run dev      # Start dev server (opens http://localhost:3000)
+npm run build    # TypeScript + Vite production build → docs/
+npm run preview  # Preview production build
+npm run tsc      # Type check only (no emit)
 ```
 
 ### Code Quality
 ```bash
-npm run lint         # Check with Biome
-npm run lint:fix     # Auto-fix issues
-npm run format       # Format code
+npm run lint      # Check with Biome
+npm run lint:fix  # Auto-fix issues
+npm run format    # Format code
 ```
-
-**Note:** No test suite configured.
 
 ### Deployment
 - Auto-deploys to GitHub Pages on push to `main` via `.github/workflows/deploy.yaml`
