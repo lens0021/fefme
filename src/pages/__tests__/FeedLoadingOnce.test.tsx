@@ -10,8 +10,8 @@ import Feed from "../Feed";
 
 vi.mock("../../core/Storage", () => ({
 	default: {
-		set: vi.fn().mockResolvedValue(undefined),
-		remove: vi.fn().mockResolvedValue(undefined),
+		set: vi.fn(() => Promise.resolve()),
+		remove: vi.fn(() => Promise.resolve()),
 	},
 }));
 
@@ -90,7 +90,9 @@ describe("Feed loading", () => {
 		const loadingTextMatcher = (content: string) =>
 			content.includes(config.timeline.defaultLoadingMsg);
 		expect(screen.getByText(loadingTextMatcher)).toBeInTheDocument();
-		expect(screen.queryByText(config.timeline.noPostsMsg)).not.toBeInTheDocument();
+		expect(
+			screen.queryByText(config.timeline.noPostsMsg),
+		).not.toBeInTheDocument();
 
 		await act(async () => {
 			resolveCreate?.(mockAlgorithm as unknown as FeedCoordinator);

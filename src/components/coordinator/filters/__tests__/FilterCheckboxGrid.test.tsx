@@ -7,7 +7,7 @@ import BooleanFilter from "../../../../core/filters/boolean_filter";
 import { BooleanFilterName } from "../../../../core/enums";
 import type { BooleanFilterOption } from "../../../../core/types";
 
-vi.mock("/usr/local/git/lens/fefme/src/core/api/tag_list.ts", () => ({
+vi.mock("../../../../core/api/tag_list", () => ({
 	default: class TagListMock {
 		length = 0;
 		static async buildFavouritedTags() {
