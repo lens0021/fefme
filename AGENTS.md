@@ -16,6 +16,7 @@ npm run dev      # Start dev server (opens http://localhost:3000)
 npm run build    # TypeScript + Vite production build → docs/
 npm run preview  # Preview production build
 npm run tsc      # Type check only (no emit)
+npm test         # Run component tests with Vitest
 ```
 
 ### Code Quality
@@ -37,6 +38,7 @@ npm run format    # Format code
 - **Styling:** Tailwind CSS 4.1
 - **API Client:** masto 7.3.0 (Mastodon API)
 - **Storage:** LocalForage (IndexedDB) + localStorage
+- **Testing:** Vitest + Testing Library (component tests)
 - **Code Quality:** Biome (replaces ESLint/Prettier)
 
 ### Data Flow (Client-Side Only)
@@ -62,7 +64,7 @@ Feed.tsx → StatusComponent → Rendered Posts
 ```
 /src
 ├── core/                    # THE HEART OF THE APP
-│   ├── index.ts            # TheAlgorithm class (1334 lines, main orchestrator)
+│   ├── index.ts            # TheAlgorithm class (1380 lines, main orchestrator)
 │   ├── api/                # Mastodon API wrappers, data fetching
 │   ├── scorer/             # 15+ scoring algorithms
 │   ├── filters/            # Boolean & numeric filtering logic
@@ -227,7 +229,6 @@ LOAD_TEST=false              # Load testing mode
 - **Buffer polyfill required:** App.tsx imports buffer for class-transformer
 - **HashRouter quirk:** All routes prefixed with `/#/`
 - **OAuth redirect:** Custom handling in App.tsx for GitHub Pages
-- **No tests:** Project has no test infrastructure
 - **Service Worker:** Registered in App.tsx for offline support
 - **Mutex/Concurrency:** Uses async-mutex to prevent race conditions in API calls and scoring
 
