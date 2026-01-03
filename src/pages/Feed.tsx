@@ -25,6 +25,7 @@ import StatusComponent from "../components/status/Status";
 import { GuiCheckboxName, config } from "../config";
 import { getLogger } from "../helpers/log_helpers";
 import { booleanIcon } from "../helpers/ui";
+import { reloadPage } from "../helpers/navigation";
 import { useAlgorithm } from "../hooks/useAlgorithm";
 import useOnScreen from "../hooks/useOnScreen";
 
@@ -34,7 +35,6 @@ const logger = getLogger("Feed");
 export default function Feed() {
 	const {
 		algorithm,
-		applyPendingTimeline,
 		hideSensitiveCheckbox,
 		hasInitialCache,
 		hasPendingTimeline,
@@ -504,8 +504,7 @@ export default function Feed() {
 							<button
 								type="button"
 								onClick={() => {
-									applyPendingTimeline?.();
-									window.scrollTo({ top: 0, behavior: "smooth" });
+									reloadPage();
 								}}
 								aria-label={bubbleLabel}
 								className="pointer-events-auto rounded-full bg-[color:var(--color-primary)] px-4 py-2 text-sm font-semibold text-white shadow-lg transition hover:scale-[1.02]"

@@ -1,10 +1,11 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 
 import { config } from "../../config";
 import { AlgorithmStorageKey } from "../../core/enums";
 import FeedCoordinator from "../../core/index";
 import Storage from "../../core/Storage";
+import { reloadPage } from "../../helpers/navigation";
 import AlgorithmProvider from "../../hooks/useAlgorithm";
 import Feed from "../Feed";
 
@@ -13,6 +14,10 @@ vi.mock("../../core/Storage", () => ({
 		set: vi.fn(() => Promise.resolve()),
 		remove: vi.fn(() => Promise.resolve()),
 	},
+}));
+
+vi.mock("../../helpers/navigation", () => ({
+	reloadPage: vi.fn(),
 }));
 
 const mockUser = {
@@ -158,7 +163,10 @@ describe("Feed loading", () => {
 			AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_POSTS,
 			refreshedTimeline,
 		);
-		expect(screen.getByTestId("refresh-bubble")).toBeInTheDocument();
+		const refreshBubble = screen.getByTestId("refresh-bubble");
+		expect(refreshBubble).toBeInTheDocument();
+		fireEvent.click(refreshBubble);
+		expect(reloadPage).toHaveBeenCalledTimes(1);
 	});
 
 	it("shows only the loading screen until the first load completes when there is no cache", async () => {
