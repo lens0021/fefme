@@ -2,9 +2,18 @@ import { act, render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 
 import { config } from "../../config";
+import { AlgorithmStorageKey } from "../../core/enums";
 import TheAlgorithm from "../../core/index";
+import Storage from "../../core/Storage";
 import AlgorithmProvider from "../../hooks/useAlgorithm";
 import Feed from "../Feed";
+
+vi.mock("../../core/Storage", () => ({
+	default: {
+		set: vi.fn().mockResolvedValue(undefined),
+		remove: vi.fn().mockResolvedValue(undefined),
+	},
+}));
 
 const mockUser = {
 	access_token: "test-token",
@@ -87,6 +96,10 @@ describe("Feed loading", () => {
 
 		expect(await screen.findAllByTestId("status-card")).toHaveLength(2);
 		expect(mockAlgorithm.triggerFeedUpdate).toHaveBeenCalledTimes(1);
+		expect(Storage.set).toHaveBeenCalledWith(
+			AlgorithmStorageKey.VISIBLE_TIMELINE_TOOTS,
+			cachedTimeline,
+		);
 
 		await act(async () => {
 			resolveTrigger?.();
@@ -94,6 +107,10 @@ describe("Feed loading", () => {
 
 		expect(screen.getAllByTestId("status-card")).toHaveLength(2);
 		expect(mockAlgorithm.triggerFeedUpdate).toHaveBeenCalledTimes(1);
+		expect(Storage.set).toHaveBeenCalledWith(
+			AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_TOOTS,
+			refreshedTimeline,
+		);
 		expect(screen.getByTestId("refresh-bubble")).toBeInTheDocument();
 	});
 

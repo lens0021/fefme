@@ -37,6 +37,8 @@ export enum AlgorithmStorageKey {
 	APP_OPENS = "AppOpens",
 	FILTERS = "Filters",
 	TIMELINE_TOOTS = "TimelineToots", // The entire timeline (home timeline + trending toots etc.)
+	VISIBLE_TIMELINE_TOOTS = "VisibleTimelineToots", // Filtered timeline used for initial render
+	NEXT_VISIBLE_TIMELINE_TOOTS = "NextVisibleTimelineToots", // Next filtered timeline cache for refresh
 	USER = "FedialgoUser",
 	WEIGHTS = "Weights",
 }
@@ -231,6 +233,8 @@ export const STORAGE_KEYS_WITH_ACCOUNTS: StorageKey[] = Object.entries(
 export const STORAGE_KEYS_WITH_TOOTS = Object.entries(CacheKey)
 	.reduce((keys, [k, v]) => (k.endsWith("_TOOTS") ? keys.concat(v) : keys), [
 		AlgorithmStorageKey.TIMELINE_TOOTS,
+		AlgorithmStorageKey.VISIBLE_TIMELINE_TOOTS,
+		AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_TOOTS,
 		FediverseCacheKey.TRENDING_TOOTS,
 	] as StorageKey[])
 	.concat(Object.values(TagTootsCategory));

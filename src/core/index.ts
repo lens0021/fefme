@@ -1039,6 +1039,21 @@ export default class TheAlgorithm {
 	 * @returns {Promise<void>}
 	 */
 	private async loadCachedData(): Promise<void> {
+		let visibleTimeline = await Storage.getCoerced<Toot>(
+			AlgorithmStorageKey.VISIBLE_TIMELINE_TOOTS,
+		);
+		const nextVisibleTimeline = await Storage.getCoerced<Toot>(
+			AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_TOOTS,
+		);
+		if (nextVisibleTimeline.length > 0) {
+			visibleTimeline = nextVisibleTimeline;
+			await Storage.set(
+				AlgorithmStorageKey.VISIBLE_TIMELINE_TOOTS,
+				nextVisibleTimeline,
+			);
+			await Storage.remove(AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_TOOTS);
+		}
+
 		// Load cached toots and trending data
 		this.homeFeed = await Storage.getCoerced<Toot>(
 			CacheKey.HOME_TIMELINE_TOOTS,
@@ -1071,9 +1086,23 @@ export default class TheAlgorithm {
 		// (this also modifies toots to add "Unknown" source where needed)
 		if (this.feed.length > 0) {
 			await updateBooleanFilterOptions(this.filters, this.feed);
-			this.filterFeedAndSetInApp();
+			if (visibleTimeline.length > 0) {
+				this.filteredTimeline = visibleTimeline;
+				this.setTimelineInApp(this.filteredTimeline);
+				loadCacheLogger.debug(
+					`Loaded ${this.feed.length} cached toots (${this.filteredTimeline.length} from visible cache)`,
+				);
+			} else {
+				this.filterFeedAndSetInApp();
+				loadCacheLogger.debug(
+					`Loaded ${this.feed.length} cached toots (${this.filteredTimeline.length} after filtering)`,
+				);
+			}
+		} else if (visibleTimeline.length > 0) {
+			this.filteredTimeline = visibleTimeline;
+			this.setTimelineInApp(this.filteredTimeline);
 			loadCacheLogger.debug(
-				`Loaded ${this.feed.length} cached toots (${this.filteredTimeline.length} after filtering)`,
+				`Loaded visible timeline cache (${this.filteredTimeline.length} toots) without feed cache`,
 			);
 		} else {
 			loadCacheLogger.debug("No cached toots found");

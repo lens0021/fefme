@@ -108,7 +108,12 @@ export default class Storage {
 
 	/** Get the value at the given key but coerced to an empty array if there's nothing there. */
 	static async getCoerced<T>(
-		key: CacheKey | FediverseCacheKey | AlgorithmStorageKey.TIMELINE_TOOTS,
+		key:
+			| CacheKey
+			| FediverseCacheKey
+			| AlgorithmStorageKey.TIMELINE_TOOTS
+			| AlgorithmStorageKey.VISIBLE_TIMELINE_TOOTS
+			| AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_TOOTS,
 	): Promise<T[]> {
 		let value = await this.get(key);
 

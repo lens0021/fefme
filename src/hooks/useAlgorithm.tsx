@@ -29,9 +29,10 @@ import {
 	addMimeExtensionsToServer,
 } from "../helpers/mastodon_helpers";
 import type { ErrorHandler } from "../types";
-import { TagTootsCategory } from "../core/enums";
+import { AlgorithmStorageKey, TagTootsCategory } from "../core/enums";
 import { useAuthContext } from "./useAuth";
 import { useLocalStorage } from "./useLocalStorage";
+import Storage from "../core/Storage";
 
 const logger = getLogger("AlgorithmProvider");
 const loadLogger = logger.tempLogger("setLoadState");
@@ -236,8 +237,16 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 			setTimeline(feed);
 			pendingTimelineRef.current = null;
 			setHasPendingTimeline(false);
+			Storage.set(AlgorithmStorageKey.VISIBLE_TIMELINE_TOOTS, feed).catch(
+				(err) =>
+					logger.error("Failed to persist visible timeline cache:", err),
+			);
 		} else {
 			pendingTimelineRef.current = feed;
+			Storage.set(AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_TOOTS, feed).catch(
+				(err) =>
+					logger.error("Failed to persist next visible timeline cache:", err),
+			);
 		}
 	}, [setTimeline]);
 
@@ -247,6 +256,13 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		setTimeline(pendingTimeline);
 		pendingTimelineRef.current = null;
 		setHasPendingTimeline(false);
+		Storage.set(AlgorithmStorageKey.VISIBLE_TIMELINE_TOOTS, pendingTimeline)
+			.then(() =>
+				Storage.remove(AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_TOOTS),
+			)
+			.catch((err) =>
+				logger.error("Failed to promote pending timeline cache:", err),
+			);
 	}, [setTimeline]);
 
 	// Reset all state except for the user and server
