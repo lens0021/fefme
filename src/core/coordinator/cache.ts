@@ -15,7 +15,10 @@ import { loadCacheLogger, saveTimelineToCacheLogger } from "./loggers";
 import { scoreAndFilterFeed } from "./scoring";
 import type { AlgorithmState } from "./state";
 
-export async function loadCachedData(state: AlgorithmState): Promise<void> {
+export async function loadCachedData(
+	state: AlgorithmState,
+	shouldSetInApp = true,
+): Promise<void> {
 	let visibleTimeline = await Storage.getCoerced<Toot>(
 		AlgorithmStorageKey.VISIBLE_TIMELINE_TOOTS,
 	);
@@ -57,19 +60,29 @@ export async function loadCachedData(state: AlgorithmState): Promise<void> {
 		await updateBooleanFilterOptions(state.filters, state.feed);
 		if (visibleTimeline.length > 0) {
 			state.filteredTimeline = visibleTimeline;
-			state.setTimelineInApp(state.filteredTimeline);
+			if (shouldSetInApp) {
+				state.setTimelineInApp(state.filteredTimeline);
+			}
 			loadCacheLogger.debug(
 				`Loaded ${state.feed.length} cached toots (${state.filteredTimeline.length} from visible cache)`,
 			);
 		} else {
-			filterFeedAndSetInApp(state);
+			if (shouldSetInApp) {
+				filterFeedAndSetInApp(state);
+			} else {
+				state.filteredTimeline = state.feed.filter((toot) =>
+					toot.isInTimeline(state.filters),
+				);
+			}
 			loadCacheLogger.debug(
 				`Loaded ${state.feed.length} cached toots (${state.filteredTimeline.length} after filtering)`,
 			);
 		}
 	} else if (visibleTimeline.length > 0) {
 		state.filteredTimeline = visibleTimeline;
-		state.setTimelineInApp(state.filteredTimeline);
+		if (shouldSetInApp) {
+			state.setTimelineInApp(state.filteredTimeline);
+		}
 		loadCacheLogger.debug(
 			`Loaded visible timeline cache (${state.filteredTimeline.length} toots) without feed cache`,
 		);

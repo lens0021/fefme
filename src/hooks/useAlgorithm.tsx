@@ -457,6 +457,9 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 				return;
 			}
 
+		// Set gating BEFORE creating FeedCoordinator to prevent cache from being displayed prematurely
+		allowTimelineUpdatesRef.current = false;
+
 			const algo = await FeedCoordinator.create({
 				api: api,
 				user: currentUser,
@@ -490,6 +493,24 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 
 			const hasCachedPosts = algo.timeline.length > 0;
 			setHasInitialCache(hasCachedPosts);
+
+			// Manually display the initial cache if it exists
+			// This happens AFTER allowTimelineUpdatesRef was set to false,
+			// so all subsequent updates during triggerFeedUpdate() will be queued in pending
+			if (hasCachedPosts) {
+				logger.log(
+					`Displaying ${algo.timeline.length} cached posts while loading fresh data`,
+				);
+				setTimeline(algo.timeline);
+			Storage.set(AlgorithmStorageKey.VISIBLE_TIMELINE_TOOTS, algo.timeline).catch(
+				(err) =>
+					logger.error("Failed to persist visible timeline cache:", err),
+			);
+			} else {
+				logger.log(
+					"No cached posts found, showing loading screen until first load completes",
+				);
+			}
 			const shouldApplyInitialLoadResults = !hasCachedPosts;
 			const finalizeInitialLoad = () => {
 				allowTimelineUpdatesRef.current = true;
@@ -512,12 +533,6 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 				}
 			};
 
-			allowTimelineUpdatesRef.current = false;
-			logger.log(
-				hasCachedPosts
-					? `Showing ${algo.timeline.length} cached posts while loading fresh data`
-					: "No cached posts found, showing loading screen until first load completes",
-			);
 			triggerLoadFxn(
 				async () => {
 					try {

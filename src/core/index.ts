@@ -197,7 +197,7 @@ export default class FeedCoordinator {
 		// Construct the algorithm object, set the default weights, load feed and filters
 		const algo = new FeedCoordinator(params);
 		ScorerCache.addScorers(algo.state.tootScorers, algo.state.feedScorers);
-		await loadCachedData(algo.state);
+		await loadCachedData(algo.state, false);
 		return algo;
 	}
 
