@@ -56,6 +56,51 @@ describe("Feed loading", () => {
 		vi.restoreAllMocks();
 	});
 
+	it("shows a loading screen while the algorithm is initializing without flashing empty state", async () => {
+		let resolveCreate: ((algo: FeedCoordinator) => void) | undefined;
+		const createPromise = new Promise<FeedCoordinator>((resolve) => {
+			resolveCreate = resolve;
+		});
+		const cachedTimeline = [{ uri: "cached-1" }];
+		const mockAlgorithm = {
+			getDataStats: vi.fn().mockReturnValue(null),
+			isGoToSocialUser: vi.fn().mockResolvedValue(false),
+			serverInfo: vi.fn().mockResolvedValue({
+				configuration: {
+					mediaAttachments: {
+						supportedMimeTypes: ["image/jpeg", "image/png", "video/mp4"],
+					},
+				},
+				domain: "example.com",
+			}),
+			timeline: cachedTimeline,
+			triggerFeedUpdate: vi.fn().mockResolvedValue(undefined),
+		};
+
+		vi.spyOn(FeedCoordinator, "create").mockImplementation(
+			async () => await createPromise,
+		);
+
+		render(
+			<AlgorithmProvider>
+				<Feed />
+			</AlgorithmProvider>,
+		);
+
+		const loadingTextMatcher = (content: string) =>
+			content.includes(config.timeline.defaultLoadingMsg);
+		expect(screen.getByText(loadingTextMatcher)).toBeInTheDocument();
+		expect(screen.queryByText(config.timeline.noPostsMsg)).not.toBeInTheDocument();
+
+		await act(async () => {
+			resolveCreate?.(mockAlgorithm as unknown as FeedCoordinator);
+		});
+
+		await waitFor(() =>
+			expect(screen.getAllByTestId("status-card")).toHaveLength(1),
+		);
+	});
+
 	it("keeps cached timeline visible while initial load refreshes in the background", async () => {
 		let setTimelineInApp: ((feed: Array<{ uri: string }>) => void) | undefined;
 		let resolveTrigger: (() => void) | undefined;

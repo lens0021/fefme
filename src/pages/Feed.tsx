@@ -74,7 +74,7 @@ export default function Feed() {
 	const bottomRef = useRef<HTMLDivElement>(null);
 	const isBottom = useOnScreen(bottomRef);
 	const numShownPosts = Math.max(defaultNumDisplayedPosts, numDisplayedPosts);
-	const showInitialLoading = isLoading && !hasInitialCache;
+	const showInitialLoading = !hasInitialCache && (isLoading || !algorithm);
 	const showRebuildLoading = isRebuildLoading && hasInitialCache;
 	const hasFilterReason = pendingTimelineReasons?.includes("filters") ?? false;
 	const hasWeightReason = pendingTimelineReasons?.includes("weights") ?? false;
