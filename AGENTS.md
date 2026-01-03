@@ -49,7 +49,7 @@ Mastodon API ← MastoApi singleton (src/core/api/api.ts)
   ↓
 IndexedDB Cache ← Storage class (src/core/Storage.ts)
   ↓
-TheAlgorithm class (src/core/index.ts)
+FeedCoordinator class (src/core/index.ts)
   ├── Scorers (15+ scoring algorithms)
   ├── Filters (Boolean + Numeric)
   └── Feed Sorting
@@ -64,7 +64,8 @@ Feed.tsx → StatusComponent → Rendered Posts
 ```
 /src
 ├── core/                    # THE HEART OF THE APP
-│   ├── index.ts            # TheAlgorithm class (1380 lines, main orchestrator)
+│   ├── index.ts            # FeedCoordinator class (orchestrator)
+│   ├── algorithm/          # Internal algorithm modules (state, cache, scoring, feed, etc.)
 │   ├── api/                # Mastodon API wrappers, data fetching
 │   ├── scorer/             # 15+ scoring algorithms
 │   ├── filters/            # Boolean & numeric filtering logic
@@ -86,6 +87,18 @@ Feed.tsx → StatusComponent → Rendered Posts
 │   └── useLocalStorage.tsx # Browser storage hooks
 └── config.ts               # User-facing configuration
 ```
+
+### Component Roles
+- **Algorithm Orchestrator:** `src/core/index.ts` (FeedCoordinator public API and coordination)
+- **Algorithm State:** `src/core/algorithm/state.ts` (timeline, weights, scorers, loading state)
+- **Scoring Engine:** `src/core/algorithm/scoring.ts`, `src/core/algorithm/scorers.ts`, `src/core/scorer/` (score + sort)
+- **Filter Engine:** `src/core/algorithm/filters.ts`, `src/core/filters/` (boolean/numeric filters)
+- **Timeline IO + Merge:** `src/core/algorithm/feed.ts` (merge, reconcile, finalize timeline)
+- **Data Loaders:** `src/core/algorithm/loaders.ts`, `src/core/api/` (API fetch + conversion)
+- **Cache Manager:** `src/core/algorithm/cache.ts`, `src/core/Storage.ts` (persist timeline/state)
+- **Background Pollers:** `src/core/algorithm/background.ts` (periodic refresh)
+- **Stats/Telemetry:** `src/core/algorithm/stats.ts` (data summaries for logging/UI)
+- **UI Composition:** `src/pages/Feed.tsx`, `src/components/**` (render + interactions)
 
 ### The Scoring System
 
@@ -171,7 +184,7 @@ if (window.location.href.includes("?code=")) {
 
 ## Working with the Algorithm
 
-### TheAlgorithm Class (`/src/core/index.ts`)
+### FeedCoordinator Class (`/src/core/index.ts`)
 
 Main entry points:
 - `triggerFeedUpdate()` - Fetch new posts since last update
@@ -185,7 +198,7 @@ Main entry points:
 2. Extend `Scorer` base class
 3. Implement `_score(toot: Toot): Promise<number>`
 4. Add scorer name to `ScoreName` enum in `/src/core/enums.ts`
-5. Register in `TheAlgorithm` constructor
+5. Register in `FeedCoordinator` constructor
 6. Add weight slider config in `/src/config.ts`
 
 ### Adding a New Filter
@@ -220,7 +233,7 @@ LOAD_TEST=false              # Load testing mode
 ### Key Files to Understand First
 1. `src/App.tsx` - Entry point, routing, providers
 2. `src/pages/Feed.tsx` - Main feed UI
-3. `src/core/index.ts` - TheAlgorithm class
+3. `src/core/index.ts` - FeedCoordinator class
 4. `src/hooks/useAlgorithm.tsx` - Algorithm state management
 5. `src/core/api/api.ts` - API wrapper
 6. `src/core/Storage.ts` - Persistence layer
@@ -245,3 +258,8 @@ Defined in `/src/core/enums.ts`:
 - `CacheKey` - API data (home timeline, favorites, followers)
 - `AlgorithmStorageKey` - App state (weights, filters, timeline)
 - `FediverseCacheKey` - Fediverse-wide trending data
+
+## TODO
+- Decide whether to rename `AlgorithmProvider`/`useAlgorithm` to match `FeedCoordinator` for naming consistency.
+- Further split large algorithm modules (e.g., `src/core/algorithm/feed.ts`, `src/core/algorithm/state.ts`) into smaller role-focused units.
+- Align code boundaries with the Component Roles list (enforce module responsibilities and remove cross-role coupling).
