@@ -29,6 +29,7 @@ import { Tooltip } from "react-tooltip";
 import { AgeIn, type Toot, timeString } from "../../core/index";
 
 import { config } from "../../config";
+import { BooleanFilterName, TypeFilterName } from "../../core/enums";
 import { executeWithLoadingState } from "../../helpers/async_helpers";
 import { getLogger } from "../../helpers/log_helpers";
 import { formatScore } from "../../helpers/number_helpers";
@@ -165,12 +166,19 @@ export default function StatusComponent(props: StatusComponentProps) {
 		const incrementSeen = (target: Toot) => {
 			target.numTimesShown = (target.numTimesShown || 0) + 1;
 		};
+		const typeFilter =
+			algorithm?.filters?.booleanFilters?.[BooleanFilterName.TYPE];
+		const shouldUpdateSeenFilter =
+			typeFilter?.excludedOptions?.includes(TypeFilterName.SEEN) ?? false;
 		incrementSeen(status);
 		if (status !== toot) {
 			incrementSeen(toot);
 		}
 
 		algorithm?.saveTimelineToCache?.();
+		if (shouldUpdateSeenFilter) {
+			algorithm?.updateFilters?.(algorithm.filters);
+		}
 	}, [algorithm, isLoading, isOnScreen, status, toot]);
 
 	// Build the account link(s) for the reblogger(s) that appears at top of a retoot
