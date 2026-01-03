@@ -215,10 +215,43 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		[logAndShowError, setLoadState, triggerLoadFxn],
 	);
 
-	const triggerFeedUpdate = useCallback(
-		() => algorithm && trigger(() => algorithm.triggerFeedUpdate()),
-		[algorithm, trigger],
-	);
+	const triggerFeedUpdate = useCallback(() => {
+		if (!algorithm) return;
+
+		if (!hasInitialCache) {
+			trigger(() => algorithm.triggerFeedUpdate());
+			return;
+		}
+
+		const previousAllowTimelineUpdates = allowTimelineUpdatesRef.current;
+		allowTimelineUpdatesRef.current = false;
+
+		triggerLoadFxn(
+			async () => {
+				try {
+					await algorithm.triggerFeedUpdate();
+				} finally {
+					allowTimelineUpdatesRef.current = previousAllowTimelineUpdates;
+					if (pendingTimelineRef.current) {
+						pendingTimelineReasonsRef.current.add("new-posts");
+						setHasPendingTimeline(true);
+						setPendingTimelineReasons(
+							Array.from(pendingTimelineReasonsRef.current),
+						);
+					}
+				}
+			},
+			logAndShowError,
+			setLoadState,
+		);
+	}, [
+		algorithm,
+		hasInitialCache,
+		logAndShowError,
+		setLoadState,
+		trigger,
+		triggerLoadFxn,
+	]);
 	const triggerHomeTimelineBackFill = useCallback(
 		() => algorithm && trigger(() => algorithm.triggerHomeTimelineBackFill()),
 		[algorithm, trigger],
