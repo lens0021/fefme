@@ -1,13 +1,10 @@
 import { render, screen } from "@testing-library/react";
-import { vi } from "vitest";
-
 import { config } from "../../config";
 import Feed from "../Feed";
 
 vi.mock("../../hooks/useAlgorithm", () => ({
 	useAlgorithm: () => ({
 		algorithm: undefined,
-		applyPendingTimeline: vi.fn(),
 		hasInitialCache: false,
 		hasPendingTimeline: false,
 		hideSensitiveCheckbox: undefined,

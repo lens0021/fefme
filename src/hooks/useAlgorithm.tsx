@@ -42,7 +42,6 @@ const loadLogger = logger.tempLogger("setLoadState");
 interface AlgoContext {
 	algorithm?: FeedCoordinator;
 	alwaysShowFollowed?: boolean;
-	applyPendingTimeline?: () => void;
 	api?: mastodon.rest.Client;
 	currentUserWebfinger?: string | null;
 	isGoToSocialUser?: boolean; // Whether the user is on a GoToSocial instance
@@ -100,7 +99,6 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 	const [timeline, setTimeline] = useState<Post[]>([]);
 	const hasInitializedRef = React.useRef(false);
 	const lastUserIdRef = React.useRef<string | null>(null);
-	const allowTimelineUpdatesRef = React.useRef(true);
 	const pendingTimelineRef = React.useRef<Post[] | null>(null);
 	const pendingTimelineReasonsRef = React.useRef<Set<PendingTimelineReason>>(
 		new Set(),
@@ -217,67 +215,79 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		[logAndShowError, setLoadState, triggerLoadFxn],
 	);
 
-	const triggerFeedUpdate = useCallback(() => {
-		if (!algorithm) return;
+	const queuePendingTimeline = useCallback(
+		(reason?: PendingTimelineReason) => {
+			if (!pendingTimelineRef.current) return;
+			if (reason) {
+				pendingTimelineReasonsRef.current.add(reason);
+			}
+			if (pendingTimelineReasonsRef.current.size === 0) {
+				pendingTimelineReasonsRef.current.add("new-posts");
+			}
+			setHasPendingTimeline(true);
+			setPendingTimelineReasons(
+				Array.from(pendingTimelineReasonsRef.current),
+			);
+		},
+		[],
+	);
 
-		if (!hasInitialCache) {
-			trigger(() => algorithm.triggerFeedUpdate());
-			return;
-		}
-
-		const previousAllowTimelineUpdates = allowTimelineUpdatesRef.current;
-		allowTimelineUpdatesRef.current = false;
-
-		triggerLoadFxn(
-			async () => {
-				try {
-					await algorithm.triggerFeedUpdate();
-				} finally {
-					allowTimelineUpdatesRef.current = previousAllowTimelineUpdates;
-					if (pendingTimelineRef.current) {
-						pendingTimelineReasonsRef.current.add("new-posts");
-						setHasPendingTimeline(true);
-						setPendingTimelineReasons(
-							Array.from(pendingTimelineReasonsRef.current),
-						);
+	const triggerWithPending = useCallback(
+		(loadFxn: () => Promise<void>, reason?: PendingTimelineReason) => {
+			if (!algorithm) return;
+			triggerLoadFxn(
+				async () => {
+					try {
+						await loadFxn();
+					} finally {
+						queuePendingTimeline(reason);
 					}
-				}
-			},
-			logAndShowError,
-			setLoadState,
-		);
-	}, [
-		algorithm,
-		hasInitialCache,
-		logAndShowError,
-		setLoadState,
-		trigger,
-		triggerLoadFxn,
-	]);
+				},
+				logAndShowError,
+				setLoadState,
+			);
+		},
+		[algorithm, logAndShowError, queuePendingTimeline, setLoadState, triggerLoadFxn],
+	);
+
+	const triggerFeedUpdate = useCallback(
+		() =>
+			triggerWithPending(() => algorithm.triggerFeedUpdate(), "new-posts"),
+		[algorithm, triggerWithPending],
+	);
 	const triggerHomeTimelineBackFill = useCallback(
-		() => algorithm && trigger(() => algorithm.triggerHomeTimelineBackFill()),
-		[algorithm, trigger],
+		() =>
+			triggerWithPending(
+				() => algorithm.triggerHomeTimelineBackFill(),
+				"new-posts",
+			),
+		[algorithm, triggerWithPending],
 	);
 	const triggerFederatedTimelineBackFill = useCallback(
 		() =>
-			algorithm && trigger(() => algorithm.triggerFederatedTimelineBackFill()),
-		[algorithm, trigger],
+			triggerWithPending(
+				() => algorithm.triggerFederatedTimelineBackFill(),
+				"new-posts",
+			),
+		[algorithm, triggerWithPending],
 	);
 	const triggerFavouritedTagBackFill = useCallback(
 		() =>
-			algorithm &&
-			trigger(() =>
-				algorithm.triggerTagTimelineBackFill(TagPostsCategory.FAVOURITED),
+			triggerWithPending(
+				() =>
+					algorithm.triggerTagTimelineBackFill(TagPostsCategory.FAVOURITED),
+				"new-posts",
 			),
-		[algorithm, trigger],
+		[algorithm, triggerWithPending],
 	);
 	const triggerParticipatedTagBackFill = useCallback(
 		() =>
-			algorithm &&
-			trigger(() =>
-				algorithm.triggerTagTimelineBackFill(TagPostsCategory.PARTICIPATED),
+			triggerWithPending(
+				() =>
+					algorithm.triggerTagTimelineBackFill(TagPostsCategory.PARTICIPATED),
+				"new-posts",
 			),
-		[algorithm, trigger],
+		[algorithm, triggerWithPending],
 	);
 	const triggerMoarData = useCallback(
 		() => algorithm && trigger(() => algorithm.triggerMoarData()),
@@ -290,43 +300,14 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 
 	const setTimelineInApp = useCallback(
 		(feed: Post[]) => {
-			if (allowTimelineUpdatesRef.current) {
-				setTimeline(feed);
-				pendingTimelineRef.current = null;
-				setHasPendingTimeline(false);
-				Storage.set(AlgorithmStorageKey.VISIBLE_TIMELINE_POSTS, feed).catch(
-					(err) =>
-						logger.error("Failed to persist visible timeline cache:", err),
-				);
-			} else {
-				pendingTimelineRef.current = feed;
-				Storage.set(
-					AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_POSTS,
-					feed,
-				).catch((err) =>
+			pendingTimelineRef.current = feed;
+			Storage.set(AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_POSTS, feed).catch(
+				(err) =>
 					logger.error("Failed to persist next visible timeline cache:", err),
-				);
-			}
-		},
-		[setTimeline],
-	);
-
-	const applyPendingTimeline = useCallback(() => {
-		const pendingTimeline = pendingTimelineRef.current;
-		if (!pendingTimeline) return;
-		setTimeline(pendingTimeline);
-		pendingTimelineRef.current = null;
-		setHasPendingTimeline(false);
-		pendingTimelineReasonsRef.current = new Set();
-		setPendingTimelineReasons([]);
-		Storage.set(AlgorithmStorageKey.VISIBLE_TIMELINE_POSTS, pendingTimeline)
-			.then(() =>
-				Storage.remove(AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_POSTS),
-			)
-			.catch((err) =>
-				logger.error("Failed to promote pending timeline cache:", err),
 			);
-	}, [setTimeline]);
+		},
+		[],
+	);
 
 	// Reset all state except for the user and server
 	const resetAlgorithm = useCallback(async () => {
@@ -361,7 +342,6 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		if (!user?.id) {
 			lastUserIdRef.current = null;
 			hasInitializedRef.current = false;
-			allowTimelineUpdatesRef.current = true;
 			pendingTimelineRef.current = null;
 			pendingTimelineReasonsRef.current = new Set();
 			setHasInitialCache(false);
@@ -373,7 +353,6 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		if (lastUserIdRef.current !== user.id) {
 			lastUserIdRef.current = user.id;
 			hasInitializedRef.current = false;
-			allowTimelineUpdatesRef.current = true;
 			pendingTimelineRef.current = null;
 			pendingTimelineReasonsRef.current = new Set();
 			setHasInitialCache(false);
@@ -397,24 +376,14 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 			setPendingTimelineReasons([]);
 			setIsRebuildLoading(true);
 
-			const previousAllowTimelineUpdates = allowTimelineUpdatesRef.current;
-			allowTimelineUpdatesRef.current = false;
-
 			try {
 				await run();
 			} catch (err) {
 				logAndShowError("Failure while rebuilding the feed!", err as Error);
 			} finally {
-				allowTimelineUpdatesRef.current = previousAllowTimelineUpdates;
 				setIsRebuildLoading(false);
 				rebuildInFlightRef.current = false;
-
-				if (pendingTimelineRef.current) {
-					setHasPendingTimeline(true);
-					setPendingTimelineReasons(
-						Array.from(pendingTimelineReasonsRef.current),
-					);
-				}
+				queuePendingTimeline(reason);
 
 				pendingTimelineReasonsRef.current = new Set();
 				const queued = queuedRebuildRef.current;
@@ -423,8 +392,8 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 					runRebuild(queued.reason, queued.run);
 				}
 			}
-		},
-		[algorithm, logAndShowError],
+	},
+	[algorithm, logAndShowError, queuePendingTimeline],
 	);
 
 	// Initial load of the feed
@@ -464,9 +433,6 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 				return;
 			}
 
-			// Set gating BEFORE creating FeedCoordinator to prevent cache from being displayed prematurely
-			allowTimelineUpdatesRef.current = false;
-
 			const algo = await FeedCoordinator.create({
 				api: api,
 				user: currentUser,
@@ -501,9 +467,7 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 			const hasCachedPosts = algo.timeline.length > 0;
 			setHasInitialCache(hasCachedPosts);
 
-			// Manually display the initial cache if it exists
-			// This happens AFTER allowTimelineUpdatesRef was set to false,
-			// so all subsequent updates during triggerFeedUpdate() will be queued in pending
+			// Manually display the initial cache if it exists.
 			if (hasCachedPosts) {
 				logger.log(
 					`Displaying ${algo.timeline.length} cached posts while loading fresh data`,
@@ -522,23 +486,24 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 			}
 			const shouldApplyInitialLoadResults = !hasCachedPosts;
 			const finalizeInitialLoad = () => {
-				allowTimelineUpdatesRef.current = true;
 				if (shouldApplyInitialLoadResults) {
-					const pendingTimeline = pendingTimelineRef.current;
+					const pendingTimeline = pendingTimelineRef.current ?? algo.timeline;
 					pendingTimelineRef.current = null;
-					setTimeline(pendingTimeline ?? algo.timeline);
+					setTimeline(pendingTimeline);
 					setHasPendingTimeline(false);
 					pendingTimelineReasonsRef.current = new Set();
 					setPendingTimelineReasons([]);
+					Storage.set(AlgorithmStorageKey.VISIBLE_TIMELINE_POSTS, pendingTimeline)
+						.then(() =>
+							Storage.remove(
+								AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_POSTS,
+							),
+						)
+						.catch((err) =>
+							logger.error("Failed to promote pending timeline cache:", err),
+						);
 				} else {
-					setHasPendingTimeline(!!pendingTimelineRef.current);
-					if (pendingTimelineRef.current) {
-						pendingTimelineReasonsRef.current = new Set(["new-posts"]);
-						setPendingTimelineReasons(["new-posts"]);
-					} else {
-						pendingTimelineReasonsRef.current = new Set();
-						setPendingTimelineReasons([]);
-					}
+					queuePendingTimeline("new-posts");
 				}
 			};
 
@@ -579,6 +544,7 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		api,
 		logAndShowError,
 		logout,
+		queuePendingTimeline,
 		setLoadState,
 		setTimelineInApp,
 		timeline.length,
@@ -589,7 +555,6 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 	const algoContext: AlgoContext = {
 		algorithm,
 		alwaysShowFollowed,
-		applyPendingTimeline,
 		api,
 		currentUserWebfinger,
 		hasInitialCache,
