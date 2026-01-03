@@ -37,6 +37,8 @@ export class AlgorithmState {
 	numTriggers = 0;
 	currentAction?: LoadAction;
 	releaseLoadingMutex?: ConcurrencyLockRelease;
+	deferTimelineUpdates = false;
+	deferredTimeline: Post[] | null = null;
 
 	cacheUpdater?: ReturnType<typeof setInterval>;
 	userDataPoller = new UserDataPoller();

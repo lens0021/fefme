@@ -9,6 +9,7 @@ import { Logger } from "../helpers/logger";
 import Post from "../api/objects/post";
 import { throwIfAccessTokenRevoked } from "../api/errors";
 import { scoreAndFilterFeed } from "./scoring";
+import { flushDeferredTimeline } from "./filters";
 import { loggers, logger } from "./loggers";
 import { launchBackgroundPollers } from "./background";
 import { mostRecentHomeTootAt } from "./stats";
@@ -114,6 +115,7 @@ export async function finishFeedUpdate(state: AlgorithmState): Promise<void> {
 
 	await updateBooleanFilterOptions(state.filters, state.feed, true);
 	await scoreAndFilterFeed(state);
+	flushDeferredTimeline(state);
 
 	if (state.loadStartedAt) {
 		hereLogger.logTelemetry(

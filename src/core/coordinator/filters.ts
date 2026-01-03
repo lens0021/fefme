@@ -13,7 +13,11 @@ export function filterFeedAndSetInApp(state: AlgorithmState): Post[] {
 		`Filtered ${state.feed.length} posts → ${state.filteredTimeline.length} visible`,
 	);
 
-	state.setTimelineInApp(state.filteredTimeline);
+	if (state.deferTimelineUpdates) {
+		state.deferredTimeline = state.filteredTimeline;
+	} else {
+		state.setTimelineInApp(state.filteredTimeline);
+	}
 
 	if (!state.hasProvidedAnyPostsToClient && state.feed.length > 0) {
 		state.hasProvidedAnyPostsToClient = true;
@@ -24,6 +28,12 @@ export function filterFeedAndSetInApp(state: AlgorithmState): Post[] {
 	}
 
 	return state.filteredTimeline;
+}
+
+export function flushDeferredTimeline(state: AlgorithmState): void {
+	if (!state.deferredTimeline) return;
+	state.setTimelineInApp(state.deferredTimeline);
+	state.deferredTimeline = null;
 }
 
 export function updateFilters(

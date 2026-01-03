@@ -26,6 +26,8 @@ export async function startAction(
 	}
 
 	state.currentAction = logPrefix;
+	state.deferTimelineUpdates = logPrefix === LoadAction.FEED_UPDATE;
+	state.deferredTimeline = null;
 	state.loadStartedAt = new Date();
 	state.releaseLoadingMutex = await lockExecution(state.loadingMutex, logger);
 	state.loadingStatus =
@@ -40,6 +42,8 @@ export function releaseLoadingMutex(
 ): void {
 	state.loadingStatus = null;
 	state.currentAction = undefined;
+	state.deferTimelineUpdates = false;
+	state.deferredTimeline = null;
 
 	if (state.releaseLoadingMutex) {
 		loggers[logPrefix].info(`Finished, releasing mutex...`);
