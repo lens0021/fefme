@@ -16,7 +16,8 @@
 		"resolveJsonModule": true,
 		"skipLibCheck": true,
 		"strict": false,
-		"target": "ES2016"
+		"target": "ES2016",
+		"types": ["@testing-library/jest-dom", "vitest/globals"]
 	},
 	"include": ["src"],
 	"exclude": ["node_modules"]

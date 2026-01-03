@@ -40,6 +40,7 @@
 		"format": "biome format --write .",
 		"predeploy": "npm run build",
 		"preview": "vite preview",
+		"test": "vitest",
 		"tsc": "npx tsc --noEmit"
 	},
 	"browserslist": {
@@ -52,6 +53,9 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^1.9.4",
+		"@testing-library/jest-dom": "^6.8.0",
+		"@testing-library/react": "^16.3.0",
+		"@testing-library/user-event": "^14.6.1",
 		"@tailwindcss/vite": "^4.1.11",
 		"@types/node": "^22.10.6",
 		"@types/react": "^18.0.35",
@@ -59,8 +63,10 @@
 		"@types/react-lazy-load-image-component": "^1.6.4",
 		"@types/tinycolor2": "^1.4.6",
 		"@vitejs/plugin-react": "^4.3.4",
+		"jsdom": "^26.1.0",
 		"tailwindcss": "^4.1.2",
 		"typescript": "^5.7.3",
-		"vite": "^6.0.7"
+		"vite": "^6.0.7",
+		"vitest": "^3.2.4"
 	}
 }
