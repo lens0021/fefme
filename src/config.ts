@@ -5,7 +5,7 @@ import type { CSSProperties } from "react";
 
 import { capitalCase } from "change-case";
 import type { mastodon } from "masto";
-import TheAlgorithm, {
+import FeedCoordinator, {
 	FEDIALGO,
 	BooleanFilterName,
 	ScoreName,

@@ -2,7 +2,7 @@ import type { ApiCacheKey, Action } from "../enums";
 import { ALL_ACTIONS, buildCacheKeyDict } from "../enums";
 import { Logger } from "../helpers/logger";
 
-const logger = new Logger("TheAlgorithm");
+const logger = new Logger("FeedCoordinator");
 const loadCacheLogger = logger.tempLogger("loadCachedData()");
 const saveTimelineToCacheLogger = logger.tempLogger("saveTimelineToCache");
 

@@ -276,7 +276,7 @@ export default class Storage {
 		});
 	}
 
-	/** Record a new instantiation of {@linkcode TheAlgorithm}. Currently more or less unused. */
+	/** Record a new instantiation of {@linkcode FeedCoordinator}. Currently more or less unused. */
 	static async logAppOpen(user: Account): Promise<void> {
 		await Storage.setIdentity(user);
 		const numAppOpens = (await this.getNumAppOpens()) + 1;

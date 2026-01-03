@@ -6,7 +6,7 @@
 import type { Optional } from "./types";
 
 /**
- * Actions that {@linkcode TheAlgorithm} can take.
+ * Actions that {@linkcode FeedCoordinator} can take.
  * @enum {string}
  * @private
  */

@@ -1,7 +1,7 @@
 /*
  * Logging helpers.
  */
-import TheAlgorithm, { Logger } from "../core/index";
+import FeedCoordinator, { Logger } from "../core/index";
 
 import {
 	browserCountry,
@@ -24,7 +24,7 @@ export const logLocaleInfo = (): void => {
 		`country="${browserCountry()}"`,
 		`import.meta.env.MODE="${env.MODE}"`,
 		`import.meta.env.VITE_FEDIALGO_DEBUG="${env.VITE_FEDIALGO_DEBUG}"`,
-		`TheAlgorithm.isDebugMode="${TheAlgorithm.isDebugMode}"`,
+		`FeedCoordinator.isDebugMode="${FeedCoordinator.isDebugMode}"`,
 		`import.meta.env.VITE_FEDIALGO_VERSION="${env.VITE_FEDIALGO_VERSION}"`,
 	];
 

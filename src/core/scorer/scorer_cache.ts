@@ -12,7 +12,7 @@ const SCORERS_MUTEX = new Mutex();
 
 /**
  * Class that exists to avoid circular dependencies so Scorer can access the weights in
- * {@linkcode TheAlgorithm} instance.
+ * {@linkcode FeedCoordinator} instance.
  */
 export default class ScorerCache {
 	// These scorers require the complete feed to work properly

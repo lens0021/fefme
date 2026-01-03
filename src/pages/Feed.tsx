@@ -4,7 +4,7 @@
  */
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
-import TheAlgorithm, {
+import FeedCoordinator, {
 	READY_TO_LOAD_MSG,
 	type Toot,
 	optionalSuffix,
@@ -264,7 +264,7 @@ export default function Feed() {
 												displayed)
 											</div>
 											{!isLoading && <div>{footerMsg}</div>}
-											{TheAlgorithm.isDebugMode && (
+											{FeedCoordinator.isDebugMode && (
 												<div>
 													Displaying {numDisplayedToots} Posts (Scroll:{" "}
 													{scrollPercentage.toFixed(1)}%)
@@ -377,7 +377,7 @@ export default function Feed() {
 
 						<ApiErrorsPanel />
 
-						{TheAlgorithm.isDebugMode && (
+						{FeedCoordinator.isDebugMode && (
 							<div className="font-mono rounded-2xl bg-slate-800 text-slate-200 text-sm p-4">
 								<ul>
 									<li>
@@ -385,19 +385,19 @@ export default function Feed() {
 									</li>
 									<li>
 										<strong>Debug Mode:</strong>{" "}
-										{booleanIcon(TheAlgorithm.isDebugMode)}
+										{booleanIcon(FeedCoordinator.isDebugMode)}
 									</li>
 									<li>
 										<strong>Deep Debug:</strong>{" "}
-										{booleanIcon(TheAlgorithm.isDeepDebug)}
+										{booleanIcon(FeedCoordinator.isDeepDebug)}
 									</li>
 									<li>
 										<strong>Load Test:</strong>{" "}
-										{booleanIcon(TheAlgorithm.isLoadTest)}
+										{booleanIcon(FeedCoordinator.isLoadTest)}
 									</li>
 									<li>
 										<strong>Quick Mode:</strong>{" "}
-										{booleanIcon(TheAlgorithm.isQuickMode)}
+										{booleanIcon(FeedCoordinator.isQuickMode)}
 									</li>
 								</ul>
 							</div>

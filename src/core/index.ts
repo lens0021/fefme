@@ -114,7 +114,7 @@ interface AlgorithmArgs {
 /**
  * Main class for scoring, sorting, and managing a Mastodon feed made of {@linkcode Toot} objects.
  *
- * {@linkcode TheAlgorithm} orchestrates fetching, scoring, filtering, and updating the user's timeline/feed.
+ * {@linkcode FeedCoordinator} orchestrates fetching, scoring, filtering, and updating the user's timeline/feed.
  * It manages feature and feed scorers, trending data, filters, user weights, and background polling. Key
  * responsibilities:
  *
@@ -135,7 +135,7 @@ interface AlgorithmArgs {
  * @property {UserData} userData - User data for scoring and filtering
  * @property {WeightInfoDict} weightsInfo - Info about all scoring weights
  */
-export default class TheAlgorithm {
+export default class FeedCoordinator {
 	private state: AlgorithmState;
 
 	get filters(): FeedFilterSettings {
@@ -186,23 +186,23 @@ export default class TheAlgorithm {
 	 * @param {mastodon.v1.Account} params.user - The Mastodon user account for which to build the feed.
 	 * @param {string} [params.locale] - Optional locale string for date formatting.
 	 * @param {(feed: Toot[]) => void} [params.setTimelineInApp] - Optional callback to set the feed in the consuming app.
-	 * @returns {Promise<TheAlgorithm>} TheAlgorithm instance.
+	 * @returns {Promise<FeedCoordinator>} FeedCoordinator instance.
 	 */
-	static async create(params: AlgorithmArgs): Promise<TheAlgorithm> {
+	static async create(params: AlgorithmArgs): Promise<FeedCoordinator> {
 		config.setLocale(params.locale);
 		const user = Account.build(params.user);
 		await MastoApi.init(params.api, user);
 		await Storage.logAppOpen(user);
 
 		// Construct the algorithm object, set the default weights, load feed and filters
-		const algo = new TheAlgorithm(params);
+		const algo = new FeedCoordinator(params);
 		ScorerCache.addScorers(algo.state.tootScorers, algo.state.feedScorers);
 		await loadCachedData(algo.state);
 		return algo;
 	}
 
 	/**
-	 * Private constructor. Use {@linkcode TheAlgorithm.create} to instantiate.
+	 * Private constructor. Use {@linkcode FeedCoordinator.create} to instantiate.
 	 * @param {AlgorithmArgs} params - Constructor params (API client, user, and optional timeline callback/locale).
 	 */
 	private constructor(params: AlgorithmArgs) {

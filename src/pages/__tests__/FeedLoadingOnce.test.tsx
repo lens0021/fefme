@@ -3,7 +3,7 @@ import { vi } from "vitest";
 
 import { config } from "../../config";
 import { AlgorithmStorageKey } from "../../core/enums";
-import TheAlgorithm from "../../core/index";
+import FeedCoordinator from "../../core/index";
 import Storage from "../../core/Storage";
 import AlgorithmProvider from "../../hooks/useAlgorithm";
 import Feed from "../Feed";
@@ -82,10 +82,10 @@ describe("Feed loading", () => {
 			),
 		};
 
-		vi.spyOn(TheAlgorithm, "create").mockImplementation(async (params) => {
+		vi.spyOn(FeedCoordinator, "create").mockImplementation(async (params) => {
 			setTimelineInApp = params.setTimelineInApp;
 			setTimelineInApp?.(cachedTimeline);
-			return mockAlgorithm as unknown as TheAlgorithm;
+			return mockAlgorithm as unknown as FeedCoordinator;
 		});
 
 		render(
@@ -139,9 +139,9 @@ describe("Feed loading", () => {
 			),
 		};
 
-		vi.spyOn(TheAlgorithm, "create").mockImplementation(async (params) => {
+		vi.spyOn(FeedCoordinator, "create").mockImplementation(async (params) => {
 			setTimelineInApp = params.setTimelineInApp;
-			return mockAlgorithm as unknown as TheAlgorithm;
+			return mockAlgorithm as unknown as FeedCoordinator;
 		});
 
 		render(

@@ -1,5 +1,5 @@
 /**
- * @fileoverview Context to hold the TheAlgorithm variable
+ * @fileoverview Context to hold the FeedCoordinator variable
  */
 import React, {
 	type PropsWithChildren,
@@ -14,7 +14,7 @@ import React, {
 
 import { createRestAPIClient, type mastodon } from "masto";
 import { useError } from "../components/helpers/ErrorHandler";
-import TheAlgorithm, {
+import FeedCoordinator, {
 	GET_FEED_BUSY_MSG,
 	AgeIn,
 	type Toot,
@@ -38,7 +38,7 @@ const logger = getLogger("AlgorithmProvider");
 const loadLogger = logger.tempLogger("setLoadState");
 
 interface AlgoContext {
-	algorithm?: TheAlgorithm;
+	algorithm?: FeedCoordinator;
 	alwaysShowFollowed?: boolean;
 	applyPendingTimeline?: () => void;
 	api?: mastodon.rest.Client;
@@ -75,7 +75,7 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 	const { logAndSetFormattedError, resetErrors } = useError();
 
 	// State variables
-	const [algorithm, setAlgorithm] = useState<TheAlgorithm>(null);
+	const [algorithm, setAlgorithm] = useState<FeedCoordinator>(null);
 	const [isGoToSocialUser, setIsGoToSocialUser] = useState<boolean>(false);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const [hasInitialCache, setHasInitialCache] = useState<boolean>(false);
@@ -163,7 +163,7 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		],
 	);
 
-	// Wrapper for calls to Fefme TheAlgorithm class that can throw a "busy" error
+	// Wrapper for calls to Fefme FeedCoordinator class that can throw a "busy" error
 	const triggerLoadFxn = useCallback(
 		(
 			loadFxn: () => Promise<void>,
@@ -352,7 +352,7 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 				return;
 			}
 
-			const algo = await TheAlgorithm.create({
+			const algo = await FeedCoordinator.create({
 				api: api,
 				user: currentUser,
 				setTimelineInApp,
