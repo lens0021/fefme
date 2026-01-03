@@ -3,58 +3,36 @@
  */
 import "reflect-metadata"; // Required for class-transformer
 import { Buffer } from "buffer"; // Maybe Required for class-transformer though seems to be required in client?
-import { Mutex } from "async-mutex";
 import type { mastodon } from "masto";
 
 import Storage from "./Storage";
 import MastoApi, { FULL_HISTORY_PARAMS } from "./api/api";
 import type { ObjList } from "./api/counted_list";
-import {
-	isAccessTokenRevokedError,
-	throwIfAccessTokenRevoked,
-	throwSanitizedRateLimitError,
-} from "./api/errors";
+import { isAccessTokenRevokedError, throwSanitizedRateLimitError } from "./api/errors";
 import Account from "./api/objects/account";
-import Toot, { earliestTootedAt, mostRecentTootedAt } from "./api/objects/toot";
+import Toot from "./api/objects/toot";
 import TagList from "./api/tag_list";
 import TagsForFetchingToots from "./api/tags_for_fetching_toots";
 import UserData from "./api/user_data";
-import UserDataPoller from "./api/user_data_poller";
 import { MAX_ENDPOINT_RECORDS_TO_PULL, config } from "./config";
 import {
-	ALL_ACTIONS,
-	type Action,
 	AlgorithmStorageKey,
-	type ApiCacheKey,
 	BooleanFilterName,
 	CacheKey,
 	FEDERATED_TIMELINE_SOURCE,
-	FediverseCacheKey,
 	LoadAction,
 	LogAction,
 	MediaCategory,
 	NonScoreWeightName,
 	ScoreName,
-	STORAGE_KEYS_WITH_TOOTS,
 	TagTootsCategory,
 	TrendingType,
 	TypeFilterName,
-	buildCacheKeyDict,
 	isValueInStringEnum,
 } from "./enums";
 import BooleanFilter from "./filters/boolean_filter";
-import {
-	buildNewFilterSettings,
-	updateBooleanFilterOptions,
-} from "./filters/feed_filters";
 import NumericFilter from "./filters/numeric_filter";
-import {
-	computeMinMax,
-	makeChunks,
-	findMinMaxId,
-	sortKeysByValue,
-	truncateToLength,
-} from "./helpers/collection_helpers";
+import { makeChunks, sortKeysByValue } from "./helpers/collection_helpers";
 import {
 	isDebugMode,
 	isDeepDebug,
@@ -62,7 +40,6 @@ import {
 	isQuickMode,
 } from "./helpers/environment_helpers";
 import { Logger } from "./helpers/logger";
-import { lockExecution } from "./helpers/mutex_helpers";
 import {
 	DEFAULT_FONT_SIZE,
 	FEDIALGO,
@@ -71,41 +48,9 @@ import {
 	extractDomain,
 	optionalSuffix,
 } from "./helpers/string_helpers";
-import {
-	AgeIn,
-	ageString,
-	sleep,
-	timeString,
-	toISOFormatIfExists,
-} from "./helpers/time_helpers";
-import DiversityFeedScorer from "./scorer/feed/diversity_feed_scorer";
-import type FeedScorer from "./scorer/feed_scorer";
+import { AgeIn, sleep, timeString } from "./helpers/time_helpers";
 import Scorer from "./scorer/scorer";
 import ScorerCache from "./scorer/scorer_cache";
-import AlreadyShownScorer from "./scorer/toot/already_shown_scorer";
-import AuthorFollowersScorer from "./scorer/toot/author_followers_scorer";
-import ChaosScorer from "./scorer/toot/chaos_scorer";
-import FollowedAccountsScorer from "./scorer/toot/followed_accounts_scorer";
-import FollowedTagsScorer from "./scorer/toot/followed_tags_scorer";
-import FollowersScorer from "./scorer/toot/followers_scorer";
-import InteractionsScorer from "./scorer/toot/interactions_scorer";
-import MentionsFollowedScorer from "./scorer/toot/mentions_followed_scorer";
-import MostFavouritedAccountsScorer from "./scorer/toot/most_favourited_accounts_scorer";
-import MostRepliedAccountsScorer from "./scorer/toot/most_replied_accounts_scorer";
-import MostRetootedAccountsScorer from "./scorer/toot/most_retooted_accounts_scorer";
-import NumFavouritesScorer, {
-	ImageAttachmentScorer,
-	NumRepliesScorer,
-	NumRetootsScorer,
-	TrendingTootScorer,
-	VideoAttachmentScorer,
-} from "./scorer/toot/property_scorer_factory";
-import RetootsInFeedScorer from "./scorer/toot/retoots_in_feed_scorer";
-import FavouritedTagsScorer, {
-	HashtagParticipationScorer,
-} from "./scorer/toot/tag_scorer_factory";
-import TrendingTagsScorer from "./scorer/toot/trending_tags_scorer";
-import type TootScorer from "./scorer/toot_scorer";
 import {
 	WEIGHT_PRESETS,
 	type WeightPresetLabel,
@@ -114,7 +59,6 @@ import {
 } from "./scorer/weight_presets";
 import {
 	type BooleanFilterOption,
-	type ConcurrencyLockRelease,
 	FILTER_OPTION_DATA_SOURCES,
 	type FeedFilterSettings,
 	type FilterOptionDataSource,
@@ -134,39 +78,31 @@ import {
 	type WeightName,
 	type Weights,
 } from "./types";
-
-const EMPTY_TRENDING_DATA: Readonly<TrendingData> = {
-	tags: new TagList([], TagTootsCategory.TRENDING),
-	servers: {},
-	toots: [],
-};
-
-type SourceStats = {
-	source: TootSource;
-	total: number;
-	oldestCreatedAt: Date | null;
-	mostRecentCreatedAt: Date | null;
-	oldestId: string | null;
-	oldestIdCreatedAt: Date | null;
-};
+import { AlgorithmState } from "./algorithm/state";
+import { EMPTY_TRENDING_DATA } from "./algorithm/constants";
+import { loggers, logger } from "./algorithm/loggers";
+import { releaseLoadingMutex, shouldSkip, startAction } from "./algorithm/actions";
+import { updateFilters } from "./algorithm/filters";
+import { loadCachedData, resetSeenState, saveTimelineToCache } from "./algorithm/cache";
+import { recomputeScores, scoreAndFilterFeed } from "./algorithm/scoring";
+import {
+	fetchAndMergeToots,
+	finishFeedUpdate,
+	lockedMergeToFeed,
+	mergeExternalStatuses,
+} from "./algorithm/feed";
+import { getHomeTimeline, mergeFederatedTimeline } from "./algorithm/loaders";
+import {
+	getDataStats,
+	getSourceBounds,
+	mostRecentHomeTootAgeInSeconds,
+	mostRecentHomeTootAt,
+	statusDict as buildStatusDict,
+	type SourceStats,
+} from "./algorithm/stats";
 
 const DEFAULT_SET_TIMELINE_IN_APP = (_feed: Toot[]) =>
 	console.debug(`Default setTimelineInApp() called`);
-
-const logger = new Logger(`TheAlgorithm`);
-const loadCacheLogger = logger.tempLogger(`loadCachedData()`);
-const saveTimelineToCacheLogger = logger.tempLogger(`saveTimelineToCache`);
-
-const loggers = buildCacheKeyDict<Action, Logger, Record<Action, Logger>>(
-	(key) => new Logger(key as string),
-	ALL_ACTIONS.reduce(
-		(_loggers, action) => {
-			_loggers[action] = logger.tempLogger(action);
-			return _loggers;
-		},
-		{} as Record<Action, Logger>,
-	),
-) as Record<Action | ApiCacheKey, Logger>;
 
 interface AlgorithmArgs {
 	api: mastodon.rest.Client;
@@ -200,93 +136,48 @@ interface AlgorithmArgs {
  * @property {WeightInfoDict} weightsInfo - Info about all scoring weights
  */
 export default class TheAlgorithm {
-	filters: FeedFilterSettings = buildNewFilterSettings();
-	lastLoadTimeInSeconds?: number;
-	loadingStatus: string | null =
-		config.locale.messages[LogAction.INITIAL_LOADING_STATUS];
-	trendingData: TrendingData = EMPTY_TRENDING_DATA;
+	private state: AlgorithmState;
+
+	get filters(): FeedFilterSettings {
+		return this.state.filters;
+	}
+	set filters(value: FeedFilterSettings) {
+		this.state.filters = value;
+	}
+	get lastLoadTimeInSeconds(): number | undefined {
+		return this.state.lastLoadTimeInSeconds;
+	}
+	set lastLoadTimeInSeconds(value: number | undefined) {
+		this.state.lastLoadTimeInSeconds = value;
+	}
+	get loadingStatus(): string | null {
+		return this.state.loadingStatus;
+	}
+	set loadingStatus(value: string | null) {
+		this.state.loadingStatus = value;
+	}
+	get trendingData(): TrendingData {
+		return this.state.trendingData;
+	}
+	set trendingData(value: TrendingData) {
+		this.state.trendingData = value;
+	}
+	get weightsInfo(): WeightInfoDict {
+		return this.state.weightsInfo;
+	}
 
 	get apiErrorMsgs(): string[] {
 		return MastoApi.instance.apiErrorMsgs();
 	}
 	get isLoading(): boolean {
-		return this.loadingMutex.isLocked();
+		return this.state.loadingMutex.isLocked();
 	}
 	get timeline(): Toot[] {
-		return [...this.filteredTimeline];
+		return [...this.state.filteredTimeline];
 	}
 	get userData(): UserData {
 		return MastoApi.instance.userData || new UserData();
 	}
-
-	// Constructor arguments
-	private setTimelineInApp: (feed: Toot[]) => void; // Optional callback to set the feed in the app using this package
-	// Other private variables
-	private feed: Toot[] = [];
-	private filteredTimeline: Toot[] = []; // The filtered timeline that's actually displayed
-	private homeFeed: Toot[] = []; // Just the toots pulled from the home timeline
-	private hasProvidedAnyTootsToClient = false; // Flag to indicate if the feed has been set in the app
-	private loadStartedAt: Date | undefined = new Date(); // Timestamp of when the feed started loading
-	private totalNumTimesShown = 0; // Sum of timeline toots' numTimesShown
-	// Utility
-	private loadingMutex = new Mutex();
-	private mergeMutex = new Mutex();
-	private numUnscannedToots = 0; // Keep track of how many new toots were merged into the feed but not into the filter options
-	private numTriggers = 0; // How many times has a load been triggered, only matters for QUICK_LOAD mode
-	private currentAction?: LoadAction; // Track the current action to determine appropriate loading messages
-	private _releaseLoadingMutex?: ConcurrencyLockRelease; // Mutex release function for loading state
-	// Background tasks
-	private cacheUpdater?: ReturnType<typeof setInterval>;
-	private userDataPoller = new UserDataPoller();
-
-	// These scorers require the complete feed to work properly
-	private feedScorers: FeedScorer[] = [new DiversityFeedScorer()];
-
-	// These can score a toot without knowing about the rest of the toots in the feed
-	private tootScorers: TootScorer[] = [
-		new AlreadyShownScorer(),
-		new AuthorFollowersScorer(),
-		new ChaosScorer(),
-		new FavouritedTagsScorer(),
-		new FollowedAccountsScorer(),
-		new FollowedTagsScorer(),
-		new FollowersScorer(),
-		new HashtagParticipationScorer(),
-		new ImageAttachmentScorer(),
-		new InteractionsScorer(),
-		new MentionsFollowedScorer(),
-		new MostFavouritedAccountsScorer(),
-		new MostRepliedAccountsScorer(),
-		new MostRetootedAccountsScorer(),
-		new NumFavouritesScorer(),
-		new NumRepliesScorer(),
-		new NumRetootsScorer(),
-		new RetootsInFeedScorer(),
-		new TrendingTagsScorer(),
-		new TrendingTootScorer(),
-		new VideoAttachmentScorer(),
-	];
-
-	private weightedScorers: Scorer[] = [
-		...this.tootScorers,
-		...this.feedScorers,
-	];
-
-	weightsInfo: WeightInfoDict = this.weightedScorers.reduce(
-		(scorerInfos, scorer) => {
-			scorerInfos[scorer.name] = scorer.getInfo();
-			return scorerInfos;
-		},
-		Object.values(NonScoreWeightName).reduce((nonScoreWeights, weightName) => {
-			nonScoreWeights[weightName] = Object.assign(
-				{},
-				config.scoring.nonScoreWeightsConfig[weightName],
-			);
-			nonScoreWeights[weightName].minValue =
-				config.scoring.nonScoreWeightMinValue;
-			return nonScoreWeights;
-		}, {} as WeightInfoDict),
-	);
 
 	/**
 	 * Publicly callable constructor that instantiates the class and loads the feed from storage.
@@ -305,8 +196,8 @@ export default class TheAlgorithm {
 
 		// Construct the algorithm object, set the default weights, load feed and filters
 		const algo = new TheAlgorithm(params);
-		ScorerCache.addScorers(algo.tootScorers, algo.feedScorers);
-		await algo.loadCachedData();
+		ScorerCache.addScorers(algo.state.tootScorers, algo.state.feedScorers);
+		await loadCachedData(algo.state);
 		return algo;
 	}
 
@@ -315,8 +206,9 @@ export default class TheAlgorithm {
 	 * @param {AlgorithmArgs} params - Constructor params (API client, user, and optional timeline callback/locale).
 	 */
 	private constructor(params: AlgorithmArgs) {
-		this.setTimelineInApp =
+		const setTimelineInApp =
 			params.setTimelineInApp ?? DEFAULT_SET_TIMELINE_IN_APP;
+		this.state = new AlgorithmState(setTimelineInApp);
 	}
 
 	/**
@@ -324,10 +216,10 @@ export default class TheAlgorithm {
 	 * @returns {Promise<void>}
 	 */
 	async triggerFeedUpdate(): Promise<void> {
-		if (this.shouldSkip()) return;
+		if (shouldSkip(this.state)) return;
 		const action = LoadAction.FEED_UPDATE;
 		const hereLogger = loggers[action];
-		await this.startAction(action);
+		await startAction(this.state, action);
 
 		try {
 			const tootsForHashtags = async (
@@ -335,7 +227,8 @@ export default class TheAlgorithm {
 			): Promise<Toot[]> => {
 				hereLogger.trace(`Fetching toots for hashtags with key: ${key}`);
 				const tagList = await TagsForFetchingToots.create(key);
-				return await this.fetchAndMergeToots(
+				return await fetchAndMergeToots(
+					this.state,
 					tagList.getToots(),
 					tagList.logger,
 				);
@@ -343,9 +236,13 @@ export default class TheAlgorithm {
 
 			const dataLoads: Promise<unknown>[] = [
 				// Toot fetchers
-				this.getHomeTimeline().then((toots) => (this.homeFeed = toots)),
+				getHomeTimeline(
+					(toots, logger) => lockedMergeToFeed(this.state, toots, logger),
+				).then((toots) => {
+					this.state.homeFeed = toots;
+				}),
 				// Federated timeline toots
-				this.mergeFederatedTimeline("newer", 40),
+				mergeFederatedTimeline(this.state, "newer", 40),
 				...Object.values(TagTootsCategory)
 					.filter((key) => key !== TagTootsCategory.TRENDING)
 					.map(async (key) => await tootsForHashtags(key)),
@@ -356,9 +253,9 @@ export default class TheAlgorithm {
 
 			const allResults = await Promise.allSettled(dataLoads);
 			hereLogger.deep(`FINISHED promises, allResults:`, allResults);
-			await this.finishFeedUpdate();
+			await finishFeedUpdate(this.state);
 		} finally {
-			this.releaseLoadingMutex(action);
+			releaseLoadingMutex(this.state, action);
 		}
 	}
 
@@ -367,13 +264,16 @@ export default class TheAlgorithm {
 	 * @returns {Promise<void>}
 	 */
 	async triggerHomeTimelineBackFill(): Promise<void> {
-		await this.startAction(LoadAction.TIMELINE_BACKFILL);
+		await startAction(this.state, LoadAction.TIMELINE_BACKFILL);
 
 		try {
-			this.homeFeed = await this.getHomeTimeline(true);
-			await this.finishFeedUpdate();
+			this.state.homeFeed = await getHomeTimeline(
+				(toots, logger) => lockedMergeToFeed(this.state, toots, logger),
+				true,
+			);
+			await finishFeedUpdate(this.state);
 		} finally {
-			this.releaseLoadingMutex(LoadAction.TIMELINE_BACKFILL);
+			releaseLoadingMutex(this.state, LoadAction.TIMELINE_BACKFILL);
 		}
 	}
 
@@ -382,13 +282,13 @@ export default class TheAlgorithm {
 	 * @returns {Promise<void>}
 	 */
 	async triggerFederatedTimelineBackFill(): Promise<void> {
-		await this.startAction(LoadAction.TIMELINE_BACKFILL);
+		await startAction(this.state, LoadAction.TIMELINE_BACKFILL);
 
 		try {
-			await this.mergeFederatedTimeline("older", 40);
-			await this.finishFeedUpdate();
+			await mergeFederatedTimeline(this.state, "older", 40);
+			await finishFeedUpdate(this.state);
 		} finally {
-			this.releaseLoadingMutex(LoadAction.TIMELINE_BACKFILL);
+			releaseLoadingMutex(this.state, LoadAction.TIMELINE_BACKFILL);
 		}
 	}
 
@@ -398,27 +298,28 @@ export default class TheAlgorithm {
 	 * @returns {Promise<void>}
 	 */
 	async triggerTagTimelineBackFill(category: TagTootsCategory): Promise<void> {
-		await this.startAction(LoadAction.TIMELINE_BACKFILL);
+		await startAction(this.state, LoadAction.TIMELINE_BACKFILL);
 		const hereLogger = loggers[LoadAction.TIMELINE_BACKFILL];
 
 		try {
-			const { minId } = this.getSourceBounds(category);
+			const { minId } = getSourceBounds(this.state, category);
 			if (!minId) {
 				hereLogger.info(
 					`No cached toots found for ${category}, skipping tag backfill`,
 				);
-				await this.finishFeedUpdate();
+				await finishFeedUpdate(this.state);
 				return;
 			}
 
 			const tagList = await TagsForFetchingToots.create(category);
-			await this.fetchAndMergeToots(
+			await fetchAndMergeToots(
+				this.state,
 				tagList.getOlderToots(minId),
 				tagList.logger,
 			);
-			await this.finishFeedUpdate();
+			await finishFeedUpdate(this.state);
 		} finally {
-			this.releaseLoadingMutex(LoadAction.TIMELINE_BACKFILL);
+			releaseLoadingMutex(this.state, LoadAction.TIMELINE_BACKFILL);
 		}
 	}
 
@@ -431,9 +332,7 @@ export default class TheAlgorithm {
 		statuses: mastodon.v1.Status[],
 		source: TootSource,
 	): Promise<void> {
-		if (!statuses?.length) return;
-		const toots = await Toot.buildToots(statuses, source);
-		await this.lockedMergeToFeed(toots, new Logger(source));
+		await mergeExternalStatuses(this.state, statuses, source);
 	}
 
 	/**
@@ -441,7 +340,7 @@ export default class TheAlgorithm {
 	 * @param {number} [limit=40] - Maximum number of toots to fetch.
 	 */
 	async triggerFederatedTimelineMerge(limit = 40): Promise<void> {
-		await this.mergeFederatedTimeline("newer", limit);
+		await mergeFederatedTimeline(this.state, "newer", limit);
 	}
 
 	/**
@@ -450,20 +349,20 @@ export default class TheAlgorithm {
 	 * @returns {Promise<void>}
 	 */
 	async triggerMoarData(): Promise<void> {
-		const shouldReenablePoller = this.userDataPoller.stop();
-		await this.startAction(LoadAction.GET_MOAR_DATA);
+		const shouldReenablePoller = this.state.userDataPoller.stop();
+		await startAction(this.state, LoadAction.GET_MOAR_DATA);
 
 		try {
-			await this.userDataPoller.getMoarData();
-			await this.recomputeScores();
+			await this.state.userDataPoller.getMoarData();
+			await recomputeScores(this.state);
 		} catch (error) {
 			throwSanitizedRateLimitError(
 				error,
 				`triggerMoarData() Error pulling user data:`,
 			);
 		} finally {
-			if (shouldReenablePoller) this.userDataPoller.start();
-			this.releaseLoadingMutex(LoadAction.GET_MOAR_DATA);
+			if (shouldReenablePoller) this.state.userDataPoller.start();
+			releaseLoadingMutex(this.state, LoadAction.GET_MOAR_DATA);
 		}
 	}
 
@@ -475,10 +374,10 @@ export default class TheAlgorithm {
 	async triggerPullAllUserData(): Promise<void> {
 		const action = LoadAction.PULL_ALL_USER_DATA;
 		const hereLogger = loggers[action];
-		this.startAction(action);
+		startAction(this.state, action);
 
 		try {
-			this.userDataPoller.stop(); // Stop the dataPoller if it's running
+			this.state.userDataPoller.stop(); // Stop the dataPoller if it's running
 
 			const _allResults = await Promise.allSettled([
 				MastoApi.instance.getFavouritedToots(FULL_HISTORY_PARAMS),
@@ -490,14 +389,14 @@ export default class TheAlgorithm {
 				MastoApi.instance.getRecentUserToots(FULL_HISTORY_PARAMS),
 			]);
 
-			await this.recomputeScores();
+			await recomputeScores(this.state);
 		} catch (error) {
 			throwSanitizedRateLimitError(
 				error,
 				hereLogger.line(`Error pulling user data:`),
 			);
 		} finally {
-			this.releaseLoadingMutex(action); // TODO: should we restart data poller?
+			releaseLoadingMutex(this.state, action); // TODO: should we restart data poller?
 		}
 	}
 
@@ -507,13 +406,13 @@ export default class TheAlgorithm {
 	 */
 	async getCurrentState(): Promise<Record<string, unknown>> {
 		return {
-			Algorithm: this.statusDict(),
+			Algorithm: buildStatusDict(this.state),
 			Api: MastoApi.instance.currentState(),
 			Config: config,
-			Filters: this.filters,
+			Filters: this.state.filters,
 			Homeserver: await this.serverInfo(),
 			Storage: await Storage.storedObjsInfo(),
-			Trending: this.trendingData,
+			Trending: this.state.trendingData,
 			UserData: await MastoApi.instance.getUserData(),
 		};
 	}
@@ -531,15 +430,7 @@ export default class TheAlgorithm {
 	 * @returns {Date | null} The most recent toot date or null.
 	 */
 	mostRecentHomeTootAt(): Date | null {
-		// TODO: this.homeFeed is only set when fetchHomeFeed() is *finished*
-		if (this.homeFeed.length == 0 && this.numTriggers > 1) {
-			logger.warn(
-				`mostRecentHomeTootAt() homeFeed is empty, falling back to full feed`,
-			);
-			return mostRecentTootedAt(this.feed);
-		}
-
-		return mostRecentTootedAt(this.homeFeed);
+		return mostRecentHomeTootAt(this.state);
 	}
 
 	/**
@@ -547,12 +438,7 @@ export default class TheAlgorithm {
 	 * @returns {number | null} Age in seconds or null.
 	 */
 	mostRecentHomeTootAgeInSeconds(): number | null {
-		const mostRecentAt = this.mostRecentHomeTootAt();
-		if (!mostRecentAt) return null;
-		logger.trace(
-			`feed is ${AgeIn.minutes(mostRecentAt).toFixed(2)} min old, most recent home toot: ${timeString(mostRecentAt)}`,
-		);
-		return AgeIn.seconds(mostRecentAt);
+		return mostRecentHomeTootAgeInSeconds(this.state);
 	}
 
 	/**
@@ -574,11 +460,11 @@ export default class TheAlgorithm {
 		);
 		this.userData.mutedAccounts = Account.buildAccountNames(mutedAccounts);
 		await Toot.completeToots(
-			this.feed,
+			this.state.feed,
 			hereLogger,
 			LoadAction.REFRESH_MUTED_ACCOUNTS,
 		);
-		await this.finishFeedUpdate();
+		await finishFeedUpdate(this.state);
 	}
 
 	/**
@@ -587,21 +473,21 @@ export default class TheAlgorithm {
 	 * @returns {Promise<void>}
 	 */
 	async reset(complete = false): Promise<void> {
-		await this.startAction(LoadAction.RESET);
+		await startAction(this.state, LoadAction.RESET);
 
 		try {
-			this.userDataPoller.stop();
-			this.cacheUpdater && clearInterval(this.cacheUpdater!);
-			this.cacheUpdater = undefined;
-			this.hasProvidedAnyTootsToClient = false;
-			this.loadingStatus =
+			this.state.userDataPoller.stop();
+			if (this.state.cacheUpdater) clearInterval(this.state.cacheUpdater);
+			this.state.cacheUpdater = undefined;
+			this.state.hasProvidedAnyTootsToClient = false;
+			this.state.loadingStatus =
 				config.locale.messages[LogAction.INITIAL_LOADING_STATUS];
-			this.loadStartedAt = new Date();
-			this.numTriggers = 0;
-			this.trendingData = EMPTY_TRENDING_DATA;
-			this.feed = [];
-			this.filteredTimeline = [];
-			this.setTimelineInApp([]);
+			this.state.loadStartedAt = new Date();
+			this.state.numTriggers = 0;
+			this.state.trendingData = EMPTY_TRENDING_DATA;
+			this.state.feed = [];
+			this.state.filteredTimeline = [];
+			this.state.setTimelineInApp([]);
 
 			// Call other classes' reset methods
 			MastoApi.instance.reset();
@@ -611,10 +497,10 @@ export default class TheAlgorithm {
 			if (complete) {
 				await Storage.remove(AlgorithmStorageKey.USER); // Remove user data so it gets reloaded
 			} else {
-				await this.loadCachedData();
+				await loadCachedData(this.state);
 			}
 		} finally {
-			this.releaseLoadingMutex(LoadAction.RESET);
+			releaseLoadingMutex(this.state, LoadAction.RESET);
 		}
 	}
 
@@ -623,43 +509,7 @@ export default class TheAlgorithm {
 	 * @returns {Promise<void>}
 	 */
 	async resetSeenState(): Promise<void> {
-		const resetToot = (toot: Toot) => {
-			toot.withRetoot.forEach((item) => {
-				item.numTimesShown = 0;
-			});
-		};
-
-		this.feed.forEach(resetToot);
-		this.homeFeed.forEach(resetToot);
-		this.trendingData?.toots?.forEach(resetToot);
-
-		this.totalNumTimesShown = 0;
-
-		await Storage.set(AlgorithmStorageKey.TIMELINE_TOOTS, this.feed);
-		if (this.homeFeed.length) {
-			await Storage.set(CacheKey.HOME_TIMELINE_TOOTS, this.homeFeed);
-		}
-		if (this.trendingData?.toots?.length) {
-			await Storage.set(
-				FediverseCacheKey.TRENDING_TOOTS,
-				this.trendingData.toots,
-			);
-		}
-		for (const key of STORAGE_KEYS_WITH_TOOTS) {
-			if (
-				key === AlgorithmStorageKey.TIMELINE_TOOTS ||
-				key === CacheKey.HOME_TIMELINE_TOOTS ||
-				key === FediverseCacheKey.TRENDING_TOOTS
-			)
-				continue;
-			const cached = (await Storage.get(key)) as Toot[] | null;
-			if (!Array.isArray(cached) || cached.length === 0) continue;
-			cached.forEach(resetToot);
-			await Storage.set(key, cached);
-		}
-
-		await updateBooleanFilterOptions(this.filters, this.feed);
-		await this.scoreAndFilterFeed();
+		await resetSeenState(this.state);
 	}
 
 	/**
@@ -667,26 +517,7 @@ export default class TheAlgorithm {
 	 * @returns {Promise<void>}
 	 */
 	async saveTimelineToCache(): Promise<void> {
-		const newTotalNumTimesShown = this.feed.reduce(
-			(sum, toot) => sum + (toot.numTimesShown ?? 0),
-			0,
-		);
-		if (this.isLoading || this.totalNumTimesShown == newTotalNumTimesShown)
-			return;
-
-		try {
-			const numShownToots = this.feed.filter(
-				(toot) => toot.numTimesShown,
-			).length;
-			const msg =
-				`Saving ${this.feed.length} toots with ${newTotalNumTimesShown} times shown` +
-				` on ${numShownToots} toots (previous totalNumTimesShown: ${this.totalNumTimesShown})`;
-			saveTimelineToCacheLogger.debug(msg);
-			await Storage.set(AlgorithmStorageKey.TIMELINE_TOOTS, this.feed);
-			this.totalNumTimesShown = newTotalNumTimesShown;
-		} catch (error) {
-			saveTimelineToCacheLogger.error(`Error saving toots:`, error);
-		}
+		await saveTimelineToCache(this.state);
 	}
 
 	/**
@@ -703,8 +534,8 @@ export default class TheAlgorithm {
 	 * @returns {Promise<TrendingData>}
 	 */
 	async refreshTrendingData(): Promise<TrendingData> {
-		this.trendingData = EMPTY_TRENDING_DATA;
-		return this.trendingData;
+		this.state.trendingData = EMPTY_TRENDING_DATA;
+		return this.state.trendingData;
 	}
 
 	/**
@@ -730,10 +561,7 @@ export default class TheAlgorithm {
 	 * @returns {Toot[]} The filtered feed.
 	 */
 	updateFilters(newFilters: FeedFilterSettings): Toot[] {
-		logger.info(`updateFilters() called with newFilters:`, newFilters);
-		this.filters = newFilters;
-		Storage.setFilters(newFilters);
-		return this.filterFeedAndSetInApp();
+		return updateFilters(this.state, newFilters);
 	}
 
 	/**
@@ -745,7 +573,7 @@ export default class TheAlgorithm {
 		logger.info("updateUserWeights() called with weights:", userWeights);
 		Scorer.validateWeights(userWeights);
 		await Storage.setWeightings(userWeights);
-		return this.scoreAndFilterFeed();
+		return scoreAndFilterFeed(this.state);
 	}
 
 	/**
@@ -770,77 +598,6 @@ export default class TheAlgorithm {
 		);
 	}
 
-	private getTootsForSource(source: TootSource): Toot[] {
-		if (source === CacheKey.HOME_TIMELINE_TOOTS) {
-			return this.homeFeed;
-		}
-		return this.feed.filter((toot) => toot.sources?.includes(source));
-	}
-
-	private getSourceBounds(source: TootSource): {
-		minId?: string;
-		maxId?: string;
-	} {
-		const sourceToots = this.getTootsForSource(source);
-		const minMaxId = findMinMaxId(sourceToots);
-		if (!minMaxId) return {};
-		return { minId: minMaxId.min, maxId: minMaxId.max };
-	}
-
-	private buildSourceStats(source: TootSource): SourceStats {
-		const sourceToots = this.getTootsForSource(source);
-		const total = sourceToots.length;
-		let oldestCreatedAt: Date | null = null;
-		let mostRecentCreatedAt: Date | null = null;
-		let oldestId: string | null = null;
-		let oldestIdCreatedAt: Date | null = null;
-
-		if (total > 0) {
-			const dates = sourceToots.map((toot) => new Date(toot.createdAt));
-			mostRecentCreatedAt = dates.reduce((latest, current) =>
-				current > latest ? current : latest,
-			);
-			oldestCreatedAt = dates.reduce((earliest, current) =>
-				current < earliest ? current : earliest,
-			);
-
-			const bounds = this.getSourceBounds(source);
-			oldestId = bounds.minId ?? null;
-			if (oldestId) {
-				const oldestById = sourceToots.find(
-					(toot) => `${toot.id}` === `${oldestId}`,
-				);
-				oldestIdCreatedAt = oldestById ? new Date(oldestById.createdAt) : null;
-			}
-		}
-
-		return {
-			source,
-			total,
-			oldestCreatedAt,
-			mostRecentCreatedAt,
-			oldestId,
-			oldestIdCreatedAt,
-		};
-	}
-
-	private getSourceStats(): Record<TootSource, SourceStats> {
-		const sourcesToTrack: TootSource[] = [
-			CacheKey.HOME_TIMELINE_TOOTS,
-			FEDERATED_TIMELINE_SOURCE,
-			TagTootsCategory.FAVOURITED,
-			TagTootsCategory.PARTICIPATED,
-		];
-
-		return sourcesToTrack.reduce(
-			(stats, source) => {
-				stats[source] = this.buildSourceStats(source);
-				return stats;
-			},
-			{} as Record<TootSource, SourceStats>,
-		);
-	}
-
 	getDataStats(): {
 		feedTotal: number;
 		homeFeedTotal: number;
@@ -849,473 +606,7 @@ export default class TheAlgorithm {
 		mostRecentCachedTime: Date | null;
 		sourceStats: Record<TootSource, SourceStats>;
 	} {
-		const unseenTotal = this.feed.reduce(
-			(sum, toot) => sum + ((toot.numTimesShown ?? 0) > 0 ? 0 : 1),
-			0,
-		);
-
-		let oldestCachedTime: Date | null = null;
-		let mostRecentCachedTime: Date | null = null;
-
-		if (this.feed.length > 0) {
-			const dates = this.feed.map((toot) => new Date(toot.createdAt));
-			mostRecentCachedTime = dates.reduce((latest, current) =>
-				current > latest ? current : latest,
-			);
-			oldestCachedTime = dates.reduce((earliest, current) =>
-				current < earliest ? current : earliest,
-			);
-		}
-
-		return {
-			feedTotal: this.feed.length,
-			homeFeedTotal: this.homeFeed.length,
-			unseenTotal,
-			oldestCachedTime,
-			mostRecentCachedTime,
-			sourceStats: this.getSourceStats(),
-		};
-	}
-
-	///////////////////////////////
-	//      Private Methods      //
-	///////////////////////////////
-
-	/**
-	 * Merge a new batch of {@linkcode Toot}s into the feed. Mutates {@linkcode this.feed}
-	 * and returns whatever {@linkcode newToots} are retrieved by {@linkcode tootFetcher} argument.
-	 * @private
-	 * @param {Promise<Toot[]>} tootFetcher - Promise that resolves to an array of Toots.
-	 * @param {Logger} logger Logger to use.
-	 * @returns {Promise<Toot[]>} The new toots that were fetched and merged.
-	 */
-	private async fetchAndMergeToots(
-		tootFetcher: Promise<Toot[]>,
-		logger: Logger,
-	): Promise<Toot[]> {
-		const startedAt = new Date();
-		let newToots: Toot[] = [];
-
-		try {
-			newToots = await tootFetcher;
-			logger.logTelemetry(
-				`Got ${newToots.length} toots for ${CacheKey.HOME_TIMELINE_TOOTS}`,
-				startedAt,
-			);
-		} catch (e) {
-			throwIfAccessTokenRevoked(
-				logger,
-				e,
-				`Error fetching toots ${ageString(startedAt)}`,
-			);
-		}
-
-		await this.lockedMergeToFeed(newToots, logger);
-		return newToots;
-	}
-
-	/**
-	 * Filter the feed based on the user's settings. Has the side effect of calling the
-	 * {@linkcode TheAlgorithm.setTimelineInApp} callback (if it exists) to send the client
-	 * using this library the filtered subset of {@linkcode Toot} objects.
-	 * ({@linkcode TheAlgorithm.feed} will always maintain the master unfiltered set of {@linkcode Toot}s).
-	 * @private
-	 * @returns {Toot[]} The filtered feed.
-	 */
-	private filterFeedAndSetInApp(): Toot[] {
-		this.filteredTimeline = this.feed.filter((toot) =>
-			toot.isInTimeline(this.filters),
-		);
-
-		logger.debug(
-			`Filtered ${this.feed.length} toots → ${this.filteredTimeline.length} visible`,
-		);
-
-		this.setTimelineInApp(this.filteredTimeline);
-
-		if (!this.hasProvidedAnyTootsToClient && this.feed.length > 0) {
-			this.hasProvidedAnyTootsToClient = true;
-			logger.logTelemetry(
-				`First ${this.filteredTimeline.length} toots sent to client`,
-				this.loadStartedAt,
-			);
-		}
-
-		return this.filteredTimeline;
-	}
-
-	/**
-	 * Do some final cleanup and scoring operations on the feed after new toots have been fetched.
-	 * @private
-	 * @returns {Promise<void>}
-	 */
-	private async finishFeedUpdate(): Promise<void> {
-		const action = LogAction.FINISH_FEED_UPDATE;
-		const hereLogger = loggers[action];
-		this.loadingStatus = config.locale.messages[action];
-
-		hereLogger.debug(`${this.loadingStatus}...`);
-
-		// Complete toots (calculate trending tags, etc.) and remove any invalid ones
-		await Toot.completeToots(this.feed, hereLogger);
-		this.feed = await Toot.removeInvalidToots(this.feed, hereLogger);
-
-		// Update filter options to include new hashtags, users, languages, etc. from newly fetched toots
-		// scanForTags=true performs additional hashtag scanning in toot text
-		await updateBooleanFilterOptions(this.filters, this.feed, true);
-
-		// Score all toots and apply filters to update the UI
-		await this.scoreAndFilterFeed();
-
-		if (this.loadStartedAt) {
-			hereLogger.logTelemetry(
-				`finished home TL load w/ ${this.feed.length} toots`,
-				this.loadStartedAt,
-			);
-			this.lastLoadTimeInSeconds = AgeIn.seconds(this.loadStartedAt);
-		} else {
-			hereLogger.warn(`finished but loadStartedAt is null!`);
-		}
-
-		this.loadStartedAt = undefined;
-		this.loadingStatus = null;
-		this.launchBackgroundPollers();
-	}
-
-	/**
-	 * Simple wrapper for triggering {@linkcode MastoApi.fetchHomeFeed}.
-	 * @private
-	 * @returns {Promise<Toot[]>}
-	 */
-	private async getHomeTimeline(moreOldToots?: boolean): Promise<Toot[]> {
-		return await MastoApi.instance.fetchHomeFeed({
-			mergeTootsToFeed: this.lockedMergeToFeed.bind(this),
-			moar: moreOldToots,
-		});
-	}
-
-	private getFederatedTimelineBounds(): { minId?: string; maxId?: string } {
-		return this.getSourceBounds(FEDERATED_TIMELINE_SOURCE);
-	}
-
-	private async mergeFederatedTimeline(
-		direction: "newer" | "older",
-		limit = 40,
-	): Promise<void> {
-		const { minId, maxId } = this.getFederatedTimelineBounds();
-		const statuses = await MastoApi.instance.getFederatedTimelineStatuses({
-			limit,
-			minId: direction === "newer" ? maxId : null,
-			maxId: direction === "older" ? minId : null,
-		});
-		await this.mergeExternalStatuses(statuses, FEDERATED_TIMELINE_SOURCE);
-	}
-
-	/**
-	 * Kick off the MOAR data poller to collect more user history data if it doesn't already exist
-	 * as well as the cache updater that saves the current state of the timeline toots'
-	 * {@linkcode alreadyShown} properties to storage.
-	 * @private
-	 */
-	private launchBackgroundPollers(): void {
-		this.userDataPoller.start();
-
-		// The cache updater writes the current state of the feed to storage every few seconds
-		// to capture changes to the alreadyShown state of toots.
-		if (this.cacheUpdater) {
-			logger.trace(`cacheUpdater already exists, not starting another one`);
-		} else {
-			this.cacheUpdater = setInterval(
-				async () => await this.saveTimelineToCache(),
-				config.toots.saveChangesIntervalSeconds * 1000,
-			);
-		}
-	}
-
-	/**
-	 * Load cached data from {@linkcode Storage}. Called when the app is first opened and when
-	 * {@linkcode TheAlgorithm.reset} is invoked.
-	 * @private
-	 * @returns {Promise<void>}
-	 */
-	private async loadCachedData(): Promise<void> {
-		let visibleTimeline = await Storage.getCoerced<Toot>(
-			AlgorithmStorageKey.VISIBLE_TIMELINE_TOOTS,
-		);
-		const nextVisibleTimeline = await Storage.getCoerced<Toot>(
-			AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_TOOTS,
-		);
-		if (nextVisibleTimeline.length > 0) {
-			visibleTimeline = nextVisibleTimeline;
-			await Storage.set(
-				AlgorithmStorageKey.VISIBLE_TIMELINE_TOOTS,
-				nextVisibleTimeline,
-			);
-			await Storage.remove(AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_TOOTS);
-		}
-
-		// Load cached toots and trending data
-		this.homeFeed = await Storage.getCoerced<Toot>(
-			CacheKey.HOME_TIMELINE_TOOTS,
-		);
-		this.feed = await Storage.getCoerced<Toot>(
-			AlgorithmStorageKey.TIMELINE_TOOTS,
-		);
-		this.trendingData = EMPTY_TRENDING_DATA;
-
-		// Truncate if timeline is at max capacity
-		if (this.feed.length == config.toots.maxTimelineLength) {
-			const numToClear =
-				config.toots.maxTimelineLength -
-				config.toots.truncateFullTimelineToLength;
-			loadCacheLogger.info(
-				`Timeline cache is full (${this.feed.length}), discarding ${numToClear} old toots`,
-			);
-			this.feed = truncateToLength(
-				this.feed,
-				config.toots.truncateFullTimelineToLength,
-				logger,
-			);
-			await Storage.set(AlgorithmStorageKey.TIMELINE_TOOTS, this.feed);
-		}
-
-		// Load filter settings from storage
-		this.filters = (await Storage.getFilters()) ?? buildNewFilterSettings();
-
-		// Only update filter options if we have cached toots
-		// (this also modifies toots to add "Unknown" source where needed)
-		if (this.feed.length > 0) {
-			await updateBooleanFilterOptions(this.filters, this.feed);
-			if (visibleTimeline.length > 0) {
-				this.filteredTimeline = visibleTimeline;
-				this.setTimelineInApp(this.filteredTimeline);
-				loadCacheLogger.debug(
-					`Loaded ${this.feed.length} cached toots (${this.filteredTimeline.length} from visible cache)`,
-				);
-			} else {
-				this.filterFeedAndSetInApp();
-				loadCacheLogger.debug(
-					`Loaded ${this.feed.length} cached toots (${this.filteredTimeline.length} after filtering)`,
-				);
-			}
-		} else if (visibleTimeline.length > 0) {
-			this.filteredTimeline = visibleTimeline;
-			this.setTimelineInApp(this.filteredTimeline);
-			loadCacheLogger.debug(
-				`Loaded visible timeline cache (${this.filteredTimeline.length} toots) without feed cache`,
-			);
-		} else {
-			loadCacheLogger.debug("No cached toots found");
-		}
-	}
-
-	/**
-	 * Apparently if the mutex lock is inside mergeTootsToFeed() then the state of {@linkcode TheAlgorithm.feed}
-	 * is not consistent which can result in toots getting lost as threads try to merge {@linkcode newToots}
-	 * into different {@linkcode TheAlgorithm.feed} states.
-	 * Wrapping the entire function in a mutex seems to fix this (though i'm not sure why).
-	 * @private
-	 * @param {Toot[]} newToots - New toots to merge into this.feed
-	 * @param {Logger} logger - Logger to use
-	 * @returns {Promise<void>}
-	 */
-	private async lockedMergeToFeed(
-		newToots: Toot[],
-		logger: Logger,
-	): Promise<void> {
-		const hereLogger = logger.tempLogger("lockedMergeToFeed");
-		const releaseMutex = await lockExecution(this.mergeMutex, hereLogger);
-
-		try {
-			await this.mergeTootsToFeed(newToots, logger);
-			hereLogger.trace(`Merged ${newToots.length} newToots, released mutex`);
-		} finally {
-			releaseMutex();
-		}
-	}
-
-	/**
-	 * Merge newToots into {@linkcode TheAlgorithm.feed}, score, and filter the feed.
-	 * NOTE: Don't call this directly! Use {@linkcode TheAlgorithm.lockedMergeTootsToFeed} instead.
-	 * @private
-	 * @param {Toot[]} newToots - New toots to merge into this.feed
-	 * @param {Logger} inLogger - Logger to use
-	 * @returns {Promise<void>}
-	 */
-	private async mergeTootsToFeed(
-		newToots: Toot[],
-		inLogger: Logger,
-	): Promise<void> {
-		const hereLogger = inLogger.tempLogger("mergeTootsToFeed");
-		const numTootsBefore = this.feed.length;
-		const startedAt = new Date();
-
-		// Merge new Toots
-		this.feed = Toot.dedupeToots([...this.feed, ...newToots], hereLogger);
-		this.numUnscannedToots += newToots.length;
-
-		// Building filter options is expensive so we only do it when it's justifiable
-		if (
-			this.feed.length < config.toots.minToSkipFilterUpdates ||
-			this.numUnscannedToots > config.toots.filterUpdateBatchSize
-		) {
-			await updateBooleanFilterOptions(this.filters, this.feed);
-			this.numUnscannedToots = 0;
-		} else {
-			logger.trace(
-				`Skipping filter update, feed length: ${this.feed.length}, unscanned toots: ${this.numUnscannedToots}`,
-			);
-		}
-
-		await this.scoreAndFilterFeed();
-		// Update loadingStatus and log telemetry
-		// Don't overwrite loading status for timeline backfill (loading older posts)
-		if (this.currentAction !== LoadAction.TIMELINE_BACKFILL) {
-			const statusMsgFxn = config.locale.messages[LoadAction.FEED_UPDATE];
-			this.loadingStatus = statusMsgFxn(this.feed, this.mostRecentHomeTootAt());
-		}
-		hereLogger.logTelemetry(
-			`Merged ${newToots.length} new toots into ${numTootsBefore} timeline toots`,
-			startedAt,
-		);
-	}
-
-	/**
-	 * Recompute the scorers' computations based on user history etc. and trigger a rescore of the feed.
-	 * @private
-	 * @returns {Promise<void>}
-	 */
-	private async recomputeScores(): Promise<void> {
-		await ScorerCache.prepareScorers(true);
-		await this.scoreAndFilterFeed();
-	}
-
-	/**
-	 * Release the loading mutex and reset the loading state variables.
-	 * @private
-	 * @param {LoadAction} logPrefix - Action for logging context.
-	 * @returns {void}
-	 */
-	private releaseLoadingMutex(logPrefix: LoadAction): void {
-		this.loadingStatus = null;
-		this.currentAction = undefined;
-
-		if (this._releaseLoadingMutex) {
-			loggers[logPrefix].info(`Finished, releasing mutex...`);
-			this._releaseLoadingMutex();
-		} else {
-			loggers[logPrefix].warn(
-				`releaseLoadingMutex() called but no mutex to release!`,
-			);
-		}
-	}
-
-	/**
-	 * Score the feed, sort it, save it to storage, and call {@linkcode TheAlgorithm.filterFeedAndSetInApp}
-	 * to update the feed in the app.
-	 * @private
-	 * @returns {Promise<Toot[]>} The filtered set of Toots (NOT the entire feed).
-	 */
-	private async scoreAndFilterFeed(): Promise<Toot[]> {
-		this.feed = await Scorer.scoreToots(this.feed, true);
-
-		this.feed = truncateToLength(
-			this.feed,
-			config.toots.maxTimelineLength,
-			logger.tempLogger("scoreAndFilterFeed()"),
-		);
-
-		await Storage.set(AlgorithmStorageKey.TIMELINE_TOOTS, this.feed);
-		return this.filterFeedAndSetInApp();
-	}
-
-	/**
-	 * Return true if we're in {@linkcode QUICK_MODE} and the feed is fresh enough that we don't
-	 * need to retrieve any new data. Useful for testing UI changes without waiting
-	 * for the full feed load every time.
-	 * @private
-	 * @returns {boolean} True if we should skip the feed update.
-	 */
-	private shouldSkip(): boolean {
-		const hereLogger = loggers[LoadAction.FEED_UPDATE];
-		hereLogger.debugWithTraceObjs(
-			`${++this.numTriggers} triggers so far, state:`,
-			this.statusDict(),
-		);
-		let feedAgeInMinutes = this.mostRecentHomeTootAgeInSeconds();
-		if (feedAgeInMinutes) feedAgeInMinutes /= 60;
-		const maxAgeMinutes = config.minTrendingMinutesUntilStale();
-
-		if (
-			isQuickMode &&
-			feedAgeInMinutes &&
-			feedAgeInMinutes < maxAgeMinutes &&
-			this.numTriggers <= 1
-		) {
-			hereLogger.debug(
-				`isQuickMode=${isQuickMode}, feed's ${feedAgeInMinutes.toFixed(0)}s old, skipping`,
-			);
-			// Needs to be called to update the feed in the app
-			ScorerCache.prepareScorers().then((_t) => this.filterFeedAndSetInApp());
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	/**
-	 * Lock the mutex and set the {@linkcode TheAlgorithm.loadStartedAt} timestamp.
-	 * @private
-	 * @param {LoadAction} logPrefix - Action for logging context.
-	 * @returns {Promise<void>}
-	 * @throws {Error} If a load is already in progress.
-	 */
-	private async startAction(logPrefix: LoadAction): Promise<void> {
-		const hereLogger = loggers[logPrefix];
-		const status = config.locale.messages[logPrefix];
-		hereLogger.debugWithTraceObjs(`called`, this.statusDict());
-
-		if (this.isLoading) {
-			hereLogger.warn(`Load in progress already!`, this.statusDict());
-			throw new Error(config.locale.messages.isBusy);
-		}
-
-		this.currentAction = logPrefix;
-		this.loadStartedAt = new Date();
-		this._releaseLoadingMutex = await lockExecution(this.loadingMutex, logger);
-		this.loadingStatus =
-			typeof status === "string"
-				? status
-				: status(this.feed, this.mostRecentHomeTootAt());
-	}
-
-	/**
-	 * Returns info about the state of this {@linkcode TheAlgorithm} instance.
-	 * @private
-	 * @returns {Record<string, unknown>} Status dictionary.
-	 */
-	private statusDict(): Record<string, unknown> {
-		const mostRecentTootAt = this.mostRecentHomeTootAt();
-		const oldestTootAt = earliestTootedAt(this.homeFeed);
-		let numHoursInHomeFeed: number | null = null;
-
-		if (mostRecentTootAt && oldestTootAt) {
-			numHoursInHomeFeed = AgeIn.hours(oldestTootAt, mostRecentTootAt);
-		}
-
-		return {
-			feedNumToots: this.feed.length,
-			homeFeedNumToots: this.homeFeed.length,
-			homeFeedMostRecentAt: toISOFormatIfExists(mostRecentTootAt),
-			homeFeedOldestAt: toISOFormatIfExists(oldestTootAt),
-			homeFeedTimespanHours: numHoursInHomeFeed
-				? Number(numHoursInHomeFeed.toPrecision(2))
-				: null,
-			isLoading: this.isLoading,
-			loadingStatus: this.loadingStatus,
-			loadStartedAt: toISOFormatIfExists(this.loadStartedAt),
-			minMaxScores: computeMinMax(this.feed, (toot) => toot.score),
-		};
+		return getDataStats(this.state);
 	}
 
 	///////////////////////////////
