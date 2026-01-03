@@ -2,5 +2,11 @@ pre-commit:
   commands:
     format:
       run: npm run format
+    tsc:
+      run: npm run tsc
     test:
       run: npm test -- --run
+pre-push:
+  commands:
+    build:
+      run: npm run build
