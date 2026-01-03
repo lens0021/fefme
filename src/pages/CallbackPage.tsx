@@ -4,7 +4,7 @@
 import React, { useCallback, useEffect } from "react";
 
 import { createRestAPIClient } from "masto";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { FEDIALGO } from "../core/index";
 
 import { useError } from "../components/helpers/ErrorHandler";
@@ -23,6 +23,7 @@ export default function CallbackPage() {
 	const { logAndSetFormattedError } = useError();
 	const { setLoggedInUser, user } = useAuthContext();
 	const [searchParams] = useSearchParams();
+	const navigate = useNavigate();
 
 	const paramsCode = searchParams.get("code");
 	logger.trace(`paramsCode: "${paramsCode}", searchParams:`, searchParams);
@@ -114,11 +115,29 @@ export default function CallbackPage() {
 		[app, logAndSetFormattedError, searchParams, server, setLoggedInUser, user],
 	);
 
+	const clearAuthCodeFromUrl = useCallback(() => {
+		if (!searchParams.has("code")) {
+			return;
+		}
+		const nextParams = new URLSearchParams(searchParams);
+		nextParams.delete("code");
+		const nextSearch = nextParams.toString();
+		navigate(
+			{
+				pathname: "/callback",
+				search: nextSearch ? `?${nextSearch}` : "",
+			},
+			{ replace: true },
+		);
+	}, [navigate, searchParams]);
+
 	useEffect(() => {
 		if (paramsCode !== null && !user) {
-			oAuthUserAndRegisterApp(paramsCode);
+			void oAuthUserAndRegisterApp(paramsCode).finally(() => {
+				clearAuthCodeFromUrl();
+			});
 		}
-	}, [oAuthUserAndRegisterApp, paramsCode, user]);
+	}, [clearAuthCodeFromUrl, oAuthUserAndRegisterApp, paramsCode, user]);
 
 	return (
 		<div>
