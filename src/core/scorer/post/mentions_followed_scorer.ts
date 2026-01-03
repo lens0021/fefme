@@ -1,16 +1,16 @@
 import MastoApi from "../../api/api";
 import Account from "../../api/objects/account";
-import type Toot from "../../api/objects/toot";
+import type Post from "../../api/objects/post";
 import { ScoreName } from "../../enums";
 import type { StringNumberDict } from "../../types";
-import TootScorer from "../toot_scorer";
+import PostScorer from "../post_scorer";
 
 /**
- * Score how many accounts that the user follows are mentioned in the toot.
- * @memberof module:toot_scorers
+ * Score how many accounts that the user follows are mentioned in the post.
+ * @memberof module:post_scorers
  * @augments Scorer
  */
-export default class MentionsFollowedScorer extends TootScorer {
+export default class MentionsFollowedScorer extends PostScorer {
 	description = "Favour posts that mention accounts you follow";
 
 	constructor() {
@@ -23,9 +23,9 @@ export default class MentionsFollowedScorer extends TootScorer {
 		return Account.countAccounts(await MastoApi.instance.getFollowedAccounts());
 	}
 
-	// Toot.repair() already made StatusMention.acct fields equivalent to Account.webfingerURI
-	async _score(toot: Toot) {
-		return toot.realToot.mentions.filter((m) => m.acct in this.scoreData)
+	// Post.repair() already made StatusMention.acct fields equivalent to Account.webfingerURI
+	async _score(post: Post) {
+		return post.realToot.mentions.filter((m) => m.acct in this.scoreData)
 			.length;
 	}
 }

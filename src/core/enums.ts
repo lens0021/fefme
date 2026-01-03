@@ -36,16 +36,16 @@ export type Action = LoadAction | LogAction;
 export enum AlgorithmStorageKey {
 	APP_OPENS = "AppOpens",
 	FILTERS = "Filters",
-	TIMELINE_TOOTS = "TimelineToots", // The entire timeline (home timeline + trending toots etc.)
-	VISIBLE_TIMELINE_TOOTS = "VisibleTimelineToots", // Filtered timeline used for initial render
-	NEXT_VISIBLE_TIMELINE_TOOTS = "NextVisibleTimelineToots", // Next filtered timeline cache for refresh
+	TIMELINE_POSTS = "TimelinePosts", // The entire timeline (home timeline + trending posts etc.)
+	VISIBLE_TIMELINE_POSTS = "VisibleTimelinePosts", // Filtered timeline used for initial render
+	NEXT_VISIBLE_TIMELINE_POSTS = "NextVisibleTimelinePosts", // Next filtered timeline cache for refresh
 	USER = "FedialgoUser",
 	WEIGHTS = "Weights",
 }
 
 /**
  * Enum of keys used to cache Mastodon API data in the browser's IndexedDB via localForage.
- * Keys that contain Toots should end with "_TOOTS", likewise for Account objects with "_ACCOUNTS".
+ * Keys that contain Posts should end with "_POSTS", likewise for Account objects with "_ACCOUNTS".
  * Used for {@linkcode Storage} and cache management.
  * @private
  * @enum {string}
@@ -53,16 +53,16 @@ export enum AlgorithmStorageKey {
 export enum CacheKey {
 	BLOCKED_ACCOUNTS = "BlockedAccounts",
 	BLOCKED_DOMAINS = "BlockedDomains",
-	FAVOURITED_TOOTS = "FavouritedToots",
+	FAVOURITED_POSTS = "FavouritedPosts",
 	FOLLOWED_ACCOUNTS = "FollowedAccounts",
 	FOLLOWED_TAGS = "FollowedTags", // this used to be actually set to ScoreName.FOLLOWED_TAGS (same string)... i don't think there's any reason to keep that now
 	FOLLOWERS = "Followers",
-	HASHTAG_TOOTS = "HashtagToots", // TODO: there's nothing actually stored here but it's a flag for Toot serialization
-	HOME_TIMELINE_TOOTS = "HomeTimelineToots", // Toots that the API returns for the home timeline
+	HASHTAG_POSTS = "HashtagPosts", // TODO: there's nothing actually stored here but it's a flag for Post serialization
+	HOME_TIMELINE_POSTS = "HomeTimelinePosts", // Posts that the API returns for the home timeline
 	INSTANCE_INFO = "InstanceInfo",
 	MUTED_ACCOUNTS = "MutedAccounts",
 	NOTIFICATIONS = "Notifications",
-	RECENT_USER_TOOTS = "RecentUserToots",
+	RECENT_USER_POSTS = "RecentUserPosts",
 	SERVER_SIDE_FILTERS = "ServerFilters",
 }
 
@@ -74,17 +74,17 @@ export enum CacheKey {
 export enum FediverseCacheKey {
 	POPULAR_SERVERS = "FediversePopularServers",
 	TRENDING_TAGS = "FediverseTrendingTags",
-	TRENDING_TOOTS = "FediverseTrendingToots",
+	TRENDING_POSTS = "FediverseTrendingPosts",
 }
 
 /**
- * Enum of categories of toots pulled for a type of tag (favourited/particated/trending).
+ * Enum of categories of posts pulled for a type of tag (favourited/particated/trending).
  * @enum {string}
  */
-export enum TagTootsCategory {
-	FAVOURITED = "FavouritedHashtagToots",
-	PARTICIPATED = "ParticipatedHashtagToots",
-	TRENDING = "TrendingTagToots",
+export enum TagPostsCategory {
+	FAVOURITED = "FavouritedHashtagPosts",
+	PARTICIPATED = "ParticipatedHashtagPosts",
+	TRENDING = "TrendingTagPosts",
 }
 
 /**
@@ -116,14 +116,14 @@ export enum ScoreName {
 	INTERACTIONS = "Interactions",
 	MENTIONS_FOLLOWED = "MentionsFollowed",
 	MOST_REPLIED_ACCOUNTS = "MostRepliedAccounts",
-	MOST_RETOOTED_ACCOUNTS = "MostRetootedAccounts",
+	MOST_BOOSTED_ACCOUNTS = "MostBoostedAccounts",
 	NUM_FAVOURITES = "NumFavourites",
 	NUM_REPLIES = "NumReplies",
-	NUM_RETOOTS = "NumRetoots",
+	NUM_BOOSTS = "NumBoosts",
 	PARTICIPATED_TAGS = "ParticipatedTags",
-	RETOOTED_IN_FEED = "RetootedInFeed",
+	BOOSTED_IN_FEED = "BoostedInFeed",
 	TRENDING_TAGS = "TrendingTags",
-	TRENDING_TOOTS = "TrendingToots",
+	TRENDING_POSTS = "TrendingPosts",
 	VIDEO_ATTACHMENTS = "VideoAttachments",
 }
 
@@ -148,7 +148,7 @@ export enum TrendingType {
 }
 
 /**
- * Enum of boolean filter names for filtering {@linkcode Toot}s by property.
+ * Enum of boolean filter names for filtering {@linkcode Post}s by property.
  * @enum {string}
  */
 export enum BooleanFilterName {
@@ -162,7 +162,7 @@ export enum BooleanFilterName {
 }
 
 /**
- * Enum of type filter names for filtering {@linkcode Toot}s by type (e.g. audio, bot, images, etc.).
+ * Enum of type filter names for filtering {@linkcode Post}s by type (e.g. audio, bot, images, etc.).
  * The values have spaces for better presentation in the demo app.
  * @enum {string}
  */
@@ -179,12 +179,12 @@ export enum TypeFilterName {
 	POLLS = "polls",
 	PRIVATE = "private",
 	REPLIES = "replies",
-	RETOOTS = "retoots",
+	BOOSTS = "boosts",
 	SEEN = "seen",
 	SENSITIVE = "sensitive",
 	SPOILERED = "spoilered",
 	TRENDING_TAGS = "trending hashtags",
-	TRENDING_TOOTS = "trending toots",
+	TRENDING_POSTS = "trending posts",
 	VIDEOS = "videos",
 }
 
@@ -193,7 +193,7 @@ export enum TypeFilterName {
 //////////////////
 
 /** API data is written to browser storage with these cache keys. */
-export type ApiCacheKey = CacheKey | FediverseCacheKey | TagTootsCategory;
+export type ApiCacheKey = CacheKey | FediverseCacheKey | TagPostsCategory;
 /** All browser storage indexedDB keys. */
 export type StorageKey = AlgorithmStorageKey | ApiCacheKey;
 /** Utility type. */
@@ -219,7 +219,7 @@ export const ALL_ACTIONS = [
 export const ALL_CACHE_KEYS = [
 	...Object.values(CacheKey),
 	...Object.values(FediverseCacheKey),
-	...Object.values(TagTootsCategory),
+	...Object.values(TagPostsCategory),
 ] as const;
 
 // Objects fetched with these keys need to be built into proper Account objects.
@@ -229,19 +229,19 @@ export const STORAGE_KEYS_WITH_ACCOUNTS: StorageKey[] = Object.entries(
 	CacheKey.FOLLOWERS,
 ] as StorageKey[]);
 
-// Objects fetched with these keys need to be built into proper Toot objects.
-export const STORAGE_KEYS_WITH_TOOTS = Object.entries(CacheKey)
-	.reduce((keys, [k, v]) => (k.endsWith("_TOOTS") ? keys.concat(v) : keys), [
-		AlgorithmStorageKey.TIMELINE_TOOTS,
-		AlgorithmStorageKey.VISIBLE_TIMELINE_TOOTS,
-		AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_TOOTS,
-		FediverseCacheKey.TRENDING_TOOTS,
+// Objects fetched with these keys need to be built into proper Post objects.
+export const STORAGE_KEYS_WITH_POSTS = Object.entries(CacheKey)
+	.reduce((keys, [k, v]) => (k.endsWith("_POSTS") ? keys.concat(v) : keys), [
+		AlgorithmStorageKey.TIMELINE_POSTS,
+		AlgorithmStorageKey.VISIBLE_TIMELINE_POSTS,
+		AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_POSTS,
+		FediverseCacheKey.TRENDING_POSTS,
 	] as StorageKey[])
-	.concat(Object.values(TagTootsCategory));
+	.concat(Object.values(TagPostsCategory));
 
 // The property that can be used to uniquely identify objects stored at that ApiCacheKey.
 export const UNIQUE_ID_PROPERTIES: UniqueIdProperties = {
-	...STORAGE_KEYS_WITH_TOOTS.reduce((dict, key) => {
+	...STORAGE_KEYS_WITH_POSTS.reduce((dict, key) => {
 		dict[key as ApiCacheKey] = "uri";
 		return dict;
 	}, {} as UniqueIdProperties),
@@ -257,8 +257,8 @@ export const UNIQUE_ID_PROPERTIES: UniqueIdProperties = {
 export const FEDERATED_TIMELINE_SOURCE = "FederatedTimeline";
 export const UNKNOWN_SOURCE = "Unknown";
 
-export const TOOT_SOURCES = [
-	...STORAGE_KEYS_WITH_TOOTS,
+export const POST_SOURCES = [
+	...STORAGE_KEYS_WITH_POSTS,
 	LoadAction.GET_CONVERSATION,
 	LoadAction.REFRESH_MUTED_ACCOUNTS,
 	FEDERATED_TIMELINE_SOURCE,
@@ -354,13 +354,13 @@ export function isValueInStringEnum<E extends string>(
 
 /** True if argument is a member of {@linkcode CacheKey}. */
 export const isCacheKey = isValueInStringEnum(CacheKey);
-/** True if argument is a member of {@linkcode TagTootsCategory}. */
-export const isTagTootsCategory = isValueInStringEnum(TagTootsCategory);
+/** True if argument is a member of {@linkcode TagPostsCategory}. */
+export const isTagPostsCategory = isValueInStringEnum(TagPostsCategory);
 /** True if argument is a member of {@linkcode FediverseCacheKey}. */
 export const isFediverseCacheKey = isValueInStringEnum(FediverseCacheKey);
 /** True if argument is an {@linkcode ApiCacheKey}. */
 export const isApiCacheKey = (s: string) =>
-	isCacheKey(s) || isFediverseCacheKey(s) || isTagTootsCategory(s);
+	isCacheKey(s) || isFediverseCacheKey(s) || isTagPostsCategory(s);
 
 /** True if argument is a member of {@linkcode NonScoreWeightName} enum. */
 export const isNonScoreWeightName = isValueInStringEnum(NonScoreWeightName);

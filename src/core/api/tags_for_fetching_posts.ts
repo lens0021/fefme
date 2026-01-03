@@ -1,5 +1,5 @@
-import { type TagTootsConfig, config } from "../config";
-import { TagTootsCategory } from "../enums";
+import { type TagPostsConfig, config } from "../config";
+import { TagPostsCategory } from "../enums";
 import {
 	resolvePromiseDict,
 	truncateToLength,
@@ -8,21 +8,21 @@ import {
 import { Logger } from "../helpers/logger";
 import type { TagWithUsageCounts } from "../types";
 /*
- * Helper class for fetching toots for a list of tags, e.g. trending or particiapted tags.
+ * Helper class for fetching posts for a list of tags, e.g. trending or particiapted tags.
  */
 import MastoApi from "./api";
 import Storage from "../Storage";
 import { tagInfoStr } from "./objects/tag";
-import Toot from "./objects/toot";
+import Post from "./objects/post";
 import TagList from "./tag_list";
 
-type TagTootsBuildConfig = {
+type TagPostsBuildConfig = {
 	buildTagList: () => Promise<TagList>;
-	config: TagTootsConfig;
+	config: TagPostsConfig;
 };
 
-const HASHTAG_TOOTS_CONFIG: Record<TagTootsCategory, TagTootsBuildConfig> = {
-	[TagTootsCategory.FAVOURITED]: {
+const HASHTAG_POSTS_CONFIG: Record<TagPostsCategory, TagPostsBuildConfig> = {
+	[TagPostsCategory.FAVOURITED]: {
 		buildTagList: async () => {
 			const tagList = await TagList.buildFavouritedTags();
 			// Remove tags that user uses often (we want only what they favourite, not what they participate in)
@@ -30,45 +30,45 @@ const HASHTAG_TOOTS_CONFIG: Record<TagTootsCategory, TagTootsBuildConfig> = {
 			const maxParticipations = config.favouritedTags.maxParticipations; // TODO: use heuristic to pick this number?
 			return tagList.filter(
 				(tag) =>
-					(participatedTags.getTag(tag)?.numToots || 0) <= maxParticipations,
+					(participatedTags.getTag(tag)?.numPosts || 0) <= maxParticipations,
 			);
 		},
 		config: config.favouritedTags,
 	},
-	[TagTootsCategory.PARTICIPATED]: {
+	[TagPostsCategory.PARTICIPATED]: {
 		buildTagList: async () => await TagList.buildParticipatedTags(), // TODO: why do I have to define an anonymous fxn for this to work?
 		config: config.participatedTags,
 	},
-	[TagTootsCategory.TRENDING]: {
-		buildTagList: async () => new TagList([], TagTootsCategory.TRENDING),
+	[TagPostsCategory.TRENDING]: {
+		buildTagList: async () => new TagList([], TagPostsCategory.TRENDING),
 		config: config.trending.tags,
 	},
 };
 
-export default class TagsForFetchingToots {
-	cacheKey: TagTootsCategory;
-	config: TagTootsConfig;
+export default class TagsForFetchingPosts {
+	cacheKey: TagPostsCategory;
+	config: TagPostsConfig;
 	logger: Logger;
 	tagList: TagList;
 
 	/** Alternate async constructor. */
 	static async create(
-		cacheKey: TagTootsCategory,
-	): Promise<TagsForFetchingToots> {
-		const tootsConfig = HASHTAG_TOOTS_CONFIG[cacheKey];
-		const tagList = await tootsConfig.buildTagList();
-		const tagsForTootsList = new TagsForFetchingToots(
+		cacheKey: TagPostsCategory,
+	): Promise<TagsForFetchingPosts> {
+		const postsConfig = HASHTAG_POSTS_CONFIG[cacheKey];
+		const tagList = await postsConfig.buildTagList();
+		const tagsForPostsList = new TagsForFetchingPosts(
 			cacheKey,
-			tootsConfig.config,
+			postsConfig.config,
 			tagList,
 		);
-		await tagsForTootsList.removeUnwantedTags();
-		return tagsForTootsList;
+		await tagsForPostsList.removeUnwantedTags();
+		return tagsForPostsList;
 	}
 
 	private constructor(
-		cacheKey: TagTootsCategory,
-		tagsConfig: TagTootsConfig,
+		cacheKey: TagPostsCategory,
+		tagsConfig: TagPostsConfig,
 		tagList: TagList,
 	) {
 		this.cacheKey = cacheKey;
@@ -77,13 +77,13 @@ export default class TagsForFetchingToots {
 		this.logger = new Logger(cacheKey);
 	}
 
-	/** Get {@linkcode Toot}s for the list of tags, caching the results. */
-	async getToots(): Promise<Toot[]> {
-		return await MastoApi.instance.getCacheableToots(
+	/** Get {@linkcode Post}s for the list of tags, caching the results. */
+	async getPosts(): Promise<Post[]> {
+		return await MastoApi.instance.getCacheablePosts(
 			async () => {
 				const tags = this.topTags();
 				this.logger.log(
-					`getToots() called for ${tags.length} tags:`,
+					`getPosts() called for ${tags.length} tags:`,
 					tags.map((t) => t.name),
 				);
 
@@ -93,7 +93,7 @@ export default class TagsForFetchingToots {
 						return await MastoApi.instance.getStatusesForTag(
 							tagName,
 							this.logger,
-							this.config.numTootsPerTag,
+							this.config.numPostsPerTag,
 						);
 					},
 					this.logger,
@@ -102,16 +102,16 @@ export default class TagsForFetchingToots {
 				return Object.values(results).flat();
 			},
 			this.cacheKey,
-			this.config.maxToots,
+			this.config.maxPosts,
 		);
 	}
 
-	/** Get older {@linkcode Toot}s for the list of tags and merge them into the cache. */
-	async getOlderToots(maxId: string | number | null): Promise<Toot[]> {
+	/** Get older {@linkcode Post}s for the list of tags and merge them into the cache. */
+	async getOlderPosts(maxId: string | number | null): Promise<Post[]> {
 		if (!maxId) return [];
 		const tags = this.topTags();
 		this.logger.log(
-			`getOlderToots() called for ${tags.length} tags with maxId ${maxId}`,
+			`getOlderPosts() called for ${tags.length} tags with maxId ${maxId}`,
 		);
 
 		const results = await zipPromiseCalls(
@@ -120,7 +120,7 @@ export default class TagsForFetchingToots {
 				return await MastoApi.instance.getStatusesForTag(
 					tagName,
 					this.logger,
-					this.config.numTootsPerTag,
+					this.config.numPostsPerTag,
 					{ maxId },
 				);
 			},
@@ -128,30 +128,30 @@ export default class TagsForFetchingToots {
 		);
 
 		const statuses = Object.values(results).flat();
-		const newToots = await Toot.buildToots(statuses, this.cacheKey);
-		let cachedToots = await Storage.get(this.cacheKey);
-		if (!cachedToots) {
-			cachedToots = [];
-		} else if (!Array.isArray(cachedToots)) {
+		const newPosts = await Post.buildPosts(statuses, this.cacheKey);
+		let cachedPosts = await Storage.get(this.cacheKey);
+		if (!cachedPosts) {
+			cachedPosts = [];
+		} else if (!Array.isArray(cachedPosts)) {
 			this.logger.logAndThrowError(
 				`Expected array at '${this.cacheKey}' but got`,
-				cachedToots,
+				cachedPosts,
 			);
 		}
-		cachedToots = Toot.dedupeToots(
-			[...newToots, ...(cachedToots as Toot[])],
+		cachedPosts = Post.dedupePosts(
+			[...newPosts, ...(cachedPosts as Post[])],
 			this.logger,
 		);
-		cachedToots = truncateToLength(
-			cachedToots,
-			this.config.maxToots,
+		cachedPosts = truncateToLength(
+			cachedPosts,
+			this.config.maxPosts,
 			this.logger,
 		);
-		await Storage.set(this.cacheKey, cachedToots);
-		return newToots;
+		await Storage.set(this.cacheKey, cachedPosts);
+		return newPosts;
 	}
 
-	/** Strip out tags we don't want to fetch toots for, e.g. followed, muted, invalid, or trending tags. */
+	/** Strip out tags we don't want to fetch posts for, e.g. followed, muted, invalid, or trending tags. */
 	private async removeUnwantedTags(): Promise<void> {
 		await this.tagList.removeFollowedTags();
 		await this.tagList.removeInvalidTrendingTags();
@@ -159,7 +159,7 @@ export default class TagsForFetchingToots {
 	}
 
 	/**
-	 * Return {@linkcode numTags} tags sorted by {@linkcode numToots} then by {@linkcode name}
+	 * Return {@linkcode numTags} tags sorted by {@linkcode numPosts} then by {@linkcode name}
 	 * @param {number} [numTags] - Optional maximum number of tags to return.
 	 */
 	topTags(numTags?: number): TagWithUsageCounts[] {
@@ -172,18 +172,18 @@ export default class TagsForFetchingToots {
 		return tags;
 	}
 
-	/** Return the tag lists used to search for toots (participated/trending/etc) in their raw unfiltered form. */
-	static async rawTagLists(): Promise<Record<TagTootsCategory, TagList>> {
+	/** Return the tag lists used to search for posts (participated/trending/etc) in their raw unfiltered form. */
+	static async rawTagLists(): Promise<Record<TagPostsCategory, TagList>> {
 		return await resolvePromiseDict(
 			{
-				[TagTootsCategory.FAVOURITED]: TagList.buildFavouritedTags(),
-				[TagTootsCategory.PARTICIPATED]: TagList.buildParticipatedTags(),
-				[TagTootsCategory.TRENDING]: Promise.resolve(
-					new TagList([], TagTootsCategory.TRENDING),
+				[TagPostsCategory.FAVOURITED]: TagList.buildFavouritedTags(),
+				[TagPostsCategory.PARTICIPATED]: TagList.buildParticipatedTags(),
+				[TagPostsCategory.TRENDING]: Promise.resolve(
+					new TagList([], TagPostsCategory.TRENDING),
 				),
 			},
-			new Logger("TagsForFetchingToots.rawTagLists()"),
-			(failedKey: TagTootsCategory) => new TagList([], failedKey),
+			new Logger("TagsForFetchingPosts.rawTagLists()"),
+			(failedKey: TagPostsCategory) => new TagList([], failedKey),
 		);
 	}
 }

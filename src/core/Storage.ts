@@ -8,7 +8,7 @@ import type { mastodon } from "masto";
 
 import MastoApi from "./api/api";
 import Account from "./api/objects/account";
-import Toot, { mostRecentTootedAt } from "./api/objects/toot";
+import Post, { mostRecentTootedAt } from "./api/objects/post";
 import UserData from "./api/user_data";
 import { config } from "./config";
 import {
@@ -17,7 +17,7 @@ import {
 	CacheKey,
 	FediverseCacheKey,
 	STORAGE_KEYS_WITH_ACCOUNTS,
-	STORAGE_KEYS_WITH_TOOTS,
+	STORAGE_KEYS_WITH_POSTS,
 	type StorageKey,
 	isApiCacheKey,
 	isWeightName,
@@ -111,9 +111,9 @@ export default class Storage {
 		key:
 			| CacheKey
 			| FediverseCacheKey
-			| AlgorithmStorageKey.TIMELINE_TOOTS
-			| AlgorithmStorageKey.VISIBLE_TIMELINE_TOOTS
-			| AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_TOOTS,
+			| AlgorithmStorageKey.TIMELINE_POSTS
+			| AlgorithmStorageKey.VISIBLE_TIMELINE_POSTS
+			| AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_POSTS,
 	): Promise<T[]> {
 		let value = await this.get(key);
 
@@ -259,7 +259,7 @@ export default class Storage {
 
 		return UserData.buildFromData({
 			blockedDomains: await this.getCoerced<string>(CacheKey.BLOCKED_DOMAINS),
-			favouritedToots: await this.getCoerced<Toot>(CacheKey.FAVOURITED_TOOTS),
+			favouritedPosts: await this.getCoerced<Post>(CacheKey.FAVOURITED_POSTS),
 			followedAccounts: await this.getCoerced<Account>(
 				CacheKey.FOLLOWED_ACCOUNTS,
 			),
@@ -269,7 +269,7 @@ export default class Storage {
 			mutedAccounts: mutedAccounts
 				.concat(blockedAccounts)
 				.map((a) => Account.build(a)),
-			recentToots: await this.getCoerced<Toot>(CacheKey.RECENT_USER_TOOTS), // TODO: maybe expensive to recompute this every time; we store a lot of user toots
+			recentPosts: await this.getCoerced<Post>(CacheKey.RECENT_USER_POSTS), // TODO: maybe expensive to recompute this every time; we store a lot of user posts
 			serverSideFilters: await this.getCoerced<mastodon.v2.Filter>(
 				CacheKey.SERVER_SIDE_FILTERS,
 			),
@@ -432,8 +432,8 @@ export default class Storage {
 	private static deserialize(key: StorageKey, value: StorableObj): StorableObj {
 		if (STORAGE_KEYS_WITH_ACCOUNTS.includes(key)) {
 			return plainToInstance(Account, value);
-		} else if (STORAGE_KEYS_WITH_TOOTS.includes(key)) {
-			return plainToInstance(Toot, value);
+		} else if (STORAGE_KEYS_WITH_POSTS.includes(key)) {
+			return plainToInstance(Post, value);
 		} else {
 			return value;
 		}
@@ -470,7 +470,7 @@ export default class Storage {
 	private static serialize(key: StorageKey, value: StorableObj): StorableObj {
 		if (STORAGE_KEYS_WITH_ACCOUNTS.includes(key)) {
 			return instanceToPlain(value);
-		} else if (STORAGE_KEYS_WITH_TOOTS.includes(key)) {
+		} else if (STORAGE_KEYS_WITH_POSTS.includes(key)) {
 			return instanceToPlain(value);
 		} else {
 			return value;

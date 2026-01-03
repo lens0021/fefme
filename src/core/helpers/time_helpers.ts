@@ -180,11 +180,11 @@ export const timeString = (_timestamp: DateArg, locale?: string): string => {
 };
 
 /**
- * Returns the oldest timestamp to use as a cutoff for timeline toots, based on config settings.
- * @returns {Date} The cutoff date for timeline toots.
+ * Returns the oldest timestamp to use as a cutoff for timeline posts, based on config settings.
+ * @returns {Date} The cutoff date for timeline posts.
  */
 export function timelineCutoffAt(): Date {
-	const timelineLookBackSeconds = config.toots.maxAgeInDays * SECONDS_IN_DAY;
+	const timelineLookBackSeconds = config.posts.maxAgeInDays * SECONDS_IN_DAY;
 	return subtractSeconds(new Date(), timelineLookBackSeconds);
 }
 

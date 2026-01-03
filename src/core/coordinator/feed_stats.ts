@@ -1,9 +1,9 @@
-import { earliestTootedAt, mostRecentTootedAt } from "../api/objects/toot";
+import { earliestTootedAt, mostRecentTootedAt } from "../api/objects/post";
 import { computeMinMax } from "../helpers/collection_helpers";
 import { AgeIn, timeString, toISOFormatIfExists } from "../helpers/time_helpers";
 import { logger } from "./loggers";
 import type { AlgorithmState } from "./state";
-import type { TootSource } from "../types";
+import type { PostSource } from "../types";
 import { getSourceStats, type SourceStats } from "./source_stats";
 
 export function mostRecentHomeTootAt(state: AlgorithmState): Date | null {
@@ -23,7 +23,7 @@ export function mostRecentHomeTootAgeInSeconds(
 	const mostRecentAt = mostRecentHomeTootAt(state);
 	if (!mostRecentAt) return null;
 	logger.trace(
-		`feed is ${AgeIn.minutes(mostRecentAt).toFixed(2)} min old, most recent home toot: ${timeString(mostRecentAt)}`,
+		`feed is ${AgeIn.minutes(mostRecentAt).toFixed(2)} min old, most recent home post: ${timeString(mostRecentAt)}`,
 	);
 	return AgeIn.seconds(mostRecentAt);
 }
@@ -34,10 +34,10 @@ export function getDataStats(state: AlgorithmState): {
 	unseenTotal: number;
 	oldestCachedTime: Date | null;
 	mostRecentCachedTime: Date | null;
-	sourceStats: Record<TootSource, SourceStats>;
+	sourceStats: Record<PostSource, SourceStats>;
 } {
 	const unseenTotal = state.feed.reduce(
-		(sum, toot) => sum + ((toot.numTimesShown ?? 0) > 0 ? 0 : 1),
+		(sum, post) => sum + ((post.numTimesShown ?? 0) > 0 ? 0 : 1),
 		0,
 	);
 
@@ -45,7 +45,7 @@ export function getDataStats(state: AlgorithmState): {
 	let mostRecentCachedTime: Date | null = null;
 
 	if (state.feed.length > 0) {
-		const dates = state.feed.map((toot) => new Date(toot.createdAt));
+		const dates = state.feed.map((post) => new Date(post.createdAt));
 		mostRecentCachedTime = dates.reduce((latest, current) =>
 			current > latest ? current : latest,
 		);
@@ -74,8 +74,8 @@ export function statusDict(state: AlgorithmState): Record<string, unknown> {
 	}
 
 	return {
-		feedNumToots: state.feed.length,
-		homeFeedNumToots: state.homeFeed.length,
+		feedNumPosts: state.feed.length,
+		homeFeedNumPosts: state.homeFeed.length,
 		homeFeedMostRecentAt: toISOFormatIfExists(mostRecentTootAt),
 		homeFeedOldestAt: toISOFormatIfExists(oldestTootAt),
 		homeFeedTimespanHours: numHoursInHomeFeed
@@ -84,6 +84,6 @@ export function statusDict(state: AlgorithmState): Record<string, unknown> {
 		isLoading: state.loadingMutex.isLocked(),
 		loadingStatus: state.loadingStatus,
 		loadStartedAt: toISOFormatIfExists(state.loadStartedAt),
-		minMaxScores: computeMinMax(state.feed, (toot) => toot.score),
+		minMaxScores: computeMinMax(state.feed, (post) => post.score),
 	};
 }

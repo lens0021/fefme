@@ -1,6 +1,6 @@
 /**
- * Namespace for Scorers that operate on a Toot independent of the rest of the feed.
- * @module toot_scorers
+ * Namespace for Scorers that operate on a Post independent of the rest of the feed.
+ * @module post_scorers
  */
 
 import type { ScoreName } from "../enums";
@@ -9,20 +9,20 @@ import type { StringNumberDict } from "../types";
 import Scorer from "./scorer";
 
 /**
- * Base class for a {@linkcode Scorer} that can score a {@linkcode Toot} based solely on the properties of
- * that {@linkcode Toot}, optionally coupled with the fefme user's account data. Most importantly a
- * {@linkcode TootScorer} does *not* require information about any other {@linkcode Toot}s in the feed
+ * Base class for a {@linkcode Scorer} that can score a {@linkcode Post} based solely on the properties of
+ * that {@linkcode Post}, optionally coupled with the fefme user's account data. Most importantly a
+ * {@linkcode PostScorer} does *not* require information about any other {@linkcode Post}s in the feed
  * (unlike a {@linkcode FeedScorer}, which requires knowledge of the entire timeline to render a score).
- * @memberof module:toot_scorers
+ * @memberof module:post_scorers
  * @augments Scorer
  */
-export default abstract class TootScorer extends Scorer {
+export default abstract class PostScorer extends Scorer {
 	constructor(scoreName: ScoreName) {
 		super(scoreName);
 	}
 
 	/**
-	 * Calls {@linkcode TootScorer.prepareScoreData} to get any data required for scoring {@linkcode Toot} later.
+	 * Calls {@linkcode PostScorer.prepareScoreData} to get any data required for scoring {@linkcode Post} later.
 	 * NOTE: Don't overload this - {@linkcode prepareScoreData()} instead.
 	 */
 	async fetchRequiredData(): Promise<void> {
@@ -46,8 +46,8 @@ export default abstract class TootScorer extends Scorer {
 	}
 
 	/**
-	 * Can be overloaded in subclasses to set up any data required for scoring {@linkcode Toot}s.
-	 * @returns {StringNumberDict} Dictionary of data required for scoring {@linkcode Toot}s.
+	 * Can be overloaded in subclasses to set up any data required for scoring {@linkcode Post}s.
+	 * @returns {StringNumberDict} Dictionary of data required for scoring {@linkcode Post}s.
 	 */
 	async prepareScoreData(): Promise<StringNumberDict> {
 		return {};

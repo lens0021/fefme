@@ -1,38 +1,38 @@
-import type Toot from "../../api/objects/toot";
+import type Post from "../../api/objects/post";
 import { ScoreName } from "../../enums";
 /**
- * @memberof module:toot_scorers
+ * @memberof module:post_scorers
  */
-import TootScorer from "../toot_scorer";
+import PostScorer from "../post_scorer";
 
 /**
  * Random number generator to mix up the feed.
  * @class ChaosScorer
- * @memberof module:toot_scorers
+ * @memberof module:post_scorers
  * @augments Scorer
  */
-export default class ChaosScorer extends TootScorer {
+export default class ChaosScorer extends PostScorer {
 	description = "Insert Chaos into the scoring (social media ist krieg)";
 
 	constructor() {
 		super(ScoreName.CHAOS);
 	}
 
-	async _score(toot: Toot) {
+	async _score(post: Post) {
 		// Return the existing score if it exists
-		if (toot.scoreInfo?.scores) {
-			const existingScore = toot.getIndividualScore("raw", this.name);
+		if (post.scoreInfo?.scores) {
+			const existingScore = post.getIndividualScore("raw", this.name);
 			if (existingScore) return existingScore;
 		}
 
 		try {
-			return this.decimalHash(toot.realToot.content);
+			return this.decimalHash(post.realToot.content);
 		} catch (e) {
 			console.warn(
 				`Error in _score() for ${this.name}:`,
 				e,
 				`\nToot with error in ChaosScorer:`,
-				toot,
+				post,
 			);
 			return 0;
 		}

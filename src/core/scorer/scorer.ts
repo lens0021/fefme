@@ -1,11 +1,11 @@
 /**
- * @fileoverview Base class for {@linkcode Toot} scorers.
+ * @fileoverview Base class for {@linkcode Post} scorers.
  */
 import { E_CANCELED, Mutex, type MutexInterface } from "async-mutex";
 import { isFinite } from "lodash";
 
 import Storage from "../Storage";
-import type Toot from "../api/objects/toot";
+import type Post from "../api/objects/post";
 import { config } from "../config";
 import {
 	NonScoreWeightName,
@@ -34,24 +34,24 @@ const SCORE_MUTEX = new Mutex();
 
 const TRENDING_WEIGHTS = new Set([
 	ScoreName.TRENDING_TAGS,
-	ScoreName.TRENDING_TOOTS,
+	ScoreName.TRENDING_POSTS,
 ]);
 
-const scoreLogger = new Logger(LOG_PREFIX, "scoreToots");
+const scoreLogger = new Logger(LOG_PREFIX, "scorePosts");
 
 /**
- * Abstract base class for scoring {@linkcode Toot} objects.
+ * Abstract base class for scoring {@linkcode Post} objects.
  *
- * {@linkcode Scorer} implementations provide algorithms for assigning scores to {@linkcode Toot}s,
+ * {@linkcode Scorer} implementations provide algorithms for assigning scores to {@linkcode Post}s,
  * which are used for ranking and filtering feeds. This class manages scorer state, logging, and
- * provides a public API for scoring, as well as static utilities for scoring arrays of {@linkcode Toot}s.
+ * provides a public API for scoring, as well as static utilities for scoring arrays of {@linkcode Post}s.
  *
  * @abstract
  * @property {string} description - Description of the scoring algorithm.
- * @property {boolean} isReady - True if the scorer is ready to score toots.
+ * @property {boolean} isReady - True if the scorer is ready to score posts.
  * @property {Logger} logger - Logger instance for this scorer.
  * @property {ScoreName} name - The name/key of this scorer.
- * @property {StringNumberDict} scoreData - Background data used to score a toot.
+ * @property {StringNumberDict} scoreData - Background data used to score a post.
  */
 export default abstract class Scorer {
 	abstract description: string;
@@ -59,7 +59,7 @@ export default abstract class Scorer {
 	isReady = false; // Set to true when the scorer is ready to score
 	logger: Logger;
 	name: ScoreName;
-	scoreData: StringNumberDict = {}; // Background data used to score a toot
+	scoreData: StringNumberDict = {}; // Background data used to score a post
 
 	/**
 	 * @param {ScoreName} name - The name/key of this scorer.
@@ -85,16 +85,16 @@ export default abstract class Scorer {
 	}
 
 	/**
-	 * Public API for scoring a {@linkcode Toot}.
-	 * @param {Toot} toot - The toot to score.
-	 * @returns {Promise<number>} The computed score for the toot or 0 if not ready.
+	 * Public API for scoring a {@linkcode Post}.
+	 * @param {Post} post - The post to score.
+	 * @returns {Promise<number>} The computed score for the post or 0 if not ready.
 	 */
-	async score(toot: Toot): Promise<number> {
+	async score(post: Post): Promise<number> {
 		if (this.isReady) {
-			return await this._score(toot);
-		} else if (toot.scoreInfo) {
-			const existingScore = toot.getIndividualScore("raw", this.name);
-			this.logger.deep(`Not ready but toot already scored ${existingScore}`);
+			return await this._score(post);
+		} else if (post.scoreInfo) {
+			const existingScore = post.getIndividualScore("raw", this.name);
+			this.logger.deep(`Not ready but post already scored ${existingScore}`);
 			return existingScore;
 		} else {
 			this.logger.deep(`Not ready and no existing scoreInfo, scoring 0...`);
@@ -105,27 +105,27 @@ export default abstract class Scorer {
 	/**
 	 * Actual implementation of the scoring algorithm. Must be implemented in subclasses.
 	 * @abstract
-	 * @param {Toot} _toot - The toot to score.
-	 * @returns {Promise<number>} The computed score for the toot.
+	 * @param {Post} _post - The post to score.
+	 * @returns {Promise<number>} The computed score for the post.
 	 */
-	abstract _score(_toot: Toot): Promise<number>;
+	abstract _score(_post: Post): Promise<number>;
 
 	//////////////////////////////
 	//   Static class methods   //
 	//////////////////////////////
 
 	/**
-	 * Scores and returns an array of {@linkcode Toot}s sorted by score (descending). Does NOT mutate the input
+	 * Scores and returns an array of {@linkcode Post}s sorted by score (descending). Does NOT mutate the input
 	 * array! If you need the sorted array you need to use the return value.
 	 * @static
-	 * @param {Toot[]} toots - Array of toots to score.
+	 * @param {Post[]} posts - Array of posts to score.
 	 * @param {boolean} [isScoringFeed] - If true, refreshes feed scorer data and locks scoring.
-	 * @returns {Promise<Toot[]>} Array of scored and sorted toots.
+	 * @returns {Promise<Post[]>} Array of scored and sorted posts.
 	 */
-	static async scoreToots(
-		toots: Toot[],
+	static async scorePosts(
+		posts: Post[],
 		isScoringFeed?: boolean,
-	): Promise<Toot[]> {
+	): Promise<Post[]> {
 		const scorers = ScorerCache.weightedScorers;
 		const startedAt = new Date();
 
@@ -140,13 +140,13 @@ export default abstract class Scorer {
 				SCORE_MUTEX.cancel();
 				releaseMutex = await SCORE_MUTEX.acquire();
 				ScorerCache.feedScorers.forEach((scorer) =>
-					scorer.extractScoreDataFromFeed(toots),
+					scorer.extractScoreDataFromFeed(posts),
 				);
 			}
 
 			try {
-				// Score the toots asynchronously in batches
-				await batchMap(toots, (t) => this.decorateWithScoreInfo(t, scorers), {
+				// Score the posts asynchronously in batches
+				await batchMap(posts, (t) => this.decorateWithScoreInfo(t, scorers), {
 					logger: scoreLogger,
 				});
 			} finally {
@@ -155,9 +155,9 @@ export default abstract class Scorer {
 
 			// Sort feed based on score from high to low and return
 			scoreLogger.trace(
-				`Scored ${toots.length} toots ${ageString(startedAt)} (${scorers.length} scorers)`,
+				`Scored ${posts.length} posts ${ageString(startedAt)} (${scorers.length} scorers)`,
 			);
-			toots = toots.toSorted((a, b) => b.score - a.score);
+			posts = posts.toSorted((a, b) => b.score - a.score);
 		} catch (e) {
 			if (e == E_CANCELED) {
 				scoreLogger.trace(`Mutex cancellation...`);
@@ -166,7 +166,7 @@ export default abstract class Scorer {
 			}
 		}
 
-		return toots;
+		return posts;
 	}
 
 	/**
@@ -204,18 +204,18 @@ export default abstract class Scorer {
 	////////////////////////////////
 
 	/**
-	 * Adds all score info to a {@linkcode Toot}'s {@linkcode scoreInfo} property.
+	 * Adds all score info to a {@linkcode Post}'s {@linkcode scoreInfo} property.
 	 * @private
 	 * @static
-	 * @param {Toot} toot - The toot to decorate.
+	 * @param {Post} post - The post to decorate.
 	 * @param {Scorer[]} scorers - Array of scorer instances.
 	 * @returns {Promise<void>}
 	 */
 	private static async decorateWithScoreInfo(
-		toot: Toot,
+		post: Post,
 		scorers: Scorer[],
 	): Promise<void> {
-		const rawestScores = await Promise.all(scorers.map((s) => s.score(toot)));
+		const rawestScores = await Promise.all(scorers.map((s) => s.score(post)));
 
 		// Find non scorer weights
 		const userWeights = await Storage.getWeights();
@@ -232,7 +232,7 @@ export default abstract class Scorer {
 			outlierDampener = 1; // Prevent division by zero
 		}
 
-		// Compute a weighted score for a toot by multiplying the value of each scorable property's numeric
+		// Compute a weighted score for a post by multiplying the value of each scorable property's numeric
 		// score by the user's chosen weighting (the one configured with the GUI sliders) for that property.
 		const scores: TootScores = scorers.reduce((scoreDict, scorer, i) => {
 			const rawScore = rawestScores[i] || 0;
@@ -257,7 +257,7 @@ export default abstract class Scorer {
 
 		// Multiple weighted score by time decay penalty to get a final weightedScore
 		const decayExponent =
-			-1 * Math.pow(toot.ageInHours, config.scoring.timeDecayExponent);
+			-1 * Math.pow(post.ageInHours, config.scoring.timeDecayExponent);
 		const timeDecayMultiplier = Math.pow(timeDecayWeight + 1, decayExponent);
 		const weightedScore = this.sumScores(scores, "weighted");
 		const score = weightedScore * timeDecayMultiplier;
@@ -273,7 +273,7 @@ export default abstract class Scorer {
 		} as TootScore;
 
 		// TODO: duping the score to realToot is a hack that sucks
-		toot.realToot.scoreInfo = toot.scoreInfo = scoreInfo;
+		post.realToot.scoreInfo = post.scoreInfo = scoreInfo;
 	}
 
 	/**

@@ -8,15 +8,15 @@ import { Tooltip } from "react-tooltip";
 import {
 	type BooleanFilter,
 	BooleanFilterName,
-	TagTootsCategory,
+	TagPostsCategory,
 } from "../../core/index";
 
 import { config } from "../../config";
 import { getLogger } from "../../helpers/log_helpers";
 import {
-	computeMinTootsDefaultValue,
-	computeMinTootsMaxValue,
-} from "../../helpers/min_toots";
+	computeMinPostsDefaultValue,
+	computeMinPostsMaxValue,
+} from "../../helpers/min_posts";
 import { SwitchType } from "../../helpers/styles";
 import { createSwitchFactory } from "../../helpers/ui";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
@@ -24,7 +24,7 @@ import Accordion from "../helpers/Accordion";
 import FilterCheckboxGrid from "./filters/FilterCheckboxGrid";
 import HeaderSwitch from "./filters/HeaderSwitch";
 
-export type TagHighlightSwitchState = Record<TagTootsCategory, boolean>;
+export type TagHighlightSwitchState = Record<TagPostsCategory, boolean>;
 
 export type HeaderSwitchState = {
 	readonly [SwitchType.HIGHLIGHTS_ONLY]?: boolean;
@@ -37,9 +37,9 @@ const DEFAULT_SWITCH_STATE: HeaderSwitchState = {
 };
 
 const DEFAULT_TAG_SWITCH_STATE: TagHighlightSwitchState = {
-	[TagTootsCategory.FAVOURITED]: true,
-	[TagTootsCategory.PARTICIPATED]: true,
-	[TagTootsCategory.TRENDING]: true,
+	[TagPostsCategory.FAVOURITED]: true,
+	[TagPostsCategory.PARTICIPATED]: true,
+	[TagPostsCategory.TRENDING]: true,
 };
 
 interface BooleanFilterAccordionProps {
@@ -66,26 +66,26 @@ export default function BooleanFilterAccordionSection(
 	);
 	let footerSwitches: ReactElement[] | null = null;
 
-	const minTootsSliderDefaultValue: number = useMemo(
-		() => computeMinTootsDefaultValue(filter.options, filter.propertyName),
+	const minPostsSliderDefaultValue: number = useMemo(
+		() => computeMinPostsDefaultValue(filter.options, filter.propertyName),
 		[filter.options, filter.options.objs, filter.propertyName],
 	);
-	const minTootsMaxValue = useMemo(
-		() => computeMinTootsMaxValue(filter.options, filter.propertyName),
+	const minPostsMaxValue = useMemo(
+		() => computeMinPostsMaxValue(filter.options, filter.propertyName),
 		[filter.options, filter.options.objs, filter.propertyName],
 	);
 	const highlightTooltips =
 		booleanFiltersConfig.optionsFormatting[filter.propertyName]?.tooltips;
-	const minTootsTooltipDelay =
-		booleanFiltersConfig.minTootsSlider.tooltipHoverDelay;
+	const minPostsTooltipDelay =
+		booleanFiltersConfig.minPostsSlider.tooltipHoverDelay;
 
-	const minTootsState = useState<number>(minTootsSliderDefaultValue);
+	const minPostsState = useState<number>(minPostsSliderDefaultValue);
 
-	if (minTootsState[0] === 0 && minTootsSliderDefaultValue > 0) {
+	if (minPostsState[0] === 0 && minPostsSliderDefaultValue > 0) {
 		logger.trace(
-			`Updating minToots from default of 0 to ${minTootsSliderDefaultValue}`,
+			`Updating minPosts from default of 0 to ${minPostsSliderDefaultValue}`,
 		);
-		minTootsState[1](minTootsSliderDefaultValue); // equivalent of setMinToots() if setMinToots was a variable
+		minPostsState[1](minPostsSliderDefaultValue); // equivalent of setMinPosts() if setMinPosts was a variable
 	}
 
 	const makeHeaderSwitch = createSwitchFactory(
@@ -105,14 +105,14 @@ export default function BooleanFilterAccordionSection(
 		}
 
 		// Add a slider and tooltip for minimum # of posts if there's enough options in the panel to justify it
-		if (minTootsSliderDefaultValue > 0) {
-			const tooltipAnchor = `${filter.propertyName}-min-toots-slider-tooltip`;
+		if (minPostsSliderDefaultValue > 0) {
+			const tooltipAnchor = `${filter.propertyName}-min-posts-slider-tooltip`;
 			const pluralizedPanelTitle = `${filter.propertyName}s`.toLowerCase();
 			_headerSwitches = _headerSwitches.concat(
-				<div key={`${filter.propertyName}-minTootsSlider`} className="w-full">
+				<div key={`${filter.propertyName}-minPostsSlider`} className="w-full">
 					<Tooltip
 						className="font-normal z-[2000] max-w-[calc(100vw-2rem)] whitespace-normal break-words"
-						delayShow={minTootsTooltipDelay}
+						delayShow={minPostsTooltipDelay}
 						id={tooltipAnchor}
 						place="bottom"
 					/>
@@ -121,7 +121,7 @@ export default function BooleanFilterAccordionSection(
 						type="button"
 						className="text-left w-full"
 						data-tooltip-id={tooltipAnchor}
-						data-tooltip-content={`Hide ${pluralizedPanelTitle} with less than ${minTootsState[0]} posts`}
+						data-tooltip-content={`Hide ${pluralizedPanelTitle} with less than ${minPostsState[0]} posts`}
 					>
 						<div className="me-2">
 							<div className="flex flex-col gap-2 text-xs">
@@ -130,12 +130,12 @@ export default function BooleanFilterAccordionSection(
 										type="range"
 										className="custom-slider w-full"
 										min={1}
-										max={minTootsMaxValue}
+										max={minPostsMaxValue}
 										onChange={(e) =>
-											minTootsState[1](Number.parseInt(e.target.value, 10))
+											minPostsState[1](Number.parseInt(e.target.value, 10))
 										}
 										step={1}
-										value={minTootsState[0]}
+										value={minPostsState[0]}
 									/>
 								</div>
 
@@ -155,11 +155,11 @@ export default function BooleanFilterAccordionSection(
 	}, [
 		filter,
 		highlightTooltips,
-		minTootsTooltipDelay,
+		minPostsTooltipDelay,
 		makeHeaderSwitch,
-		minTootsMaxValue,
-		minTootsSliderDefaultValue,
-		minTootsState[0],
+		minPostsMaxValue,
+		minPostsSliderDefaultValue,
+		minPostsState[0],
 	]);
 
 	const makeFooterSwitch = createSwitchFactory(
@@ -169,7 +169,7 @@ export default function BooleanFilterAccordionSection(
 	);
 
 	if (filter.propertyName === BooleanFilterName.HASHTAG) {
-		footerSwitches = Object.values(TagTootsCategory).map((k) =>
+		footerSwitches = Object.values(TagPostsCategory).map((k) =>
 			makeFooterSwitch(k),
 		);
 	}
@@ -187,7 +187,7 @@ export default function BooleanFilterAccordionSection(
 			<FilterCheckboxGrid
 				filter={filter}
 				highlightsOnly={switchState[SwitchType.HIGHLIGHTS_ONLY]}
-				minToots={minTootsState[0]}
+				minPosts={minPostsState[0]}
 				sortByCount={switchState[SwitchType.SORT_BY_COUNT]}
 				tagSwitchState={tagSwitchState}
 			/>

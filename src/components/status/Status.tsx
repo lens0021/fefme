@@ -26,7 +26,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import parse from "html-react-parser";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import { Tooltip } from "react-tooltip";
-import { AgeIn, type Toot, timeString } from "../../core/index";
+import { AgeIn, type Post, timeString } from "../../core/index";
 
 import { config } from "../../config";
 import { executeWithLoadingState } from "../../helpers/async_helpers";
@@ -102,9 +102,9 @@ interface StatusComponentProps {
 	fontColor?: CSSProperties["color"];
 	isLoadingThread?: boolean;
 	setIsLoadingThread?: (isLoading: boolean) => void;
-	setThread?: (toots: Toot[]) => void;
+	setThread?: (posts: Post[]) => void;
 	showLinkPreviews?: boolean;
-	status: Toot;
+	status: Post;
 }
 
 export default function StatusComponent(props: StatusComponentProps) {
@@ -122,29 +122,29 @@ export default function StatusComponent(props: StatusComponentProps) {
 		"text-[15px] leading-relaxed text-[color:var(--color-fg)] break-words [&_a]:text-[color:var(--color-primary)] [&_a]:break-all [&_a:hover]:underline [&_p]:mb-2 [&_p:last-child]:mb-0";
 	const fontStyle = fontColor ? { color: fontColor } : {};
 
-	// If it's a retoot set 'toot' to the original post
-	const toot = status.realToot;
+	// If it's a boost set 'post' to the original post
+	const post = status.realToot;
 	const sourceLabels = useMemo(() => {
-		const sources = toot.sources ?? [];
+		const sources = post.sources ?? [];
 		const uniqueSources = Array.from(new Set(sources));
 		return uniqueSources.map(formatSourceLabel);
-	}, [toot.sources]);
+	}, [post.sources]);
 
-	if (!toot.mediaAttachments) {
+	if (!post.mediaAttachments) {
 		logger.error(
 			"StatusComponent received post with no mediaAttachments:",
-			toot,
+			post,
 		);
 	}
 
-	const hasAttachments = (toot.mediaAttachments?.length || 0) > 0;
-	const isReblog = toot.reblogsBy.length > 0;
-	const authorNameHTML = toot.account.displayNameFullHTML(
+	const hasAttachments = (post.mediaAttachments?.length || 0) > 0;
+	const isReblog = post.reblogsBy.length > 0;
+	const authorNameHTML = post.account.displayNameFullHTML(
 		config.theme.defaultFontSize,
 	);
-	const ariaLabel = `${toot.account.displayName}, ${toot.account.note} ${toot.account.webfingerURI}`;
+	const ariaLabel = `${post.account.displayName}, ${post.account.note} ${post.account.webfingerURI}`;
 	const style: CSSProperties = {
-		backgroundColor: toot.isDM
+		backgroundColor: post.isDM
 			? config.timeline.dmBackgroundColor
 			: "var(--color-card-bg)",
 		borderColor: "var(--color-border)",
@@ -161,23 +161,23 @@ export default function StatusComponent(props: StatusComponentProps) {
 
 		// Pre-emptively resolve the post ID as it appears on screen to speed up future interactions
 		// TODO: disabled this for now as it increases storage demands for small instances
-		// toot.resolveID().catch((e) => logger.error(`Error resolving toot ID: ${toot.description}`, e));
-		const incrementSeen = (target: Toot) => {
+		// post.resolveID().catch((e) => logger.error(`Error resolving post ID: ${post.description}`, e));
+		const incrementSeen = (target: Post) => {
 			target.numTimesShown = (target.numTimesShown || 0) + 1;
 		};
 		incrementSeen(status);
-		if (status !== toot) {
-			incrementSeen(toot);
+		if (status !== post) {
+			incrementSeen(post);
 		}
 
 		algorithm?.saveTimelineToCache?.();
-	}, [algorithm, isLoading, isOnScreen, status, toot]);
+	}, [algorithm, isLoading, isOnScreen, status, post]);
 
-	// Build the account link(s) for the reblogger(s) that appears at top of a retoot
+	// Build the account link(s) for the reblogger(s) that appears at top of a boost
 	const rebloggersLinks = useMemo(
 		() => (
 			<span>
-				{toot.reblogsBy.map((account, i) => {
+				{post.reblogsBy.map((account, i) => {
 					const rebloggerKey = account.id ?? account.webfingerURI;
 					const rebloggerLink = (
 						<NewTabLink
@@ -189,7 +189,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 								<strong>
 									{parse(
 										account.displayNameWithEmojis(
-											config.theme.retooterFontSize,
+											config.theme.boosterFontSize,
 										),
 									)}
 								</strong>
@@ -197,14 +197,14 @@ export default function StatusComponent(props: StatusComponentProps) {
 						</NewTabLink>
 					);
 
-					return i < toot.reblogsBy.length - 1
+					return i < post.reblogsBy.length - 1
 						? [rebloggerLink, ", "]
 						: rebloggerLink;
 				})}{" "}
 				boosted
 			</span>
 		),
-		[toot.reblogsBy],
+		[post.reblogsBy],
 	);
 
 	// Construct a colored font awesome icon to indicate some kind of property of the post
@@ -215,13 +215,13 @@ export default function StatusComponent(props: StatusComponentProps) {
 			let color = iconInfo.color;
 
 			if (iconType === InfoIconType.Edited) {
-				title += ` ${timeString(toot.editedAt)}`;
+				title += ` ${timeString(post.editedAt)}`;
 			} else if (iconType === InfoIconType.Hashtags) {
-				title = toot.containsTagsMsg();
+				title = post.containsTagsMsg();
 
-				if (toot.followedTags?.length) {
+				if (post.followedTags?.length) {
 					color = config.theme.followedTagColor;
-				} else if (toot.trendingTags?.length) {
+				} else if (post.trendingTags?.length) {
 					color = config.theme.trendingTagColor;
 				}
 			}
@@ -241,7 +241,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 				</span>
 			);
 		},
-		[toot, toot.editedAt, toot.followedTags, toot.trendingTags],
+		[post, post.editedAt, post.followedTags, post.trendingTags],
 	);
 
 	// Build an action button (reply, reblog, fave, etc) that appears at the bottom of a post
@@ -249,7 +249,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 		action: ButtonAction,
 		onClick?: (e: React.MouseEvent) => void,
 	) => {
-		return <ActionButton action={action} onClick={onClick} toot={toot} />;
+		return <ActionButton action={action} onClick={onClick} post={post} />;
 	};
 
 	return (
@@ -284,7 +284,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 									<div>
 										<strong>Final Score:</strong>{" "}
 										<code className="rounded bg-[color:var(--color-muted)] px-2 py-1 text-[color:var(--color-fg)]">
-											{formatScore(toot.scoreInfo.score)}
+											{formatScore(post.scoreInfo.score)}
 										</code>
 									</div>
 								</div>
@@ -299,7 +299,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 						</div>
 
 						<div className="space-y-3">
-							{Object.entries(toot.scoreInfo?.scores ?? {}).map(
+							{Object.entries(post.scoreInfo?.scores ?? {}).map(
 								([key, value]) => {
 									if (value.raw === 0 && value.weighted === 0) return null;
 
@@ -338,10 +338,10 @@ export default function StatusComponent(props: StatusComponentProps) {
 						<div className="mt-4 text-xs text-[color:var(--color-muted-fg)]">
 							<div>Note: Only showing categories with non-zero scores</div>
 							<div className="mt-1">
-								Raw: {formatScore(toot.scoreInfo.rawScore)} · Weighted:{" "}
-								{formatScore(toot.scoreInfo.weightedScore)} · Time decay:{" "}
-								{formatScore(toot.scoreInfo.timeDecayMultiplier)} · Trending:{" "}
-								{formatScore(toot.scoreInfo.trendingMultiplier)}
+								Raw: {formatScore(post.scoreInfo.rawScore)} · Weighted:{" "}
+								{formatScore(post.scoreInfo.weightedScore)} · Time decay:{" "}
+								{formatScore(post.scoreInfo.timeDecayMultiplier)} · Trending:{" "}
+								{formatScore(post.scoreInfo.trendingMultiplier)}
 							</div>
 						</div>
 					</div>
@@ -369,15 +369,15 @@ export default function StatusComponent(props: StatusComponentProps) {
 						{/* Top right icons + timestamp that link to the post */}
 						<div className="flex items-center gap-2 text-xs text-[color:var(--color-muted-fg)]">
 							<span className="inline-flex items-center gap-1">
-								{toot.editedAt && infoIcon(InfoIconType.Edited)}
-								{(toot.numTimesShown || 0) > 0 && infoIcon(InfoIconType.Read)}
-								{toot.inReplyToAccountId && infoIcon(InfoIconType.Reply)}
-								{(toot.trendingRank || 0) > 0 &&
+								{post.editedAt && infoIcon(InfoIconType.Edited)}
+								{(post.numTimesShown || 0) > 0 && infoIcon(InfoIconType.Read)}
+								{post.inReplyToAccountId && infoIcon(InfoIconType.Reply)}
+								{(post.trendingRank || 0) > 0 &&
 									infoIcon(InfoIconType.TrendingToot)}
-								{toot.containsUserMention() && infoIcon(InfoIconType.Mention)}
-								{toot.containsTagsMsg() && infoIcon(InfoIconType.Hashtags)}
-								{toot.isDM && infoIcon(InfoIconType.DM)}
-								{toot.account.bot && infoIcon(InfoIconType.Bot)}
+								{post.containsUserMention() && infoIcon(InfoIconType.Mention)}
+								{post.containsTagsMsg() && infoIcon(InfoIconType.Hashtags)}
+								{post.isDM && infoIcon(InfoIconType.DM)}
+								{post.account.bot && infoIcon(InfoIconType.Bot)}
 							</span>
 
 							<span className="flex flex-wrap items-center gap-1 text-[11px] text-[color:var(--color-muted-fg)]">
@@ -400,7 +400,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 								type="button"
 								className="inline-flex items-center gap-2 hover:text-[color:var(--color-fg)]"
 								onClick={(e) => {
-									openToot(toot, e, isGoToSocialUser).catch((err) => {
+									openToot(post, e, isGoToSocialUser).catch((err) => {
 										logAndSetFormattedError({
 											errorObj: err,
 											msg: "Failed to resolve post ID!",
@@ -408,29 +408,29 @@ export default function StatusComponent(props: StatusComponentProps) {
 										});
 									});
 								}}
-								title={timeString(toot.createdAt)}
+								title={timeString(post.createdAt)}
 							>
-								<time dateTime={toot.createdAt}>
-									{timeString(toot.createdAt)}
+								<time dateTime={post.createdAt}>
+									{timeString(post.createdAt)}
 								</time>
 								<span className="text-[color:var(--color-muted-fg)]">
-									({formatRelativeTime(toot.createdAt)})
+									({formatRelativeTime(post.createdAt)})
 								</span>
 							</button>
 						</div>
 
 						{/* Account name + avatar */}
 						<div
-							title={toot.account.webfingerURI}
+							title={post.account.webfingerURI}
 							className="flex items-center gap-3"
 						>
 							<NewTabLink
-								href={toot.account.localServerUrl}
+								href={post.account.localServerUrl}
 								className="block h-12 w-12 overflow-hidden rounded-full bg-[color:var(--color-muted)]"
 							>
 								<LazyLoadImage
-									src={toot.account.avatar}
-									alt={`${toot.account.webfingerURI}`}
+									src={post.account.avatar}
+									alt={`${post.account.webfingerURI}`}
 								/>
 							</NewTabLink>
 
@@ -441,18 +441,18 @@ export default function StatusComponent(props: StatusComponentProps) {
 										className="flex items-center gap-1 text-sm font-semibold"
 									>
 										<NewTabLink
-											href={toot.account.localServerUrl}
+											href={post.account.localServerUrl}
 											className="text-[color:var(--color-fg)] no-underline"
 											style={fontStyle}
 										>
 											{parse(
-												toot.account.displayNameWithEmojis(
+												post.account.displayNameWithEmojis(
 													config.theme.defaultFontSize,
 												),
 											)}
 										</NewTabLink>
 
-										{toot.account.fields
+										{post.account.fields
 											.filter((f) => f.verifiedAt)
 											.map((f, i) => (
 												<span
@@ -473,7 +473,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 									key="acctdisplay"
 									className="flex flex-wrap items-center gap-2 text-xs text-[color:var(--color-muted-fg)]"
 								>
-									@{toot.account.webfingerURI}
+									@{post.account.webfingerURI}
 								</span>
 							</span>
 						</div>
@@ -481,43 +481,43 @@ export default function StatusComponent(props: StatusComponentProps) {
 
 					{/* Text content of the post */}
 					<div className={contentClass} style={fontStyle}>
-						<div className={contentClass} lang={toot.language}>
+						<div className={contentClass} lang={post.language}>
 							{parse(
-								toot.contentNonTagsParagraphs(config.theme.defaultFontSize),
+								post.contentNonTagsParagraphs(config.theme.defaultFontSize),
 							)}
 						</div>
 					</div>
 
 					{/* Preview card and attachment display (media attachments are preferred over preview cards) */}
-					{toot.card && !hasAttachments && (
-						<PreviewCard card={toot.card} showLinkPreviews={showLinkPreviews} />
+					{post.card && !hasAttachments && (
+						<PreviewCard card={post.card} showLinkPreviews={showLinkPreviews} />
 					)}
-					{hasAttachments && <MultimediaNode toot={toot} />}
-					{toot.poll && <Poll poll={toot.poll} />}
+					{hasAttachments && <MultimediaNode post={post} />}
+					{post.poll && <Poll poll={post.poll} />}
 
 					{/* Tags in smaller font, if they make up the entirety of the last paragraph */}
-					{toot.contentTagsParagraph && (
+					{post.contentTagsParagraph && (
 						<div className={`${contentClass} pt-[12px]`}>
 							<span
 								className="text-[#636f7a]"
 								style={{ fontSize: config.theme.footerHashtagsFontSize }}
 							>
-								{parse(toot.contentTagsParagraph)}
+								{parse(post.contentTagsParagraph)}
 							</span>
 						</div>
 					)}
 
-					{(toot.repliesCount > 0 || !!toot.inReplyToAccountId) && (
+					{(post.repliesCount > 0 || !!post.inReplyToAccountId) && (
 						<p className="pt-2">
 							<button
 								type="button"
 								onClick={(e) => {
-									openToot(toot, e, isGoToSocialUser).catch((err) => {
+									openToot(post, e, isGoToSocialUser).catch((err) => {
 										logger.warn(
-											"Failed to resolve toot, opening original URL instead:",
+											"Failed to resolve post, opening original URL instead:",
 											err,
 										);
-										window.open(toot.url, "_blank");
+										window.open(post.url, "_blank");
 									});
 								}}
 								className="text-gray-500 text-[11px] p-0 border-0 bg-transparent cursor-pointer"
@@ -527,13 +527,13 @@ export default function StatusComponent(props: StatusComponentProps) {
 						</p>
 					)}
 
-					{/* Actions (retoot, favorite, show score, etc) that appear in bottom panel of post */}
+					{/* Actions (boost, favorite, show score, etc) that appear in bottom panel of post */}
 					<div
 						className="flex flex-wrap items-center justify-between gap-2"
 						ref={statusRef}
 					>
 						<div className="flex flex-wrap items-center gap-2">
-							{!toot.isDM && buildActionButton(TootAction.Reblog)}
+							{!post.isDM && buildActionButton(TootAction.Reblog)}
 							{buildActionButton(TootAction.Favourite)}
 							{buildActionButton(TootAction.Bookmark)}
 						</div>

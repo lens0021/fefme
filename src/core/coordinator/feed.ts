@@ -6,88 +6,88 @@ import { updateBooleanFilterOptions } from "../filters/feed_filters";
 import { lockExecution } from "../helpers/mutex_helpers";
 import { AgeIn, ageString } from "../helpers/time_helpers";
 import { Logger } from "../helpers/logger";
-import Toot from "../api/objects/toot";
+import Post from "../api/objects/post";
 import { throwIfAccessTokenRevoked } from "../api/errors";
 import { scoreAndFilterFeed } from "./scoring";
 import { loggers, logger } from "./loggers";
 import { launchBackgroundPollers } from "./background";
 import { mostRecentHomeTootAt } from "./stats";
 import type { AlgorithmState } from "./state";
-import type { TootSource } from "../types";
+import type { PostSource } from "../types";
 
-export async function fetchAndMergeToots(
+export async function fetchAndMergePosts(
 	state: AlgorithmState,
-	tootFetcher: Promise<Toot[]>,
+	tootFetcher: Promise<Post[]>,
 	logger: Logger,
-): Promise<Toot[]> {
+): Promise<Post[]> {
 	const startedAt = new Date();
-	let newToots: Toot[] = [];
+	let newPosts: Post[] = [];
 
 	try {
-		newToots = await tootFetcher;
+		newPosts = await tootFetcher;
 		logger.logTelemetry(
-			`Got ${newToots.length} toots for ${CacheKey.HOME_TIMELINE_TOOTS}`,
+			`Got ${newPosts.length} posts for ${CacheKey.HOME_TIMELINE_POSTS}`,
 			startedAt,
 		);
 	} catch (e) {
 		throwIfAccessTokenRevoked(
 			logger,
 			e,
-			`Error fetching toots ${ageString(startedAt)}`,
+			`Error fetching posts ${ageString(startedAt)}`,
 		);
 	}
 
-	await lockedMergeToFeed(state, newToots, logger);
-	return newToots;
+	await lockedMergeToFeed(state, newPosts, logger);
+	return newPosts;
 }
 
 export async function mergeExternalStatuses(
 	state: AlgorithmState,
 	statuses: mastodon.v1.Status[],
-	source: TootSource,
+	source: PostSource,
 ): Promise<void> {
 	if (!statuses?.length) return;
-	const toots = await Toot.buildToots(statuses, source);
-	await lockedMergeToFeed(state, toots, new Logger(source));
+	const posts = await Post.buildPosts(statuses, source);
+	await lockedMergeToFeed(state, posts, new Logger(source));
 }
 
 export async function lockedMergeToFeed(
 	state: AlgorithmState,
-	newToots: Toot[],
+	newPosts: Post[],
 	logger: Logger,
 ): Promise<void> {
 	const hereLogger = logger.tempLogger("lockedMergeToFeed");
 	const releaseMutex = await lockExecution(state.mergeMutex, hereLogger);
 
 	try {
-		await mergeTootsToFeed(state, newToots, logger);
-		hereLogger.trace(`Merged ${newToots.length} newToots, released mutex`);
+		await mergePostsToFeed(state, newPosts, logger);
+		hereLogger.trace(`Merged ${newPosts.length} newPosts, released mutex`);
 	} finally {
 		releaseMutex();
 	}
 }
 
-export async function mergeTootsToFeed(
+export async function mergePostsToFeed(
 	state: AlgorithmState,
-	newToots: Toot[],
+	newPosts: Post[],
 	inLogger: Logger,
 ): Promise<void> {
-	const hereLogger = inLogger.tempLogger("mergeTootsToFeed");
-	const numTootsBefore = state.feed.length;
+	const hereLogger = inLogger.tempLogger("mergePostsToFeed");
+	const numPostsBefore = state.feed.length;
 	const startedAt = new Date();
 
-	state.feed = Toot.dedupeToots([...state.feed, ...newToots], hereLogger);
-	state.numUnscannedToots += newToots.length;
+	state.feed = Post.dedupePosts([...state.feed, ...newPosts], hereLogger);
+	state.numUnscannedPosts += newPosts.length;
 
 	if (
-		state.feed.length < config.toots.minToSkipFilterUpdates ||
-		state.numUnscannedToots > config.toots.filterUpdateBatchSize
+		state.feed.length < config.posts.minToSkipFilterUpdates ||
+		state.numUnscannedPosts > config.posts.filterUpdateBatchSize
 	) {
 		await updateBooleanFilterOptions(state.filters, state.feed);
-		state.numUnscannedToots = 0;
+		state.numUnscannedPosts = 0;
 	} else {
 		logger.trace(
-			`Skipping filter update, feed length: ${state.feed.length}, unscanned toots: ${state.numUnscannedToots}`,
+			`Skipping filter update, feed length: ${state.feed.length}, unscanned posts: ${state.numUnscannedPosts}`,
 		);
 	}
 
@@ -97,7 +97,7 @@ export async function mergeTootsToFeed(
 		state.loadingStatus = statusMsgFxn(state.feed, mostRecentHomeTootAt(state));
 	}
 	hereLogger.logTelemetry(
-		`Merged ${newToots.length} new toots into ${numTootsBefore} timeline toots`,
+		`Merged ${newPosts.length} new posts into ${numPostsBefore} timeline posts`,
 		startedAt,
 	);
 }
@@ -109,15 +109,15 @@ export async function finishFeedUpdate(state: AlgorithmState): Promise<void> {
 
 	hereLogger.debug(`${state.loadingStatus}...`);
 
-	await Toot.completeToots(state.feed, hereLogger);
-	state.feed = await Toot.removeInvalidToots(state.feed, hereLogger);
+	await Post.completePosts(state.feed, hereLogger);
+	state.feed = await Post.removeInvalidPosts(state.feed, hereLogger);
 
 	await updateBooleanFilterOptions(state.filters, state.feed, true);
 	await scoreAndFilterFeed(state);
 
 	if (state.loadStartedAt) {
 		hereLogger.logTelemetry(
-			`finished home TL load w/ ${state.feed.length} toots`,
+			`finished home TL load w/ ${state.feed.length} posts`,
 			state.loadStartedAt,
 		);
 		state.lastLoadTimeInSeconds = AgeIn.seconds(state.loadStartedAt);

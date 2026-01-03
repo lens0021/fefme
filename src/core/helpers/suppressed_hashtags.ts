@@ -1,31 +1,31 @@
-import type Toot from "../api/objects/toot";
+import type Post from "../api/objects/post";
 import type { StringNumberDict, TagWithUsageCounts } from "../types";
 import { sumValues } from "./collection_helpers";
 import type { Logger } from "./logger";
 
 type TagTootUris = Record<string, Set<string>>;
 type TagLanguageCounts = Record<string, StringNumberDict>;
-type TagLanguageToots = Record<string, TagTootUris>;
+type TagLanguagePosts = Record<string, TagTootUris>;
 
 /**
  * Helper class to track hashtags that have been suppressed due to non-Latin script language.
- * @property {TagLanguageToots} languageTagURIs - Mapping of language codes to tag names to sets of Toot URIs.
+ * @property {TagLanguagePosts} languageTagURIs - Mapping of language codes to tag names to sets of Post URIs.
  * @property {number} lastLoggedCount - The last total count of suppressed hashtags that was logged.
  */
 class SuppressedHashtags {
-	languageTagURIs: TagLanguageToots = {};
+	languageTagURIs: TagLanguagePosts = {};
 	lastLoggedCount = 0;
 
 	/**
-	 * Increment the count for a given tag and toot.
+	 * Increment the count for a given tag and post.
 	 * @param {TagWithUsageCounts} tag
-	 * @param {Toot} toot
+	 * @param {Post} post
 	 */
-	increment(tag: TagWithUsageCounts, toot: Toot): void {
+	increment(tag: TagWithUsageCounts, post: Post): void {
 		if (!tag.language) return;
 		this.languageTagURIs[tag.language] ??= {};
 		this.languageTagURIs[tag.language][tag.name] ??= new Set<string>();
-		this.languageTagURIs[tag.language][tag.name].add(toot.realURI);
+		this.languageTagURIs[tag.language][tag.name].add(post.realURI);
 	}
 
 	/**
@@ -41,14 +41,14 @@ class SuppressedHashtags {
 		}
 
 		logger.debug(
-			`Suppressed ${totalCount} non-Latin hashtags in ${numLanguages} languages on ${this.allTootURIs().size} toots:`,
+			`Suppressed ${totalCount} non-Latin hashtags in ${numLanguages} languages on ${this.allTootURIs().size} posts:`,
 			this.tagLanguageCounts(),
 		);
 
 		this.lastLoggedCount = totalCount;
 	}
 
-	/** Set of all {@linkcode Toot} URIs that had a suppressed tag. */
+	/** Set of all {@linkcode Post} URIs that had a suppressed tag. */
 	private allTootURIs(): Set<string> {
 		return Object.values(this.languageTagURIs).reduce(
 			(uris, tagTootURIs: TagTootUris) => {
@@ -61,7 +61,7 @@ class SuppressedHashtags {
 		);
 	}
 
-	/** Count of tag {@linkcode Toot}s per language. */
+	/** Count of tag {@linkcode Post}s per language. */
 	private languageCounts(): StringNumberDict {
 		return Object.entries(this.tagLanguageCounts()).reduce(
 			(counts, [language, tagCounts]) => {
@@ -72,7 +72,7 @@ class SuppressedHashtags {
 		);
 	}
 
-	/** Count of tag {@linkcode Toot}s per language / tag. */
+	/** Count of tag {@linkcode Post}s per language / tag. */
 	private tagLanguageCounts(): TagLanguageCounts {
 		return Object.entries(this.languageTagURIs).reduce(
 			(langTagCounts, [language, tootURIs]) => {
@@ -87,8 +87,8 @@ class SuppressedHashtags {
 	 * Convert a {@linkcode TagTootUris} object to a {@linkcode StringNumberDict} w/length
 	 * of each URI string {@linkcode Set}.
 	 * @private
-	 * @param {TagTootUris} tootURIs - Mapping of tag names to sets of Toot URIs.
-	 * @returns {StringNumberDict} Mapping of tag names to counts of Toot URIs.
+	 * @param {TagTootUris} tootURIs - Mapping of tag names to sets of Post URIs.
+	 * @returns {StringNumberDict} Mapping of tag names to counts of Post URIs.
 	 */
 	private uriCounts(tootURIs: TagTootUris): StringNumberDict {
 		return Object.entries(tootURIs).reduce((acc, [tag, uris]) => {

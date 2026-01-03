@@ -3,15 +3,15 @@ import MastoApi from "../api/api";
 import { BooleanFilterOptionList } from "../api/counted_list";
 import type Account from "../api/objects/account";
 import { buildTag, isValidForSubstringSearch } from "../api/objects/tag";
-import type Toot from "../api/objects/toot";
+import type Post from "../api/objects/post";
 import type TagList from "../api/tag_list";
-import TagsForFetchingToots from "../api/tags_for_fetching_toots";
+import TagsForFetchingPosts from "../api/tags_for_fetching_posts";
 import { config } from "../config";
 import {
 	BooleanFilterName,
 	ScoreName,
 	UNKNOWN_SOURCE,
-	type TagTootsCategory,
+	type TagPostsCategory,
 } from "../enums";
 import {
 	incrementCount,
@@ -29,7 +29,7 @@ import type {
 	NumericFilters,
 	StringNumberDict,
 	TagWithUsageCounts,
-	TootNumberProp,
+	PostNumberProp,
 } from "../types";
 /**
  * @fileoverview Helpers for building and serializing a complete set of {@linkcode FeedFilterSettings}.
@@ -56,7 +56,7 @@ const logger = new Logger("feed_filters.ts");
 
 /**
  * Build a new {@linkcode FeedFilterSettings} object with {@linkcode DEFAULT_FILTERS} as the base.
- * Start with numeric & type filters. Other {@linkcode BooleanFilter}s depend on what's in the toots.
+ * Start with numeric & type filters. Other {@linkcode BooleanFilter}s depend on what's in the posts.
  * @returns {FeedFilterSettings}
  */
 export function buildNewFilterSettings(): FeedFilterSettings {
@@ -86,7 +86,7 @@ export function buildFiltersFromArgs(
 
 	filterArgs.numericFilters = filterArgs.numericFilterArgs.reduce(
 		(filters, args) => {
-			filters[args.propertyName as TootNumberProp] = new NumericFilter(args);
+			filters[args.propertyName as PostNumberProp] = new NumericFilter(args);
 			return filters;
 		},
 		{} as NumericFilters,
@@ -142,22 +142,22 @@ export function repairFilterSettings(filters: FeedFilterSettings): boolean {
 }
 
 /**
- * Compute language, app, etc. tallies for toots in feed and use the result to initialize filter options.
+ * Compute language, app, etc. tallies for posts in feed and use the result to initialize filter options.
  * Note that this shouldn't need to be called when initializing from storage because the filter options
  * will all have been stored and reloaded along with the feed that birthed those filter options.
  * @param {FeedFilterSettings} filters - The filter settings to update with new options.
- * @param {Toot[]} toots - The toots to analyze for filter options.
+ * @param {Post[]} posts - The posts to analyze for filter options.
  * @param {boolean} [scanForTags=false] - Whether to scan followed tags for counts.
  * @returns {Promise<void>} A promise that resolves when the filter options have been updated.
  */
 export async function updateBooleanFilterOptions(
 	filters: FeedFilterSettings,
-	toots: Toot[],
+	posts: Post[],
 	scanForTags = false,
 ): Promise<void> {
 	populateMissingFilters(filters); // Ensure all filters are instantiated
 	const timer = new WaitTime();
-	const tagLists = await TagsForFetchingToots.rawTagLists();
+	const tagLists = await TagsForFetchingPosts.rawTagLists();
 	const userData = await MastoApi.instance.getUserData();
 
 	const optionLists: FilterOptions = Object.values(BooleanFilterName).reduce(
@@ -180,7 +180,7 @@ export async function updateBooleanFilterOptions(
 		if (favouriteAccountProps) {
 			accountOption.isFollowed = favouriteAccountProps.isFollowed;
 			accountOption[ScoreName.FAVOURITED_ACCOUNTS] =
-				favouriteAccountProps.numToots || 0;
+				favouriteAccountProps.numPosts || 0;
 		}
 	};
 
@@ -189,7 +189,7 @@ export async function updateBooleanFilterOptions(
 			const propertyObj = tagList.getObj(tagOption.name);
 
 			if (propertyObj) {
-				tagOption[key as TagTootsCategory] = propertyObj.numToots || 0;
+				tagOption[key as TagPostsCategory] = propertyObj.numPosts || 0;
 			}
 		});
 
@@ -205,53 +205,53 @@ export async function updateBooleanFilterOptions(
 		);
 
 		if (languageUsage) {
-			languageOption[BooleanFilterName.LANGUAGE] = languageUsage.numToots || 0;
+			languageOption[BooleanFilterName.LANGUAGE] = languageUsage.numPosts || 0;
 		}
 	};
 
-	toots.forEach((toot) => {
+	posts.forEach((post) => {
 		const decorateThisAccount = (option: BooleanFilterOption) =>
-			decorateAccount(option, toot.author);
+			decorateAccount(option, post.author);
 		optionLists[BooleanFilterName.USER].incrementCount(
-			toot.author.webfingerURI,
+			post.author.webfingerURI,
 			decorateThisAccount,
 		);
 		optionLists[BooleanFilterName.APP].incrementCount(
-			toot.realToot.application.name,
+			post.realToot.application.name,
 		);
-		optionLists[BooleanFilterName.SERVER].incrementCount(toot.homeserver);
+		optionLists[BooleanFilterName.SERVER].incrementCount(post.homeserver);
 		optionLists[BooleanFilterName.LANGUAGE].incrementCount(
-			toot.realToot.language!,
+			post.realToot.language!,
 			decorateLanguage,
 		);
-		const sourceSet = new Set(toot.sources ?? []);
+		const sourceSet = new Set(post.sources ?? []);
 		if (sourceSet.size === 0) {
-			// Add "Unknown" as a source when the toot has no sources
+			// Add "Unknown" as a source when the post has no sources
 			sourceSet.add(UNKNOWN_SOURCE);
-			// Also update the toot's sources array so filters work correctly
-			toot.sources = [UNKNOWN_SOURCE];
-			if (toot.realToot && toot.realToot !== toot) {
-				toot.realToot.sources = [UNKNOWN_SOURCE];
+			// Also update the post's sources array so filters work correctly
+			post.sources = [UNKNOWN_SOURCE];
+			if (post.realToot && post.realToot !== post) {
+				post.realToot.sources = [UNKNOWN_SOURCE];
 			}
 		}
 		sourceSet.forEach((source) => {
 			optionLists[BooleanFilterName.SOURCE].incrementCount(source);
 		});
 
-		// Aggregate counts for each kind ("type") of toot
+		// Aggregate counts for each kind ("type") of post
 		Object.entries(TYPE_FILTERS).forEach(([name, typeFilter]) => {
-			if (typeFilter(toot)) {
+			if (typeFilter(post)) {
 				optionLists[BooleanFilterName.TYPE].incrementCount(name);
 			}
 		});
 
 		// Count tags // TODO: this only counts actual tags whereas the demo app filters based on
-		// containsString() so the counts don't match. To fix this we'd have to go back over the toots
+		// containsString() so the counts don't match. To fix this we'd have to go back over the posts
 		// and check for each tag but that is for now too slow.
-		toot.realToot.tags.forEach((tag) => {
+		post.realToot.tags.forEach((tag) => {
 			// Suppress non-Latin script tags unless they match the user's language
 			if (tag.language && tag.language != config.locale.language) {
-				suppressedHashtags.increment(tag, toot.realToot);
+				suppressedHashtags.increment(tag, post.realToot);
 			} else {
 				optionLists[BooleanFilterName.HASHTAG].incrementCount(
 					tag.name,
@@ -267,14 +267,14 @@ export async function updateBooleanFilterOptions(
 		optionLists[BooleanFilterName.HASHTAG] = updateHashtagCounts(
 			hashtagOptions,
 			userData.followedTags,
-			toots,
+			posts,
 		);
 	}
 
-	// Always ensure "seen" option is available, even if there are no seen toots yet
+	// Always ensure "seen" option is available, even if there are no seen posts yet
 	if (!optionLists[BooleanFilterName.TYPE].getObj("seen")) {
 		optionLists[BooleanFilterName.TYPE].addObjs([
-			{ name: "seen", numToots: 0 },
+			{ name: "seen", numPosts: 0 },
 		]);
 	}
 
@@ -319,19 +319,19 @@ function populateMissingFilters(filters: FeedFilterSettings): void {
 }
 
 /**
- * Scan a list of {@linkcode Toot}s for a set of hashtags and update their counts in the provided
- * hashtagOptions. Used to search the home timeline for Toots that contain discussion of a given
- * tag even if it's not actually tagged with it (e.g. toot mentions "AI" in the text but doesn't
+ * Scan a list of {@linkcode Post}s for a set of hashtags and update their counts in the provided
+ * hashtagOptions. Used to search the home timeline for Posts that contain discussion of a given
+ * tag even if it's not actually tagged with it (e.g. post mentions "AI" in the text but doesn't
  * contain "#AI").
  * @private
  * @param {BooleanFilterOptionList} options - Options list to update with additional hashtag matches.
  * @param {TagList} followedTags - List of followed tags to check against.
- * @param {Toot[]} toots - List of toots to scan.
+ * @param {Post[]} posts - List of posts to scan.
  */
 function updateHashtagCounts(
 	options: BooleanFilterOptionList,
 	followedTags: TagList,
-	toots: Toot[],
+	posts: Post[],
 ): BooleanFilterOptionList {
 	const startedAt = Date.now();
 	const tagsFound: StringNumberDict = {};
@@ -349,7 +349,7 @@ function updateHashtagCounts(
 		const tag: TagWithUsageCounts = {
 			...buildTag(option.name),
 			numAccounts: option.numAccounts,
-			numToots: option.numToots,
+			numPosts: option.numPosts,
 		};
 
 		// Skip invalid tags and those that don't already appear in the hashtagOptions.
@@ -357,10 +357,10 @@ function updateHashtagCounts(
 			return;
 		}
 
-		toots.forEach((toot) => {
+		posts.forEach((post) => {
 			if (
-				toot.realToot.containsTag(tag, true) &&
-				!toot.realToot.containsTag(tag)
+				post.realToot.containsTag(tag, true) &&
+				!post.realToot.containsTag(tag)
 			) {
 				allOptions.incrementCount(tag.name);
 				incrementCount(tagsFound, tag.name);
@@ -374,7 +374,7 @@ function updateHashtagCounts(
 
 	logger.info(
 		`updateHashtagCounts() found ${sumValues(tagsFound)} more matches for ${Object.keys(tagsFound).length} of` +
-			` ${allOptions.length} tags in ${toots.length} Toots ${ageString(startedAt)} (${followedTagsFound} followed tags): ` +
+			` ${allOptions.length} tags in ${posts.length} Posts ${ageString(startedAt)} (${followedTagsFound} followed tags): ` +
 			sortedDictString(tagsFound),
 	);
 

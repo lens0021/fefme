@@ -25,6 +25,6 @@ export function formatScore(score: number): number {
 		return score;
 	}
 
-	if (Math.abs(score) < 10 ** (-1 * config.toots.scoreDigits)) return score;
-	return Number(score.toPrecision(config.toots.scoreDigits));
+	if (Math.abs(score) < 10 ** (-1 * config.posts.scoreDigits)) return score;
+	return Number(score.toPrecision(config.posts.scoreDigits));
 }

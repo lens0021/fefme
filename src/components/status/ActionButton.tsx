@@ -14,7 +14,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { capitalCase } from "change-case";
-import type { Toot } from "../../core/index";
+import type { Post } from "../../core/index";
 
 import { getLogger } from "../../helpers/log_helpers";
 import { NETWORK_ERROR, scoreString } from "../../helpers/string_helpers";
@@ -71,11 +71,11 @@ const logger = getLogger("ActionButton");
 interface ActionButtonProps {
 	action: ButtonAction;
 	onClick?: (e: React.MouseEvent) => void;
-	toot: Toot;
+	post: Post;
 }
 
 export default function ActionButton(props: ActionButtonProps) {
-	const { action, onClick, toot } = props;
+	const { action, onClick, post } = props;
 	const { api } = useAlgorithm();
 	const { logAndSetFormattedError } = useError();
 
@@ -84,14 +84,14 @@ export default function ActionButton(props: ActionButtonProps) {
 	let buttonText: string;
 	const icon = actionInfo.icon;
 
-	if (actionInfo.countName && toot[actionInfo.countName] > 0) {
-		buttonText = toot[actionInfo.countName]?.toLocaleString();
+	if (actionInfo.countName && post[actionInfo.countName] > 0) {
+		buttonText = post[actionInfo.countName]?.toLocaleString();
 	} else if (action === TootAction.Score) {
-		buttonText = scoreString(toot.scoreInfo?.score);
+		buttonText = scoreString(post.scoreInfo?.score);
 	}
 
 	const [currentState, setCurrentState] = React.useState<boolean>(
-		toot[actionInfo.booleanName],
+		post[actionInfo.booleanName],
 	);
 
 	const isActive = Boolean(actionInfo.booleanName && currentState);
@@ -99,26 +99,26 @@ export default function ActionButton(props: ActionButtonProps) {
 	// Returns a function that's called when state changes for faves, bookmarks, reposts
 	const performAction = () => {
 		return () => {
-			const startingCount = toot[actionInfo.countName] || 0;
-			const startingState = !!toot[actionInfo.booleanName];
+			const startingCount = post[actionInfo.countName] || 0;
+			const startingState = !!post[actionInfo.booleanName];
 			const newState = !startingState;
 			logger.log(
 				`${action}() post (startingState: ${startingState}, count: ${startingCount}): `,
-				toot,
+				post,
 			);
 			// Optimistically update the GUI (we will reset to original state if the server call fails later)
-			toot[actionInfo.booleanName as TootBoolean] = newState;
+			post[actionInfo.booleanName as TootBoolean] = newState;
 			setCurrentState(newState);
 
 			if (newState && actionInfo.countName && action !== TootAction.Reply) {
-				toot[actionInfo.countName] = startingCount + 1;
+				post[actionInfo.countName] = startingCount + 1;
 			} else {
-				toot[actionInfo.countName] = startingCount ? startingCount - 1 : 0; // Avoid count going below 0
+				post[actionInfo.countName] = startingCount ? startingCount - 1 : 0; // Avoid count going below 0
 			}
 
 			(async () => {
 				try {
-					const selected = api.v1.statuses.$select(await toot.resolveID());
+					const selected = api.v1.statuses.$select(await post.resolveID());
 
 					if (action === TootAction.Bookmark) {
 						await (newState ? selected.bookmark() : selected.unbookmark());
@@ -134,11 +134,11 @@ export default function ActionButton(props: ActionButtonProps) {
 				} catch (error) {
 					// If there's an error, roll back the change to the original state
 					setCurrentState(startingState);
-					toot[actionInfo.booleanName as TootBoolean] = startingState;
+					post[actionInfo.booleanName as TootBoolean] = startingState;
 					let errorMsg = "";
 
 					if (actionInfo.countName) {
-						toot[actionInfo.countName] = startingCount;
+						post[actionInfo.countName] = startingCount;
 						errorMsg = `Resetting count to ${startingCount}`;
 					}
 

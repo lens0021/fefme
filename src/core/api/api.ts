@@ -11,10 +11,10 @@ import {
 	type ApiCacheKey,
 	CacheKey,
 	STORAGE_KEYS_WITH_ACCOUNTS,
-	STORAGE_KEYS_WITH_TOOTS,
+	STORAGE_KEYS_WITH_POSTS,
 	TrendingType,
 	UNIQUE_ID_PROPERTIES,
-	isTagTootsCategory,
+	isTagPostsCategory,
 	simpleCacheKeyDict,
 } from "../enums";
 import {
@@ -52,11 +52,11 @@ import type {
 import { isAccessTokenRevokedError, throwIfAccessTokenRevoked } from "./errors";
 import Account from "./objects/account";
 import { repairTag } from "./objects/tag";
-import Toot, {
+import Post, {
 	earliestTootedAt,
 	mostRecentTootedAt,
 	sortByCreatedAt,
-} from "./objects/toot";
+} from "./objects/post";
 import UserData from "./user_data";
 
 /** Paginated data retrieval method from masto.js. */
@@ -64,9 +64,9 @@ type ApiFetcher<T> = (
 	params: mastodon.DefaultPaginationParams,
 ) => mastodon.Paginator<T[], mastodon.DefaultPaginationParams>;
 
-/** Conditional type that maps mastodon.v1.Status to Toot and mastodon.v1.Account to Account. */
+/** Conditional type that maps mastodon.v1.Status to Post and mastodon.v1.Account to Account. */
 type ResponseRow<T extends ApiObj> = T extends mastodon.v1.Status
-	? Toot
+	? Post
 	: T extends mastodon.v1.Account
 		? Account
 		: T;
@@ -109,13 +109,13 @@ interface ApiParamsWithMaxID extends ApiParams {
 }
 
 /**
- * Extends ApiParamsWithMaxID with a mergeTootsToFeed function that merges fetched Toots into the main feed
+ * Extends ApiParamsWithMaxID with a mergePostsToFeed function that merges fetched Posts into the main feed
  * as they are retrieved.
  * @augments ApiParamsWithMaxID
- * @property {(toots: Toot[], logger: Logger) => Promise<void>} mergeTootsToFeed - Function to merge fetched Toots into the main feed.
+ * @property {(posts: Post[], logger: Logger) => Promise<void>} mergePostsToFeed - Function to merge fetched Posts into the main feed.
  */
 interface HomeTimelineParams extends ApiParamsWithMaxID {
-	mergeTootsToFeed: (toots: Toot[], logger: Logger) => Promise<void>;
+	mergePostsToFeed: (posts: Post[], logger: Logger) => Promise<void>;
 }
 
 /**
@@ -323,28 +323,28 @@ export default class MastoApi {
 	}
 
 	/**
-	 * Fetches the user's home timeline feed (recent toots from followed accounts and hashtags).
+	 * Fetches the user's home timeline feed (recent posts from followed accounts and hashtags).
 	 * @param {HomeTimelineParams} params - Parameters for fetching the home feed.
-	 * @returns {Promise<Toot[]>} Array of Toots in the home feed.
+	 * @returns {Promise<Post[]>} Array of Posts in the home feed.
 	 */
-	async fetchHomeFeed(params: HomeTimelineParams): Promise<Toot[]> {
-		const { maxRecords, mergeTootsToFeed, moar } = params;
-		const cacheKey = CacheKey.HOME_TIMELINE_TOOTS;
+	async fetchHomeFeed(params: HomeTimelineParams): Promise<Post[]> {
+		const { maxRecords, mergePostsToFeed, moar } = params;
+		const cacheKey = CacheKey.HOME_TIMELINE_POSTS;
 		const logger = this.loggerForParams({ ...params, cacheKey });
 		let { maxId } = params;
 
-		let homeTimelineToots = await Storage.getCoerced<Toot>(cacheKey);
-		let allNewToots: Toot[] = [];
+		let homeTimelinePosts = await Storage.getCoerced<Post>(cacheKey);
+		let allNewPosts: Post[] = [];
 		let cutoffAt = timelineCutoffAt();
-		let oldestTootStr = "no oldest toot";
+		let oldestTootStr = "no oldest post";
 		const startedAt = new Date();
 
 		if (moar) {
-			const minMaxId = findMinMaxId(homeTimelineToots);
+			const minMaxId = findMinMaxId(homeTimelinePosts);
 			if (minMaxId) maxId = minMaxId.min; // Use the min ID in the cache as the maxId for the MOAR request
-			logger.log(`Fetching more old toots (found min ID ${maxId})`);
+			logger.log(`Fetching more old posts (found min ID ${maxId})`);
 		} else {
-			const maxTootedAt = mostRecentTootedAt(homeTimelineToots);
+			const maxTootedAt = mostRecentTootedAt(homeTimelinePosts);
 			cutoffAt = maxTootedAt
 				? mostRecent(timelineCutoffAt(), maxTootedAt)!
 				: timelineCutoffAt();
@@ -353,9 +353,9 @@ export default class MastoApi {
 			);
 		}
 
-		// getApiRecords() returns Toots that haven't had completeProperties() called on them yet
-		// which we don't use because breakIf() calls mergeTootsToFeed() on each page of results
-		const _incompleteToots =
+		// getApiRecords() returns Posts that haven't had completeProperties() called on them yet
+		// which we don't use because breakIf() calls mergePostsToFeed() on each page of results
+		const _incompletePosts =
 			(await this.getApiObjsAndUpdate<mastodon.v1.Status>({
 				fetchGenerator: () => this.api.v1.timelines.home.list,
 				cacheKey: cacheKey,
@@ -368,20 +368,20 @@ export default class MastoApi {
 
 					if (!oldestTootAt) {
 						logger.warn(
-							`No new statuses in page of ${newStatuses.length} toots, halting`,
+							`No new statuses in page of ${newStatuses.length} posts, halting`,
 						);
 						return true;
 					}
 
-					oldestTootStr = `oldest toot: ${quotedISOFmt(oldestTootAt)}`;
+					oldestTootStr = `oldest post: ${quotedISOFmt(oldestTootAt)}`;
 					logger.debug(
-						`Got ${newStatuses.length} new toots, ${allStatuses.length} total (${oldestTootStr})`,
+						`Got ${newStatuses.length} new posts, ${allStatuses.length} total (${oldestTootStr})`,
 					);
-					const newToots = await Toot.buildToots(newStatuses, cacheKey);
-					await mergeTootsToFeed(newToots, logger);
-					allNewToots = allNewToots.concat(newToots);
+					const newPosts = await Post.buildPosts(newStatuses, cacheKey);
+					await mergePostsToFeed(newPosts, logger);
+					allNewPosts = allNewPosts.concat(newPosts);
 
-					// Break the toot fetching loop if we encounter a toot older than cutoffAt
+					// Break the post fetching loop if we encounter a post older than cutoffAt
 					if (oldestTootAt < cutoffAt) {
 						logger.log(
 							`Halting fetch (${oldestTootStr} <= cutoff ${quotedISOFmt(cutoffAt)})`,
@@ -389,22 +389,22 @@ export default class MastoApi {
 						return true;
 					}
 				},
-			})) as Toot[];
+			})) as Post[];
 
-		homeTimelineToots = Toot.dedupeToots(
-			[...allNewToots, ...homeTimelineToots],
+		homeTimelinePosts = Post.dedupePosts(
+			[...allNewPosts, ...homeTimelinePosts],
 			logger,
 		);
-		const msg = `Fetched ${allNewToots.length} new toots ${ageString(startedAt)} (${oldestTootStr}`;
-		logger.debug(`${msg}, home feed has ${homeTimelineToots.length} toots)`);
-		homeTimelineToots = sortByCreatedAt(homeTimelineToots).reverse(); // TODO: should we sort by score?
-		homeTimelineToots = truncateToLength(
-			homeTimelineToots,
-			config.toots.maxTimelineLength,
+		const msg = `Fetched ${allNewPosts.length} new posts ${ageString(startedAt)} (${oldestTootStr}`;
+		logger.debug(`${msg}, home feed has ${homeTimelinePosts.length} posts)`);
+		homeTimelinePosts = sortByCreatedAt(homeTimelinePosts).reverse(); // TODO: should we sort by score?
+		homeTimelinePosts = truncateToLength(
+			homeTimelinePosts,
+			config.posts.maxTimelineLength,
 			logger,
 		);
-		await Storage.set(cacheKey, homeTimelineToots);
-		return homeTimelineToots;
+		await Storage.set(cacheKey, homeTimelinePosts);
+		return homeTimelinePosts;
 	}
 
 	/**
@@ -437,36 +437,36 @@ export default class MastoApi {
 	}
 
 	/**
-	 * Generic data getter for cacheable {@linkcode Toot}s with custom fetch logic.
+	 * Generic data getter for cacheable {@linkcode Post}s with custom fetch logic.
 	 * Used for various hashtag feeds (participated, trending, favourited).
 	 * @param {() => Promise<TootLike[]>} fetchStatuses - Function to fetch statuses.
 	 * @param {ApiCacheKey} cacheKey - Cache key for storage.
 	 * @param {number} maxRecords - Maximum number of records to fetch.
-	 * @returns {Promise<Toot[]>} Array of Toot objects.
+	 * @returns {Promise<Post[]>} Array of Post objects.
 	 */
-	async getCacheableToots(
+	async getCacheablePosts(
 		fetchStatuses: () => Promise<TootLike[]>,
 		cacheKey: ApiCacheKey,
 		maxRecords: number,
-	): Promise<Toot[]> {
+	): Promise<Post[]> {
 		const logger = getLogger(cacheKey);
 		const releaseMutex = await lockExecution(this.apiMutexes[cacheKey], logger);
 		this.waitTimes[cacheKey].markStart(); // Telemetry stuff that should be removed eventually
 
 		try {
-			let toots = await Storage.getIfNotStale<Toot[]>(cacheKey);
+			let posts = await Storage.getIfNotStale<Post[]>(cacheKey);
 
-			if (!toots) {
+			if (!posts) {
 				const statuses = await fetchStatuses();
 				logger.trace(
-					`Retrieved ${statuses.length} Toots ${this.waitTimes[cacheKey].ageString()}`,
+					`Retrieved ${statuses.length} Posts ${this.waitTimes[cacheKey].ageString()}`,
 				);
-				toots = await Toot.buildToots(statuses, cacheKey);
-				toots = truncateToLength(toots, maxRecords, logger);
-				await Storage.set(cacheKey, toots);
+				posts = await Post.buildPosts(statuses, cacheKey);
+				posts = truncateToLength(posts, maxRecords, logger);
+				await Storage.set(cacheKey, posts);
 			}
 
-			return toots;
+			return posts;
 		} catch (err) {
 			// TODO: the hacky cast is because ApiCacheKey is broader than CacheKey
 			await this.handleApiError(
@@ -482,16 +482,16 @@ export default class MastoApi {
 	}
 
 	/**
-	 * Get the {@linkcode Toot}s recently favourited by the user.
+	 * Get the {@linkcode Post}s recently favourited by the user.
 	 * @param {ApiParams} [params] - Optional parameters.
-	 * @returns {Promise<Toot[]>} Array of favourited Toots.
+	 * @returns {Promise<Post[]>} Array of favourited Posts.
 	 */
-	async getFavouritedToots(params?: ApiParams): Promise<Toot[]> {
+	async getFavouritedPosts(params?: ApiParams): Promise<Post[]> {
 		return (await this.getApiObjsAndUpdate<mastodon.v1.Status>({
-			cacheKey: CacheKey.FAVOURITED_TOOTS,
+			cacheKey: CacheKey.FAVOURITED_POSTS,
 			fetchGenerator: () => this.api.v1.favourites.list,
 			...(params || {}),
-		})) as Toot[];
+		})) as Post[];
 	}
 
 	/**
@@ -541,11 +541,11 @@ export default class MastoApi {
 	}
 
 	/**
-	 * Get recent public toots from the federated timeline.
+	 * Get recent public posts from the federated timeline.
 	 * @param {object} [params] - Optional pagination params.
-	 * @param {number} [params.limit=40] - Maximum number of toots to fetch.
-	 * @param {string | number | null} [params.maxId] - Fetch toots older than this ID.
-	 * @param {string | number | null} [params.minId] - Fetch toots newer than this ID.
+	 * @param {number} [params.limit=40] - Maximum number of posts to fetch.
+	 * @param {string | number | null} [params.maxId] - Fetch posts older than this ID.
+	 * @param {string | number | null} [params.minId] - Fetch posts newer than this ID.
 	 * @returns {Promise<mastodon.v1.Status[]>} Array of raw Mastodon statuses.
 	 */
 	async getFederatedTimelineStatuses(params?: {
@@ -599,35 +599,35 @@ export default class MastoApi {
 	}
 
 	/**
-	 * Get the user's recent {@linkcode Toot}s.
+	 * Get the user's recent {@linkcode Post}s.
 	 * @param {ApiParamsWithMaxID} [params] - Optional parameters.
-	 * @returns {Promise<Toot[]>} Array of recent user Toots.
+	 * @returns {Promise<Post[]>} Array of recent user Posts.
 	 */
-	async getRecentUserToots(params?: ApiParamsWithMaxID): Promise<Toot[]> {
+	async getRecentUserPosts(params?: ApiParamsWithMaxID): Promise<Post[]> {
 		const fetchParams = {
-			cacheKey: CacheKey.RECENT_USER_TOOTS,
+			cacheKey: CacheKey.RECENT_USER_POSTS,
 			fetchGenerator: () =>
 				this.api.v1.accounts.$select(this.user.id).statuses.list,
 			...(params || {}),
 		};
 
-		let toots = (await this.getApiObjsAndUpdate<mastodon.v1.Status>(
+		let posts = (await this.getApiObjsAndUpdate<mastodon.v1.Status>(
 			fetchParams,
-		)) as Toot[];
+		)) as Post[];
 
-		// TODO: somehow my account landed in a bad state with empty non-stale array of RecentUserToots.
+		// TODO: somehow my account landed in a bad state with empty non-stale array of RecentUserPosts.
 		// That shouldn't happen but this is here in case it does.
-		if (toots.length == 0 && this.user.statusesCount) {
+		if (posts.length == 0 && this.user.statusesCount) {
 			this.logger.warn(
-				`No toots found for user ${this.user.acct} with ${this.user.statusesCount} total, busting cache`,
+				`No posts found for user ${this.user.acct} with ${this.user.statusesCount} total, busting cache`,
 			);
-			toots = (await this.getApiObjsAndUpdate<mastodon.v1.Status>({
+			posts = (await this.getApiObjsAndUpdate<mastodon.v1.Status>({
 				...fetchParams,
 				bustCache: true,
-			})) as Toot[];
+			})) as Post[];
 		}
 
-		return toots;
+		return posts;
 	}
 
 	/**
@@ -681,19 +681,19 @@ export default class MastoApi {
 	}
 
 	/**
-	 * Get the latest {@linkcode Toot}s for a given tag using both the
+	 * Get the latest {@linkcode Post}s for a given tag using both the
 	 * {@link https://docs.joinmastodon.org/methods/search/ search API} and the
 	 * {@link https://docs.joinmastodon.org/methods/v1/timelines/#tag tag timeline API}
-	 * The two APIs give results with surprisingly little overlap (~80% of toots are unique).
+	 * The two APIs give results with surprisingly little overlap (~80% of posts are unique).
 	 * @param {string} tagName - The tag to search for.
 	 * @param {Logger} logger - Logger instance for logging.
-	 * @param {number} [numToots] - Number of toots to fetch.
+	 * @param {number} [numPosts] - Number of posts to fetch.
 	 * @returns {Promise<TootLike[]>} Array of TootLike objects.
 	 */
 	async getStatusesForTag(
 		tagName: string,
 		logger: Logger,
-		numToots: number,
+		numPosts: number,
 		params?: { maxId?: string | number | null },
 	): Promise<TootLike[]> {
 		const startedAt = new Date();
@@ -701,19 +701,19 @@ export default class MastoApi {
 
 		const results = maxId
 			? await getPromiseResults<TootLike[]>([
-					this.hashtagTimelineToots(
+					this.hashtagTimelinePosts(
 						tagName,
 						logger.tempLogger("timeline"),
-						numToots,
+						numPosts,
 						maxId,
 					),
 				])
 			: await getPromiseResults<TootLike[]>([
-					this.searchForToots(tagName, logger.tempLogger("search"), numToots),
-					this.hashtagTimelineToots(
+					this.searchForPosts(tagName, logger.tempLogger("search"), numPosts),
+					this.hashtagTimelinePosts(
 						tagName,
 						logger.tempLogger("timeline"),
-						numToots,
+						numPosts,
 					),
 				]);
 
@@ -726,24 +726,24 @@ export default class MastoApi {
 				throw accessRevokedError;
 			} else {
 				this.recordApiError(
-					`Error getting toots for tag: "#${tagName}"`,
+					`Error getting posts for tag: "#${tagName}"`,
 					results.rejectedReasons,
 					logger,
 				);
 			}
 		}
 
-		const toots = results.fulfilled.flat();
+		const posts = results.fulfilled.flat();
 		const searchCount = maxId ? 0 : results.fulfilled[0]?.length || 0;
 		const timelineCount = maxId
 			? results.fulfilled[0]?.length || 0
 			: results.fulfilled[1]?.length || 0;
 		const msg =
-			`#${tagName}: search endpoint got ${searchCount} toots, ` +
+			`#${tagName}: search endpoint got ${searchCount} posts, ` +
 			`hashtag timeline got ${timelineCount} ` +
-			`${ageString(startedAt)} (total ${toots.length}, oldest=${quotedISOFmt(earliestTootedAt(toots))}`;
-		logger.trace(`${msg}, newest=${quotedISOFmt(mostRecentTootedAt(toots))})`);
-		return toots;
+			`${ageString(startedAt)} (total ${posts.length}, oldest=${quotedISOFmt(earliestTootedAt(posts))}`;
+		logger.trace(`${msg}, newest=${quotedISOFmt(mostRecentTootedAt(posts))})`);
+		return posts;
 	}
 
 	/**
@@ -770,41 +770,41 @@ export default class MastoApi {
 	}
 
 	/**
-	 * Fetch {@linkcode Toot}s from the
+	 * Fetch {@linkcode Post}s from the
 	 * {@link https://docs.joinmastodon.org/methods/v1/timelines/#tag tag timeline API}
 	 * Concurrency is managed by a semaphore.
 	 * TODO: Could maybe use min_id and max_id to avoid re-fetching the same data
-	 * @param {string} tagName - The tag to fetch toots for.
+	 * @param {string} tagName - The tag to fetch posts for.
 	 * @param {Logger} logger - Logger instance for logging.
 	 * @param {number} [maxRecords] - Maximum number of records to fetch.
-	 * @returns {Promise<Toot[]>} Array of Toots.
+	 * @returns {Promise<Post[]>} Array of Posts.
 	 */
-	async hashtagTimelineToots(
+	async hashtagTimelinePosts(
 		tagName: string,
 		logger: Logger,
 		maxRecords?: number,
 		maxId?: string | number | null,
-	): Promise<Toot[]> {
+	): Promise<Post[]> {
 		maxRecords = maxRecords || config.api.defaultRecordsPerPage;
 		const releaseSemaphore = await lockExecution(this.requestSemphore, logger);
 		const startedAt = new Date();
 
 		try {
-			const toots = await this.getApiObjsAndUpdate<mastodon.v1.Status>({
-				cacheKey: CacheKey.HASHTAG_TOOTS, // This CacheKey is just for log prefixes + signaling how to serialize
+			const posts = await this.getApiObjsAndUpdate<mastodon.v1.Status>({
+				cacheKey: CacheKey.HASHTAG_POSTS, // This CacheKey is just for log prefixes + signaling how to serialize
 				fetchGenerator: () => this.api.v1.timelines.tag.$select(tagName).list,
 				logger,
 				maxRecords,
 				maxId: maxId ?? undefined,
-				// hashtag timeline toots are not cached as a group, they're pulled in small amounts and used
-				// to create other sets of toots from a lot of small requests, e.g. PARTICIPATED_TAG_TOOTS
+				// hashtag timeline posts are not cached as a group, they're pulled in small amounts and used
+				// to create other sets of posts from a lot of small requests, e.g. PARTICIPATED_TAG_POSTS
 				skipCache: true,
 				// Concurrency is managed by the semaphore above, not the mutexes
 				skipMutex: true,
 			});
 
-			logger.deep(`Retrieved ${toots.length} toots ${ageString(startedAt)}`);
-			return toots as Toot[];
+			logger.deep(`Retrieved ${posts.length} posts ${ageString(startedAt)}`);
+			return posts as Post[];
 		} catch (e) {
 			throwIfAccessTokenRevoked(logger, e, `Failed ${ageString(startedAt)}`);
 			throw e;
@@ -898,40 +898,40 @@ export default class MastoApi {
 	}
 
 	/**
-	 * Resolves a foreign server toot URI to one on the user's local server using the v2 search API.
-	 * @param {Toot} toot - The toot to resolve.
-	 * @returns {Promise<Toot>} The resolved toot.
+	 * Resolves a foreign server post URI to one on the user's local server using the v2 search API.
+	 * @param {Post} post - The post to resolve.
+	 * @returns {Promise<Post>} The resolved post.
 	 * @example "https://fosstodon.org/@kate/114360290341300577" => "https://mastodon.social/@kate@fosstodon.org/114360290578867339"
 	 */
-	async resolveToot(toot: Toot): Promise<Toot> {
-		const logger = getLogger("resolveToot()", toot.realURI);
-		logger.trace(`called for`, toot);
-		if (toot.isLocal) return toot;
+	async resolveToot(post: Post): Promise<Post> {
+		const logger = getLogger("resolveToot()", post.realURI);
+		logger.trace(`called for`, post);
+		if (post.isLocal) return post;
 		const lookupResult = await this.api.v2.search.list({
-			q: toot.realURI,
+			q: post.realURI,
 			resolve: true,
 		});
 
 		if (!lookupResult?.statuses?.length) {
 			logger.logAndThrowError(
-				`Got bad result for "${toot.realURI}"`,
+				`Got bad result for "${post.realURI}"`,
 				lookupResult,
 			);
 		}
 
 		const resolvedStatus = lookupResult.statuses[0];
-		logger.trace(`found resolvedStatus for "${toot.realURI}":`, resolvedStatus);
-		return Toot.build(resolvedStatus as mastodon.v1.Status);
+		logger.trace(`found resolvedStatus for "${post.realURI}":`, resolvedStatus);
+		return Post.build(resolvedStatus as mastodon.v1.Status);
 	}
 
 	/**
-	 * Performs a keyword substring search for toots using the search API.
+	 * Performs a keyword substring search for posts using the search API.
 	 * @param {string} searchStr - The string to search for.
 	 * @param {Logger} logger - Logger instance for logging.
 	 * @param {number} [maxRecords] - Maximum number of records to fetch.
 	 * @returns {Promise<mastodon.v1.Status[]>} Array of status objects.
 	 */
-	async searchForToots(
+	async searchForPosts(
 		searchStr: string,
 		logger: Logger,
 		maxRecords?: number,
@@ -948,7 +948,7 @@ export default class MastoApi {
 		try {
 			const searchResult = await this.api.v2.search.list(query);
 			const statuses = searchResult.statuses;
-			logger.deep(`Retrieved ${statuses.length} toots ${ageString(startedAt)}`);
+			logger.deep(`Retrieved ${statuses.length} posts ${ageString(startedAt)}`);
 			return statuses;
 		} catch (e) {
 			throwIfAccessTokenRevoked(logger, e, `Failed ${ageString(startedAt)}`);
@@ -1081,7 +1081,7 @@ export default class MastoApi {
 
 				if (newRows.length >= maxRecords || page.length == 0 || shouldStop) {
 					const msg = `Fetch finished (${resultsMsg}, shouldStop=${shouldStop}, maxRecords=${maxRecords})`;
-					isTagTootsCategory(cacheKey) ? logger.trace(msg) : logger.debug(msg);
+					isTagPostsCategory(cacheKey) ? logger.trace(msg) : logger.debug(msg);
 					break;
 				} else if (waitTime.ageInSeconds() > config.api.maxSecondsPerPage) {
 					logger.logAndThrowError(
@@ -1108,7 +1108,7 @@ export default class MastoApi {
 				waitTime.markStart(); // Reset timer for next page
 			}
 
-			if (cacheKey != CacheKey.HASHTAG_TOOTS)
+			if (cacheKey != CacheKey.HASHTAG_POSTS)
 				logger.info(`Retrieved ${newRows.length} objects`);
 			return newRows;
 		} catch (e) {
@@ -1370,8 +1370,8 @@ export default class MastoApi {
 		if (!cachedData) return null;
 		const rows = cachedData.obj as ResponseRow<T>[];
 
-		// NOTE: Unfortunately sometimes the mastodon API returns toots that occurred like 100 years into the past
-		// or future. For a while we used a small offset to the list of toots sorted by created_at instead
+		// NOTE: Unfortunately sometimes the mastodon API returns posts that occurred like 100 years into the past
+		// or future. For a while we used a small offset to the list of posts sorted by created_at instead
 		// of the actual min/max.
 		return {
 			isStale: cachedData.isStale,
@@ -1402,7 +1402,7 @@ export default class MastoApi {
 		const { cacheResult } = params;
 		let { cacheKey, logger } = params;
 
-		cacheKey ??= CacheKey.HOME_TIMELINE_TOOTS; // TODO: this is a hack to avoid undefined cacheKey
+		cacheKey ??= CacheKey.HOME_TIMELINE_POSTS; // TODO: this is a hack to avoid undefined cacheKey
 		const waitTime = this.waitTimes[cacheKey];
 		const requestDefaults = config.api.data[cacheKey] ?? {};
 		logger = logger
@@ -1464,7 +1464,7 @@ export default class MastoApi {
 	}
 
 	/**
-	 * Builds Account or Toot objects from the relevant raw API types (Account and Status). Other types
+	 * Builds Account or Post objects from the relevant raw API types (Account and Status). Other types
 	 * are returned as-is, possibly uniquified by ID.
 	 * @private
 	 * @template T
@@ -1488,10 +1488,10 @@ export default class MastoApi {
 			);
 		}
 
-		if (STORAGE_KEYS_WITH_TOOTS.includes(key)) {
-			const toots = objects.map((obj) => Toot.build(obj as TootLike));
-			return Toot.dedupeToots(
-				toots,
+		if (STORAGE_KEYS_WITH_POSTS.includes(key)) {
+			const posts = objects.map((obj) => Post.build(obj as TootLike));
+			return Post.dedupePosts(
+				posts,
 				logger.tempLogger(`buildFromApiObjects`),
 			) as ResponseRow<T>[];
 		} else if (STORAGE_KEYS_WITH_ACCOUNTS.includes(key)) {
@@ -1590,8 +1590,8 @@ export default class MastoApi {
 			);
 		}
 
-		// HASHTAG_TOOTS is a special case w/no cache usage, no min/max ID, and a lot of log spamming
-		if (cacheKey != CacheKey.HASHTAG_TOOTS) {
+		// HASHTAG_POSTS is a special case w/no cache usage, no min/max ID, and a lot of log spamming
+		if (cacheKey != CacheKey.HASHTAG_POSTS) {
 			const paramsToLog = removeKeys(
 				params,
 				PARAMS_TO_NOT_LOG,

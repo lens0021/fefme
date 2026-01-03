@@ -46,8 +46,8 @@ vi.mock("../../../../hooks/useAlgorithm", () => ({
 function buildLanguageFilter() {
 	const filter = new BooleanFilter({ propertyName: BooleanFilterName.LANGUAGE });
 	const options: BooleanFilterOption[] = [
-		{ name: "en", displayName: "English", numToots: 5 },
-		{ name: "fr", displayName: "French", numToots: 3 },
+		{ name: "en", displayName: "English", numPosts: 5 },
+		{ name: "fr", displayName: "French", numPosts: 3 },
 	];
 	filter.options = new BooleanFilterOptionList(options, filter.propertyName);
 	return filter;

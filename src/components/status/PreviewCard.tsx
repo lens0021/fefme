@@ -67,7 +67,7 @@ export default function PreviewCard(
 					</div>
 
 					<p className="text-xs text-[color:var(--color-muted-fg)]">
-						{card.description.slice(0, config.toots.maxPreviewCardLength)}
+						{card.description.slice(0, config.posts.maxPreviewCardLength)}
 					</p>
 				</div>
 			</div>

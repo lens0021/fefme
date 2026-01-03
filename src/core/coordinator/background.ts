@@ -11,7 +11,7 @@ export function launchBackgroundPollers(state: AlgorithmState): void {
 	} else {
 		state.cacheUpdater = setInterval(
 			async () => await saveTimelineToCache(state),
-			config.toots.saveChangesIntervalSeconds * 1000,
+			config.posts.saveChangesIntervalSeconds * 1000,
 		);
 	}
 }

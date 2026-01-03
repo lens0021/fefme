@@ -1,16 +1,16 @@
 import MastoApi from "../../api/api";
-import type Toot from "../../api/objects/toot";
+import type Post from "../../api/objects/post";
 import { ScoreName } from "../../enums";
 import { countValues, sumArray } from "../../helpers/collection_helpers";
 import type { StringNumberDict } from "../../types";
-import TootScorer from "../toot_scorer";
+import PostScorer from "../post_scorer";
 
 /**
- * Score how many times the user has replied to the creator of the {@linkcode Toot}.
- * @memberof module:toot_scorers
+ * Score how many times the user has replied to the creator of the {@linkcode Post}.
+ * @memberof module:post_scorers
  * @augments Scorer
  */
-export default class MostRepliedAccountsScorer extends TootScorer {
+export default class MostRepliedAccountsScorer extends PostScorer {
 	description = "Favour accounts you often reply to";
 
 	constructor() {
@@ -21,14 +21,14 @@ export default class MostRepliedAccountsScorer extends TootScorer {
 	// would require a lot of API calls, so it's just working with the account ID which is NOT
 	// unique across all servers.
 	async prepareScoreData(): Promise<StringNumberDict> {
-		const recentToots = await MastoApi.instance.getRecentUserToots();
-		const recentReplies = recentToots.filter(
-			(toot) => toot?.inReplyToAccountId && !toot.isDM,
+		const recentPosts = await MastoApi.instance.getRecentUserPosts();
+		const recentReplies = recentPosts.filter(
+			(post) => post?.inReplyToAccountId && !post.isDM,
 		);
-		return countValues<Toot>(recentReplies, (toot) => toot?.inReplyToAccountId);
+		return countValues<Post>(recentReplies, (post) => post?.inReplyToAccountId);
 	}
 
-	async _score(toot: Toot) {
-		return sumArray(toot.withRetoot.map((t) => this.scoreData[t.account.id]));
+	async _score(post: Post) {
+		return sumArray(post.withBoost.map((t) => this.scoreData[t.account.id]));
 	}
 }

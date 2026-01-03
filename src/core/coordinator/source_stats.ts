@@ -1,11 +1,11 @@
-import type Toot from "../api/objects/toot";
-import { CacheKey, FEDERATED_TIMELINE_SOURCE, TagTootsCategory } from "../enums";
+import type Post from "../api/objects/post";
+import { CacheKey, FEDERATED_TIMELINE_SOURCE, TagPostsCategory } from "../enums";
 import { findMinMaxId } from "../helpers/collection_helpers";
 import type { AlgorithmState } from "./state";
-import type { TootSource } from "../types";
+import type { PostSource } from "../types";
 
 export type SourceStats = {
-	source: TootSource;
+	source: PostSource;
 	total: number;
 	oldestCreatedAt: Date | null;
 	mostRecentCreatedAt: Date | null;
@@ -15,22 +15,22 @@ export type SourceStats = {
 
 export function getSourceBounds(
 	state: AlgorithmState,
-	source: TootSource,
+	source: PostSource,
 ): { minId?: string; maxId?: string } {
-	const sourceToots = getTootsForSource(state, source);
-	const minMaxId = findMinMaxId(sourceToots);
+	const sourcePosts = getPostsForSource(state, source);
+	const minMaxId = findMinMaxId(sourcePosts);
 	if (!minMaxId) return {};
 	return { minId: minMaxId.min, maxId: minMaxId.max };
 }
 
 export function getSourceStats(
 	state: AlgorithmState,
-): Record<TootSource, SourceStats> {
-	const sourcesToTrack: TootSource[] = [
-		CacheKey.HOME_TIMELINE_TOOTS,
+): Record<PostSource, SourceStats> {
+	const sourcesToTrack: PostSource[] = [
+		CacheKey.HOME_TIMELINE_POSTS,
 		FEDERATED_TIMELINE_SOURCE,
-		TagTootsCategory.FAVOURITED,
-		TagTootsCategory.PARTICIPATED,
+		TagPostsCategory.FAVOURITED,
+		TagPostsCategory.PARTICIPATED,
 	];
 
 	return sourcesToTrack.reduce(
@@ -38,27 +38,27 @@ export function getSourceStats(
 			stats[source] = buildSourceStats(state, source);
 			return stats;
 		},
-		{} as Record<TootSource, SourceStats>,
+		{} as Record<PostSource, SourceStats>,
 	);
 }
 
-function getTootsForSource(state: AlgorithmState, source: TootSource): Toot[] {
-	if (source === CacheKey.HOME_TIMELINE_TOOTS) {
+function getPostsForSource(state: AlgorithmState, source: PostSource): Post[] {
+	if (source === CacheKey.HOME_TIMELINE_POSTS) {
 		return state.homeFeed;
 	}
-	return state.feed.filter((toot) => toot.sources?.includes(source));
+	return state.feed.filter((post) => post.sources?.includes(source));
 }
 
-function buildSourceStats(state: AlgorithmState, source: TootSource): SourceStats {
-	const sourceToots = getTootsForSource(state, source);
-	const total = sourceToots.length;
+function buildSourceStats(state: AlgorithmState, source: PostSource): SourceStats {
+	const sourcePosts = getPostsForSource(state, source);
+	const total = sourcePosts.length;
 	let oldestCreatedAt: Date | null = null;
 	let mostRecentCreatedAt: Date | null = null;
 	let oldestId: string | null = null;
 	let oldestIdCreatedAt: Date | null = null;
 
 	if (total > 0) {
-		const dates = sourceToots.map((toot) => new Date(toot.createdAt));
+		const dates = sourcePosts.map((post) => new Date(post.createdAt));
 		mostRecentCreatedAt = dates.reduce((latest, current) =>
 			current > latest ? current : latest,
 		);
@@ -69,8 +69,8 @@ function buildSourceStats(state: AlgorithmState, source: TootSource): SourceStat
 		const bounds = getSourceBounds(state, source);
 		oldestId = bounds.minId ?? null;
 		if (oldestId) {
-			const oldestById = sourceToots.find(
-				(toot) => `${toot.id}` === `${oldestId}`,
+			const oldestById = sourcePosts.find(
+				(post) => `${post.id}` === `${oldestId}`,
 			);
 			oldestIdCreatedAt = oldestById ? new Date(oldestById.createdAt) : null;
 		}

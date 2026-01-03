@@ -29,7 +29,7 @@ import type { TrendingLink, TrendingWithHistory } from "../../types";
 
 /**
  * Decorate a Mastodon {@linkcode https://docs.joinmastodon.org/entities/PreviewCard/#trends-link TrendLink}
- * with computed history data, adding {@linkcode numToots} & {@linkcode numAccounts} properties.
+ * with computed history data, adding {@linkcode numPosts} & {@linkcode numAccounts} properties.
  * @param {mastodon.v1.TrendLink} link - The TrendLink object to decorate.
  * @returns {TrendingLink} The decorated TrendingLink object.
  */
@@ -41,7 +41,7 @@ export function decorateLinkHistory(link: mastodon.v1.TrendLink): TrendingLink {
 
 /**
  * Return one of each unique trending object sorted by the number of accounts tooting that object.
- * The {@linkcode numToots} & {@linkcode numAccounts} props for each trending object are set to
+ * The {@linkcode numPosts} & {@linkcode numAccounts} props for each trending object are set to
  * the max value encountered.
  * @param {T[]} trendingObjs - Array of trending objects to uniquify.
  * @param {(obj: T) => string} uniqueKey - Function that returns the key to use for uniqueness.
@@ -60,9 +60,9 @@ export function uniquifyTrendingObjs<T extends TrendingWithHistory>(
 					unique[key].numAccounts || 0,
 					obj.numAccounts || 0,
 				);
-				unique[key].numToots = Math.max(
-					unique[key].numToots || 0,
-					obj.numToots || 0,
+				unique[key].numPosts = Math.max(
+					unique[key].numPosts || 0,
+					obj.numPosts || 0,
 				);
 			} else {
 				unique[key] = obj;
@@ -73,7 +73,7 @@ export function uniquifyTrendingObjs<T extends TrendingWithHistory>(
 		{} as Record<string, TrendingWithHistory>,
 	);
 
-	// TODO: should this sort by numToots too instead? Usually we sort things by numToots but here we want to sort by numAccounts
+	// TODO: should this sort by numPosts too instead? Usually we sort things by numPosts but here we want to sort by numAccounts
 	const sortedObjs = Object.values(urlObjs).sort(
 		(a, b) => (b.numAccounts || 0) - (a.numAccounts || 0),
 	);
@@ -81,7 +81,7 @@ export function uniquifyTrendingObjs<T extends TrendingWithHistory>(
 }
 
 /**
- * Add {@linkcode numToots} & {@linkcode numAccounts} to the trending object by summing
+ * Add {@linkcode numPosts} & {@linkcode numAccounts} to the trending object by summing
  * {@linkcode config.trending.daysToCountTrendingData} of 'history'.
  * @template T
  * @param {T} obj - The trending object to decorate.
@@ -99,7 +99,7 @@ function decorateHistoryScores<T extends TrendingWithHistory>(obj: T): T {
 		0,
 		config.trending.daysToCountTrendingData,
 	);
-	obj.numToots = recentHistory.reduce(
+	obj.numPosts = recentHistory.reduce(
 		(total, h) => total + Number.parseInt(h.uses),
 		0,
 	);

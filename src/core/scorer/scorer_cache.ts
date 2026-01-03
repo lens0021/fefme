@@ -6,7 +6,7 @@ import { Mutex } from "async-mutex";
 
 import type FeedScorer from "./feed_scorer";
 import type Scorer from "./scorer";
-import type TootScorer from "./toot_scorer";
+import type PostScorer from "./post_scorer";
 
 const SCORERS_MUTEX = new Mutex();
 
@@ -17,15 +17,15 @@ const SCORERS_MUTEX = new Mutex();
 export default class ScorerCache {
 	// These scorers require the complete feed to work properly
 	static feedScorers: FeedScorer[] = [];
-	// These can score a toot without knowing about the rest of the toots in the feed
-	static tootScorers: TootScorer[] = [];
+	// These can score a post without knowing about the rest of the posts in the feed
+	static postScorers: PostScorer[] = [];
 	// All scorers that can be weighted
 	static weightedScorers: Scorer[] = [];
 
-	static addScorers(tootScorers: TootScorer[], feedScorers: FeedScorer[]) {
+	static addScorers(postScorers: PostScorer[], feedScorers: FeedScorer[]) {
 		this.feedScorers = feedScorers;
-		this.tootScorers = tootScorers;
-		this.weightedScorers = [...tootScorers, ...feedScorers];
+		this.postScorers = postScorers;
+		this.weightedScorers = [...postScorers, ...feedScorers];
 	}
 
 	/**
@@ -38,7 +38,7 @@ export default class ScorerCache {
 		const releaseMutex = await SCORERS_MUTEX.acquire();
 
 		try {
-			const scorersToPrepare = this.tootScorers.filter(
+			const scorersToPrepare = this.postScorers.filter(
 				(scorer) => force || !scorer.isReady,
 			);
 			if (scorersToPrepare.length == 0) return;

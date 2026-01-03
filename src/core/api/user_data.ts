@@ -6,7 +6,7 @@ import type { mastodon } from "masto";
 
 import Storage from "../Storage";
 import { config } from "../config";
-import { BooleanFilterName, ScoreName, TagTootsCategory } from "../enums";
+import { BooleanFilterName, ScoreName, TagPostsCategory } from "../enums";
 import { keyById, resolvePromiseDict } from "../helpers/collection_helpers";
 import { languageName } from "../helpers/language_helper";
 import { Logger } from "../helpers/logger";
@@ -24,7 +24,7 @@ import CountedList, {
 } from "./counted_list";
 import Account from "./objects/account";
 import { buildMutedRegex, extractMutedKeywords } from "./objects/filter";
-import Toot, { mostRecentTootedAt } from "./objects/toot";
+import Post, { mostRecentTootedAt } from "./objects/post";
 import TagList from "./tag_list";
 
 const logger = new Logger("UserData");
@@ -32,11 +32,11 @@ const logger = new Logger("UserData");
 // Raw API data required to build UserData
 interface UserApiData {
 	blockedDomains: string[];
-	favouritedToots: Toot[];
+	favouritedPosts: Post[];
 	followedAccounts: Account[];
 	followedTags: TagWithUsageCounts[];
 	mutedAccounts: Account[];
-	recentToots: Toot[];
+	recentPosts: Post[];
 	serverSideFilters: mastodon.v2.Filter[];
 }
 
@@ -50,11 +50,11 @@ interface UserApiData {
  * for use in scoring and filtering algorithms.
  *
  * @property {Set<string>} blockedDomains - Set of domains the user has blocked.
- * @property {BooleanFilterOptionList} favouriteAccounts - Accounts the user has favourited, retooted, or replied to.
+ * @property {BooleanFilterOptionList} favouriteAccounts - Accounts the user has favourited, boosted, or replied to.
  * @property {TagList} favouritedTags - List of tags the user has favourited.
  * @property {StringNumberDict} followedAccounts - Dictionary of accounts the user follows, keyed by account name.
  * @property {TagList} followedTags - List of tags the user follows.
- * @property {boolean} isRetooter - True if the user is primarily a retooter (retootPct above configured threshold).
+ * @property {boolean} isBooster - True if the user is primarily a booster (boostPct above configured threshold).
  * @property {ObjList} languagesPostedIn - List of languages the user has posted in, with usage counts.
  * @property {Record<string, Account>} mutedAccounts - Dictionary of accounts the user has muted or blocked, keyed by Account["webfingerURI"].
  * @property {RegExp} mutedKeywordsRegex - Cached regex for muted keywords, built from server-side filters.
@@ -68,14 +68,14 @@ export default class UserData {
 		[],
 		ScoreName.FAVOURITED_ACCOUNTS,
 	);
-	favouritedTags = new TagList([], TagTootsCategory.FAVOURITED);
+	favouritedTags = new TagList([], TagPostsCategory.FAVOURITED);
 	followedAccounts: StringNumberDict = {};
 	followedTags = new TagList([], ScoreName.FOLLOWED_TAGS);
-	isRetooter = false;
+	isBooster = false;
 	languagesPostedIn: ObjList = new CountedList([], BooleanFilterName.LANGUAGE);
 	mutedAccounts: AccountNames = {};
 	mutedKeywordsRegex!: RegExp; // Cached regex for muted keywords, built from server-side filters
-	participatedTags = new TagList([], TagTootsCategory.PARTICIPATED);
+	participatedTags = new TagList([], TagPostsCategory.PARTICIPATED);
 	preferredLanguage = config.locale.defaultLanguage;
 	serverSideFilters: mastodon.v2.Filter[] = [];
 
@@ -92,11 +92,11 @@ export default class UserData {
 		const responses = await resolvePromiseDict(
 			{
 				blockedDomains: MastoApi.instance.getBlockedDomains(),
-				favouritedToots: MastoApi.instance.getFavouritedToots(),
+				favouritedPosts: MastoApi.instance.getFavouritedPosts(),
 				followedAccounts: MastoApi.instance.getFollowedAccounts(),
 				followedTags: MastoApi.instance.getFollowedTags(),
 				mutedAccounts: MastoApi.instance.getMutedAccounts(),
-				recentToots: MastoApi.instance.getRecentUserToots(),
+				recentPosts: MastoApi.instance.getRecentUserPosts(),
 				serverSideFilters: MastoApi.instance.getServerSideFilters(),
 			},
 			logger,
@@ -116,28 +116,28 @@ export default class UserData {
 	 * @static
 	 * @param {UserApiData} data - The raw API data to build the {@linkcode UserData} from.
 	 * @param {string[]} data.blockedDomains - Domains the user has blocked.
-	 * @param {Toot[]} data.favouritedToots - Toots the user has favourited.
+	 * @param {Post[]} data.favouritedPosts - Posts the user has favourited.
 	 * @param {Account[]} data.followedAccounts - Accounts the user follows.
 	 * @param {TagWithUsageCounts[]} data.followedTags - Tags the user follows, with usage counts.
 	 * @param {Account[]} data.mutedAccounts - Accounts the user has muted.
-	 * @param {Toot[]} data.recentToots - Recent toots by the user.*
+	 * @param {Post[]} data.recentPosts - Recent posts by the user.*
 	 * @param {mastodon.v2.Filter[]} data.serverSideFilters - Server-side filters set by the user.
 	 * @returns {UserData} A new UserData instance populated with the provided data.
 	 */
 	static buildFromData(data: UserApiData): UserData {
 		const userData = new UserData();
 
-		if (data.recentToots.length) {
-			const retootsPct =
-				Toot.onlyRetoots(data.recentToots).length / data.recentToots.length;
-			userData.isRetooter =
-				retootsPct > config.participatedTags.minPctToCountRetoots;
+		if (data.recentPosts.length) {
+			const boostsPct =
+				Post.onlyBoosts(data.recentPosts).length / data.recentPosts.length;
+			userData.isBooster =
+				boostsPct > config.participatedTags.minPctToCountBoosts;
 		}
 
 		userData.blockedDomains = new Set(data.blockedDomains);
 		userData.favouritedTags = TagList.fromUsageCounts(
-			data.favouritedToots,
-			TagTootsCategory.FAVOURITED,
+			data.favouritedPosts,
+			TagPostsCategory.FAVOURITED,
 		);
 		userData.followedAccounts = Account.countAccounts(data.followedAccounts);
 		userData.followedTags = new TagList(
@@ -147,20 +147,20 @@ export default class UserData {
 		userData.mutedAccounts = Account.buildAccountNames(data.mutedAccounts);
 		userData.mutedKeywordsRegex = buildMutedRegex(data.serverSideFilters);
 		userData.participatedTags = TagList.fromParticipations(
-			data.recentToots,
-			userData.isRetooter,
+			data.recentPosts,
+			userData.isBooster,
 		);
 		userData.serverSideFilters = data.serverSideFilters;
 		userData.languagesPostedIn.populateByCountingProps(
-			data.recentToots,
+			data.recentPosts,
 			tootLanguageOption,
 		);
 		userData.populateFavouriteAccounts(data);
 
-		// Use the newest recent or favourited toot as proxy for freshness (other stuff rarely changes)
+		// Use the newest recent or favourited post as proxy for freshness (other stuff rarely changes)
 		userData.lastUpdatedAt = mostRecentTootedAt([
-			...data.recentToots,
-			...data.favouritedToots,
+			...data.recentPosts,
+			...data.favouritedPosts,
 		]);
 		userData.preferredLanguage =
 			userData.languagesPostedIn.topObjs()[0]?.name ||
@@ -182,28 +182,28 @@ export default class UserData {
 	}
 
 	/**
-	 * Add up the favourites, retoots, and replies for each account
+	 * Add up the favourites, boosts, and replies for each account
 	 * @private
-	 * @param {UserApiData} data - The raw API data containing recent toots and favourited toots.
+	 * @param {UserApiData} data - The raw API data containing recent posts and favourited posts.
 	 */
 	private populateFavouriteAccounts(data: UserApiData): void {
-		const retootsAndFaves = [
-			...Toot.onlyRetoots(data.recentToots),
-			...data.favouritedToots,
+		const boostsAndFaves = [
+			...Post.onlyBoosts(data.recentPosts),
+			...data.favouritedPosts,
 		];
-		const retootAndFaveAccounts = retootsAndFaves.map((t) => t.author);
+		const boostAndFaveAccounts = boostsAndFaves.map((t) => t.author);
 		const followedAccountIdMap = keyById(data.followedAccounts);
 
 		// TODO: Replies are imperfect, we only have inReplyToAccountId to work with. IDing ~1/3rd of the replies.
 		// Currently that's only around 1/3rd of the replies.
-		const replies = Toot.onlyReplies(data.recentToots);
+		const replies = Post.onlyReplies(data.recentPosts);
 		const repliedToAccounts = replies
-			.map((toot) => followedAccountIdMap[toot.inReplyToAccountId!])
+			.map((post) => followedAccountIdMap[post.inReplyToAccountId!])
 			.filter(Boolean);
 		logger.trace(
-			`Found ${retootsAndFaves.length} retootsAndFaves, ${repliedToAccounts.length} replied toots' accounts (of ${replies.length} replies)`,
+			`Found ${boostsAndFaves.length} boostsAndFaves, ${repliedToAccounts.length} replied posts' accounts (of ${replies.length} replies)`,
 		);
-		const favouredAccounts = [...repliedToAccounts, ...retootAndFaveAccounts];
+		const favouredAccounts = [...repliedToAccounts, ...boostAndFaveAccounts];
 		this.favouriteAccounts.populateByCountingProps(
 			favouredAccounts,
 			(account) => account.asBooleanFilterOption,
@@ -261,17 +261,17 @@ export default class UserData {
 }
 
 // Extract information for language BoooleanFilterOption.
-function tootLanguageOption(toot: Toot): BooleanFilterOption {
-	if (!toot.language) {
+function tootLanguageOption(post: Post): BooleanFilterOption {
+	if (!post.language) {
 		logger.warn(
-			"Toot has no language set, using default language instead",
-			toot,
+			"Post has no language set, using default language instead",
+			post,
 		);
-		toot.language = config.locale.defaultLanguage;
+		post.language = config.locale.defaultLanguage;
 	}
 
 	return {
-		displayName: languageName(toot.language!),
-		name: toot.language!,
+		displayName: languageName(post.language!),
+		name: post.language!,
 	};
 }

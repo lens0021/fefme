@@ -1,5 +1,5 @@
 import { config } from "../config";
-import { TagTootsCategory } from "../enums";
+import { TagPostsCategory } from "../enums";
 import { Logger } from "../helpers/logger";
 import type {
 	CountedListSource,
@@ -13,7 +13,7 @@ import type {
 import MastoApi from "./api";
 import CountedList from "./counted_list";
 import { repairTag } from "./objects/tag";
-import type Toot from "./objects/toot";
+import type Post from "./objects/post";
 import UserData from "./user_data";
 
 const logger = new Logger("TagList");
@@ -27,59 +27,59 @@ export default class TagList extends CountedList<TagWithUsageCounts> {
 		super(tags.map(repairTag), label);
 	}
 
-	/** Alternate constructor to build tags where numToots is set to the # of times user favourited that tag. */
+	/** Alternate constructor to build tags where numPosts is set to the # of times user favourited that tag. */
 	static async buildFavouritedTags(): Promise<TagList> {
 		return TagList.fromUsageCounts(
-			await MastoApi.instance.getFavouritedToots(),
-			TagTootsCategory.FAVOURITED,
+			await MastoApi.instance.getFavouritedPosts(),
+			TagPostsCategory.FAVOURITED,
 		);
 	}
 
 	/** Alternate constructor to build a list of tags the user has posted about recently. **/
 	static async buildParticipatedTags(): Promise<TagList> {
 		return this.fromParticipations(
-			await MastoApi.instance.getRecentUserToots(),
-			(await MastoApi.instance.getUserData()).isRetooter,
+			await MastoApi.instance.getRecentUserPosts(),
+			(await MastoApi.instance.getUserData()).isBooster,
 		);
 	}
 
 	/**
-	 * Alternate constructor that builds a list of Tags the user has posted about based on their toot history.
-	 * @param {Toot[]} recentToots - Array of Toot objects to count tags from.
-	 * @param {boolean} [includeRetoots] - If true, includes retoots when counting tag usages.
-	 * @returns {TagList} A new TagList instance with tags counted from the recent user toots.
+	 * Alternate constructor that builds a list of Tags the user has posted about based on their post history.
+	 * @param {Post[]} recentPosts - Array of Post objects to count tags from.
+	 * @param {boolean} [includeBoosts] - If true, includes boosts when counting tag usages.
+	 * @returns {TagList} A new TagList instance with tags counted from the recent user posts.
 	 * */
 	static fromParticipations(
-		recentToots: Toot[],
-		includeRetoots?: boolean,
+		recentPosts: Post[],
+		includeBoosts?: boolean,
 	): TagList {
 		const tagList = TagList.fromUsageCounts(
-			recentToots,
-			TagTootsCategory.PARTICIPATED,
-			includeRetoots,
+			recentPosts,
+			TagPostsCategory.PARTICIPATED,
+			includeBoosts,
 		);
 		logger.trace(
-			`fromParticipations() found ${tagList.length} tags in ${recentToots.length} recent user toots`,
+			`fromParticipations() found ${tagList.length} tags in ${recentPosts.length} recent user posts`,
 		);
 		return tagList;
 	}
 
 	/**
 	 * Alternate constructor that populates {@linkcode this.objs} with {@linkcode TagWithUsageCounts} objects
-	 * with {@linkcode numToots} set to the # of times the tag appears in the {@linkcode toots} array.
-	 * Note the special handling of retooters.
-	 * @param {Toot[]} toots - Array of Toot objects to count tags from.
+	 * with {@linkcode numPosts} set to the # of times the tag appears in the {@linkcode posts} array.
+	 * Note the special handling of boosters.
+	 * @param {Post[]} posts - Array of Post objects to count tags from.
 	 * @param {CountedListSource} source - Source of the list (for logging/context).
-	 * @returns {TagList} A new TagList instance with tags counted from the toots.
+	 * @returns {TagList} A new TagList instance with tags counted from the posts.
 	 */
 	static fromUsageCounts(
-		toots: Toot[],
+		posts: Post[],
 		source: CountedListSource,
-		includeRetoots?: boolean,
+		includeBoosts?: boolean,
 	): TagList {
-		toots = includeRetoots ? toots.map((toot) => toot.realToot) : toots;
+		posts = includeBoosts ? posts.map((post) => post.realToot) : posts;
 		const tagList = new TagList([], source);
-		const tags = toots.flatMap((toot) => toot.tags);
+		const tags = posts.flatMap((post) => post.tags);
 		tagList.populateByCountingProps(tags, (tag) => tag);
 		return tagList;
 	}

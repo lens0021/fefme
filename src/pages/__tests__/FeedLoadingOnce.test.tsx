@@ -97,7 +97,7 @@ describe("Feed loading", () => {
 		expect(await screen.findAllByTestId("status-card")).toHaveLength(2);
 		expect(mockAlgorithm.triggerFeedUpdate).toHaveBeenCalledTimes(1);
 		expect(Storage.set).toHaveBeenCalledWith(
-			AlgorithmStorageKey.VISIBLE_TIMELINE_TOOTS,
+			AlgorithmStorageKey.VISIBLE_TIMELINE_POSTS,
 			cachedTimeline,
 		);
 
@@ -108,7 +108,7 @@ describe("Feed loading", () => {
 		expect(screen.getAllByTestId("status-card")).toHaveLength(2);
 		expect(mockAlgorithm.triggerFeedUpdate).toHaveBeenCalledTimes(1);
 		expect(Storage.set).toHaveBeenCalledWith(
-			AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_TOOTS,
+			AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_POSTS,
 			refreshedTimeline,
 		);
 		expect(screen.getByTestId("refresh-bubble")).toBeInTheDocument();

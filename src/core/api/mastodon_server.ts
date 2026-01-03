@@ -56,7 +56,7 @@ interface FetchTrendingProps<T extends TrendingObj> {
 
 /**
  * Class for interacting with the public non-authenticated API of a Mastodon server.
- * Provides methods to fetch trending toots, tags, links, and server info, as well as utilities for
+ * Provides methods to fetch trending posts, tags, links, and server info, as well as utilities for
  * aggregating and processing trending data across multiple servers in the fediverse.
  * @class
  * @property {string} domain - Domain of the server this {@linkcode MastodonServer} instance interacts with.
@@ -414,7 +414,7 @@ export default class MastodonServer {
 		return config.fediverse.noMauServers.includes(domain);
 	}
 
-	/** Build a URL for a trending type (tags, links, toots). */
+	/** Build a URL for a trending type (tags, links, posts). */
 	private static trendUrl = (path: string) => this.v1Url(`trends/${path}`);
 	/** Build a v1 API URL. */
 	private static v1Url = (path: string) => `${API_V1}/${path}`;

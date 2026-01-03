@@ -235,14 +235,14 @@ export function filterWithLog<T>(
 /**
  * Finds the minimum and maximum {@linkcode id} property in an array of objects.
  * TODO: Note that this isn't always safe to use - there can be outliers in the data that result in
- * the minimum ID in a set of toots being wildly out of step with the rest of the IDs.
+ * the minimum ID in a set of posts being wildly out of step with the rest of the IDs.
  * If that happens trying to use the min ID as the maxId param for a fetch will fail (no results).
  * This is an unfixable server side problem that we used to work around with this:
  *
- * static findMinIdForMaxIdParam(toots: Toot[]): string | null {
- *     if (toots.length == 0) return null;
- *     const idx = Math.min(toots.length - 1, MAX_ID_IDX);
- *     return sortByCreatedAt(toots)[idx].id;
+ * static findMinIdForMaxIdParam(posts: Post[]): string | null {
+ *     if (posts.length == 0) return null;
+ *     const idx = Math.min(posts.length - 1, MAX_ID_IDX);
+ *     return sortByCreatedAt(posts)[idx].id;
  * }
  * @param {ApiObjWithID[]} array - Array of objects with IDs.
  * @returns {MinMaxID | null} The min and max IDs, or null if invalid.

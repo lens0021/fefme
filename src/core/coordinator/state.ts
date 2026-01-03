@@ -6,14 +6,14 @@ import { buildNewFilterSettings } from "../filters/feed_filters";
 import UserDataPoller from "../api/user_data_poller";
 import type FeedScorer from "../scorer/feed_scorer";
 import Scorer from "../scorer/scorer";
-import type TootScorer from "../scorer/toot_scorer";
+import type PostScorer from "../scorer/post_scorer";
 import type {
 	ConcurrencyLockRelease,
 	FeedFilterSettings,
 	TrendingData,
 	WeightInfoDict,
 } from "../types";
-import type Toot from "../api/objects/toot";
+import type Post from "../api/objects/post";
 import { EMPTY_TRENDING_DATA } from "./constants";
 import { buildScorerBundle } from "./scorers";
 
@@ -24,16 +24,16 @@ export class AlgorithmState {
 		config.locale.messages[LogAction.INITIAL_LOADING_STATUS];
 	trendingData: TrendingData = EMPTY_TRENDING_DATA;
 
-	feed: Toot[] = [];
-	filteredTimeline: Toot[] = [];
-	homeFeed: Toot[] = [];
-	hasProvidedAnyTootsToClient = false;
+	feed: Post[] = [];
+	filteredTimeline: Post[] = [];
+	homeFeed: Post[] = [];
+	hasProvidedAnyPostsToClient = false;
 	loadStartedAt: Date | undefined = new Date();
 	totalNumTimesShown = 0;
 
 	loadingMutex = new Mutex();
 	mergeMutex = new Mutex();
-	numUnscannedToots = 0;
+	numUnscannedPosts = 0;
 	numTriggers = 0;
 	currentAction?: LoadAction;
 	releaseLoadingMutex?: ConcurrencyLockRelease;
@@ -42,14 +42,14 @@ export class AlgorithmState {
 	userDataPoller = new UserDataPoller();
 
 	feedScorers: FeedScorer[] = [];
-	tootScorers: TootScorer[] = [];
+	postScorers: PostScorer[] = [];
 	weightedScorers: Scorer[] = [];
 	weightsInfo: WeightInfoDict = {} as WeightInfoDict;
 
-	constructor(public setTimelineInApp: (feed: Toot[]) => void) {
+	constructor(public setTimelineInApp: (feed: Post[]) => void) {
 		const scorerBundle = buildScorerBundle();
 		this.feedScorers = scorerBundle.feedScorers;
-		this.tootScorers = scorerBundle.tootScorers;
+		this.postScorers = scorerBundle.postScorers;
 		this.weightedScorers = scorerBundle.weightedScorers;
 		this.weightsInfo = scorerBundle.weightsInfo;
 	}

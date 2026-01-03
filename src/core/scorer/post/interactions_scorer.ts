@@ -5,8 +5,8 @@ import type { StringNumberDict } from "../../types";
 import AccountScorer from "./acccount_scorer";
 
 /**
- * Gives higher weight to posts from users that have often interacted with your toots.
- * @memberof module:toot_scorers
+ * Gives higher weight to posts from users that have often interacted with your posts.
+ * @memberof module:post_scorers
  * @augments Scorer
  */
 export default class InteractionsScorer extends AccountScorer {

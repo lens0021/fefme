@@ -17,7 +17,7 @@ import { useError } from "../components/helpers/ErrorHandler";
 import FeedCoordinator, {
 	GET_FEED_BUSY_MSG,
 	AgeIn,
-	type Toot,
+	type Post,
 	isAccessTokenRevokedError,
 } from "../core/index";
 
@@ -29,7 +29,7 @@ import {
 	addMimeExtensionsToServer,
 } from "../helpers/mastodon_helpers";
 import type { ErrorHandler } from "../types";
-import { AlgorithmStorageKey, TagTootsCategory } from "../core/enums";
+import { AlgorithmStorageKey, TagPostsCategory } from "../core/enums";
 import type { FeedFilterSettings, Weights } from "../core/types";
 import type { WeightPresetLabel } from "../core/scorer/weight_presets";
 import { useAuthContext } from "./useAuth";
@@ -60,7 +60,7 @@ interface AlgoContext {
 	setSelfTypeFilterMode?: (value: "include" | "exclude" | "none") => void;
 	showFilterHighlights?: boolean;
 	pendingTimelineReasons?: PendingTimelineReason[];
-	timeline: Toot[];
+	timeline: Post[];
 	triggerFilterUpdate?: (filters: FeedFilterSettings) => Promise<void>;
 	triggerFeedUpdate?: () => void;
 	triggerHomeTimelineBackFill?: () => void;
@@ -95,11 +95,11 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 	>();
 	const [lastLoadStartedAt, setLastLoadStartedAt] = useState<Date>(new Date());
 	const [serverInfo, setServerInfo] = useState<MastodonServer>(null); // Instance info for the user's server
-	const [timeline, setTimeline] = useState<Toot[]>([]);
+	const [timeline, setTimeline] = useState<Post[]>([]);
 	const hasInitializedRef = React.useRef(false);
 	const lastUserIdRef = React.useRef<string | null>(null);
 	const allowTimelineUpdatesRef = React.useRef(true);
-	const pendingTimelineRef = React.useRef<Toot[] | null>(null);
+	const pendingTimelineRef = React.useRef<Post[] | null>(null);
 	const pendingTimelineReasonsRef = React.useRef<Set<PendingTimelineReason>>(
 		new Set(),
 	);
@@ -265,7 +265,7 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		() =>
 			algorithm &&
 			trigger(() =>
-				algorithm.triggerTagTimelineBackFill(TagTootsCategory.FAVOURITED),
+				algorithm.triggerTagTimelineBackFill(TagPostsCategory.FAVOURITED),
 			),
 		[algorithm, trigger],
 	);
@@ -273,7 +273,7 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		() =>
 			algorithm &&
 			trigger(() =>
-				algorithm.triggerTagTimelineBackFill(TagTootsCategory.PARTICIPATED),
+				algorithm.triggerTagTimelineBackFill(TagPostsCategory.PARTICIPATED),
 			),
 		[algorithm, trigger],
 	);
@@ -286,18 +286,18 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		[algorithm, trigger],
 	);
 
-	const setTimelineInApp = useCallback((feed: Toot[]) => {
+	const setTimelineInApp = useCallback((feed: Post[]) => {
 		if (allowTimelineUpdatesRef.current) {
 			setTimeline(feed);
 			pendingTimelineRef.current = null;
 			setHasPendingTimeline(false);
-			Storage.set(AlgorithmStorageKey.VISIBLE_TIMELINE_TOOTS, feed).catch(
+			Storage.set(AlgorithmStorageKey.VISIBLE_TIMELINE_POSTS, feed).catch(
 				(err) =>
 					logger.error("Failed to persist visible timeline cache:", err),
 			);
 		} else {
 			pendingTimelineRef.current = feed;
-			Storage.set(AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_TOOTS, feed).catch(
+			Storage.set(AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_POSTS, feed).catch(
 				(err) =>
 					logger.error("Failed to persist next visible timeline cache:", err),
 			);
@@ -312,9 +312,9 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		setHasPendingTimeline(false);
 		pendingTimelineReasonsRef.current = new Set();
 		setPendingTimelineReasons([]);
-		Storage.set(AlgorithmStorageKey.VISIBLE_TIMELINE_TOOTS, pendingTimeline)
+		Storage.set(AlgorithmStorageKey.VISIBLE_TIMELINE_POSTS, pendingTimeline)
 			.then(() =>
-				Storage.remove(AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_TOOTS),
+				Storage.remove(AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_POSTS),
 			)
 			.catch((err) =>
 				logger.error("Failed to promote pending timeline cache:", err),
@@ -502,7 +502,7 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 					`Displaying ${algo.timeline.length} cached posts while loading fresh data`,
 				);
 				setTimeline(algo.timeline);
-			Storage.set(AlgorithmStorageKey.VISIBLE_TIMELINE_TOOTS, algo.timeline).catch(
+			Storage.set(AlgorithmStorageKey.VISIBLE_TIMELINE_POSTS, algo.timeline).catch(
 				(err) =>
 					logger.error("Failed to persist visible timeline cache:", err),
 			);

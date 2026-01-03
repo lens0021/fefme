@@ -1,13 +1,13 @@
 /**
- * @fileoverview Feed filtering information related to a single criterion on which toots
+ * @fileoverview Feed filtering information related to a single criterion on which posts
  * can be filtered inclusively or exclusively based on an array of strings
- * (e.g. language, hashtag, type of toot).
+ * (e.g. language, hashtag, type of post).
  */
 import { isNil } from "lodash";
 
 import { BooleanFilterOptionList } from "../api/counted_list";
 import { buildTag } from "../api/objects/tag";
-import type Toot from "../api/objects/toot";
+import type Post from "../api/objects/post";
 import { config } from "../config";
 import {
 	BooleanFilterName,
@@ -17,74 +17,74 @@ import {
 } from "../enums";
 import { compareStr, isEmptyStr } from "../helpers/string_helpers";
 import type { BooleanFilterOption } from "../types";
-import TootFilter, { type FilterArgs } from "./toot_filter";
+import PostFilter, { type FilterArgs } from "./post_filter";
 
-type TootMatcher = (toot: Toot, selectedOptions: string[]) => boolean;
-type TypeFilter = (toot: Toot) => boolean;
+type TootMatcher = (post: Post, selectedOptions: string[]) => boolean;
+type TypeFilter = (post: Post) => boolean;
 export type BooleanFilterOptionState = "include" | "exclude" | "neutral";
 
 const SOURCE_FILTER_DESCRIPTION = "Choose what kind of posts are in your feed";
 
-// Type-based filters for toots. Defining a new filter just requires adding a new TypeFilterName
-// and a function that matches the toot.
+// Type-based filters for posts. Defining a new filter just requires adding a new TypeFilterName
+// and a function that matches the post.
 export const TYPE_FILTERS: Record<TypeFilterName, TypeFilter> = {
-	[TypeFilterName.AUDIO]: (toot) => !!toot.realToot.audioAttachments?.length,
-	[TypeFilterName.BOT]: (toot) => toot.accounts.some((account) => account.bot),
-	[TypeFilterName.DIRECT_MESSAGE]: (toot) => toot.isDM,
-	[TypeFilterName.FOLLOWED_ACCOUNTS]: (toot) =>
-		toot.accounts.some((account) => account.isFollowed),
-	[TypeFilterName.FOLLOWED_HASHTAGS]: (toot) =>
-		!!toot.realToot.followedTags?.length,
-	[TypeFilterName.IMAGES]: (toot) => !!toot.realToot.imageAttachments?.length,
-	[TypeFilterName.LINKS]: (toot) => !!toot.realToot.card,
-	[TypeFilterName.MENTIONS]: (toot) => toot.containsUserMention(),
-	[TypeFilterName.POLLS]: (toot) => !!toot.realToot.poll,
-	[TypeFilterName.PARTICIPATED_TAGS]: (toot) =>
-		!!toot.realToot.participatedTags?.length,
-	[TypeFilterName.PRIVATE]: (toot) => toot.realToot.isPrivate,
-	[TypeFilterName.REPLIES]: (toot) => !!toot.realToot.inReplyToId,
-	[TypeFilterName.RETOOTS]: (toot) => !!toot.reblog,
-	[TypeFilterName.SEEN]: (toot) =>
-		(toot.numTimesShown ?? 0) > 0 || (toot.realToot.numTimesShown ?? 0) > 0,
-	[TypeFilterName.SENSITIVE]: (toot) => toot.realToot.sensitive,
-	[TypeFilterName.SPOILERED]: (toot) => !isEmptyStr(toot.realToot.spoilerText),
-	[TypeFilterName.TRENDING_TAGS]: (toot) =>
-		!!toot.realToot.trendingTags?.length,
-	[TypeFilterName.TRENDING_TOOTS]: (toot) => !!toot.realToot.trendingRank,
-	[TypeFilterName.VIDEOS]: (toot) => !!toot.realToot.videoAttachments?.length,
+	[TypeFilterName.AUDIO]: (post) => !!post.realToot.audioAttachments?.length,
+	[TypeFilterName.BOT]: (post) => post.accounts.some((account) => account.bot),
+	[TypeFilterName.DIRECT_MESSAGE]: (post) => post.isDM,
+	[TypeFilterName.FOLLOWED_ACCOUNTS]: (post) =>
+		post.accounts.some((account) => account.isFollowed),
+	[TypeFilterName.FOLLOWED_HASHTAGS]: (post) =>
+		!!post.realToot.followedTags?.length,
+	[TypeFilterName.IMAGES]: (post) => !!post.realToot.imageAttachments?.length,
+	[TypeFilterName.LINKS]: (post) => !!post.realToot.card,
+	[TypeFilterName.MENTIONS]: (post) => post.containsUserMention(),
+	[TypeFilterName.POLLS]: (post) => !!post.realToot.poll,
+	[TypeFilterName.PARTICIPATED_TAGS]: (post) =>
+		!!post.realToot.participatedTags?.length,
+	[TypeFilterName.PRIVATE]: (post) => post.realToot.isPrivate,
+	[TypeFilterName.REPLIES]: (post) => !!post.realToot.inReplyToId,
+	[TypeFilterName.BOOSTS]: (post) => !!post.reblog,
+	[TypeFilterName.SEEN]: (post) =>
+		(post.numTimesShown ?? 0) > 0 || (post.realToot.numTimesShown ?? 0) > 0,
+	[TypeFilterName.SENSITIVE]: (post) => post.realToot.sensitive,
+	[TypeFilterName.SPOILERED]: (post) => !isEmptyStr(post.realToot.spoilerText),
+	[TypeFilterName.TRENDING_TAGS]: (post) =>
+		!!post.realToot.trendingTags?.length,
+	[TypeFilterName.TRENDING_POSTS]: (post) => !!post.realToot.trendingRank,
+	[TypeFilterName.VIDEOS]: (post) => !!post.realToot.videoAttachments?.length,
 } as const;
 
 // Matchers for each BooleanFilterName.
-const TOOT_MATCHERS: Record<BooleanFilterName, TootMatcher> = {
-	[BooleanFilterName.APP]: (toot: Toot, selectedOptions: string[]) => {
-		return selectedOptions.includes(toot.realToot.application?.name);
+const POST_MATCHERS: Record<BooleanFilterName, TootMatcher> = {
+	[BooleanFilterName.APP]: (post: Post, selectedOptions: string[]) => {
+		return selectedOptions.includes(post.realToot.application?.name);
 	},
-	[BooleanFilterName.SERVER]: (toot: Toot, selectedOptions: string[]) => {
-		return selectedOptions.includes(toot.homeserver);
+	[BooleanFilterName.SERVER]: (post: Post, selectedOptions: string[]) => {
+		return selectedOptions.includes(post.homeserver);
 	},
-	[BooleanFilterName.HASHTAG]: (toot: Toot, selectedOptions: string[]) => {
+	[BooleanFilterName.HASHTAG]: (post: Post, selectedOptions: string[]) => {
 		return !!selectedOptions.find((v) =>
-			toot.realToot.containsTag(buildTag(v), true),
+			post.realToot.containsTag(buildTag(v), true),
 		);
 	},
-	[BooleanFilterName.LANGUAGE]: (toot: Toot, selectedOptions: string[]) => {
+	[BooleanFilterName.LANGUAGE]: (post: Post, selectedOptions: string[]) => {
 		return selectedOptions.includes(
-			toot.realToot.language || config.locale.defaultLanguage,
+			post.realToot.language || config.locale.defaultLanguage,
 		);
 	},
-	[BooleanFilterName.SOURCE]: (toot: Toot, selectedOptions: string[]) => {
-		const sources = toot.sources ?? [];
-		// If toot has no sources and "Unknown" is selected, match it
+	[BooleanFilterName.SOURCE]: (post: Post, selectedOptions: string[]) => {
+		const sources = post.sources ?? [];
+		// If post has no sources and "Unknown" is selected, match it
 		if (sources.length === 0 && selectedOptions.includes(UNKNOWN_SOURCE)) {
 			return true;
 		}
 		return selectedOptions.some((source) => sources.includes(source));
 	},
-	[BooleanFilterName.TYPE]: (toot: Toot, selectedOptions: string[]) => {
-		return selectedOptions.some((v) => TYPE_FILTERS[v as TypeFilterName](toot));
+	[BooleanFilterName.TYPE]: (post: Post, selectedOptions: string[]) => {
+		return selectedOptions.some((v) => TYPE_FILTERS[v as TypeFilterName](post));
 	},
-	[BooleanFilterName.USER]: (toot: Toot, selectedOptions: string[]) => {
-		return selectedOptions.includes(toot.realToot.account.webfingerURI);
+	[BooleanFilterName.USER]: (post: Post, selectedOptions: string[]) => {
+		return selectedOptions.includes(post.realToot.account.webfingerURI);
 	},
 } as const;
 
@@ -95,15 +95,15 @@ export interface BooleanFilterArgs extends Omit<FilterArgs, "description"> {
 }
 
 /**
- * Handles filtering {@linkcode Toot}s by boolean criteria (e.g. language, hashtag, type).
- * @augments TootFilter
+ * Handles filtering {@linkcode Post}s by boolean criteria (e.g. language, hashtag, type).
+ * @augments PostFilter
  * @property {string} [description] - Optional description of the filter for display or documentation purposes.
  * @property {boolean} [invertSelection] - If true, the filter logic is inverted (e.g. exclude instead of include).
  * @property {BooleanFilterOptionList} options - The BooleanFilterOptions available for this filter.
  * @property {BooleanFilterName} propretyName - The BooleanFilterOptions available for this filter.
  * @property {string[]} selectedOptions - The names of the options selected for use in filtering.
  */
-export default class BooleanFilter extends TootFilter {
+export default class BooleanFilter extends PostFilter {
 	selectedOptions: string[];
 	excludedOptions: string[];
 	propertyName: BooleanFilterName;
@@ -134,7 +134,7 @@ export default class BooleanFilter extends TootFilter {
 	 * @param {BooleanFilterArgs} params - The filter arguments.
 	 * @param {boolean} [params.invertSelection] - If true, the filter logic is inverted (e.g. exclude instead of include).
 	 * @param {string[]} [params.selectedOptions] - The selected options.
-	 * @param {BooleanFilterName} params.propertyName - The property the filter is working with (hashtags/toot type/etc).
+	 * @param {BooleanFilterName} params.propertyName - The property the filter is working with (hashtags/post type/etc).
 	 */
 	constructor(params: BooleanFilterArgs) {
 		const { invertSelection, propertyName, selectedOptions, excludedOptions } =
@@ -167,11 +167,11 @@ export default class BooleanFilter extends TootFilter {
 	}
 
 	/**
-	 * Return true if the {@linkcode Toot} matches the filter.
-	 * @param {Toot} toot - The toot to check.
+	 * Return true if the {@linkcode Post} matches the filter.
+	 * @param {Post} post - The post to check.
 	 * @returns {boolean}
 	 */
-	isAllowed(toot: Toot): boolean {
+	isAllowed(post: Post): boolean {
 		const includeOptions = this.selectedOptions;
 		const excludeOptions = this.excludedOptions.length
 			? this.excludedOptions
@@ -179,18 +179,18 @@ export default class BooleanFilter extends TootFilter {
 				? this.selectedOptions
 				: [];
 
-		// Check if toot matches include filter
+		// Check if post matches include filter
 		if (
 			includeOptions.length &&
-			!TOOT_MATCHERS[this.propertyName](toot, includeOptions)
+			!POST_MATCHERS[this.propertyName](post, includeOptions)
 		) {
 			return false;
 		}
 
-		// Check if toot matches exclude filter
+		// Check if post matches exclude filter
 		if (
 			excludeOptions.length &&
-			TOOT_MATCHERS[this.propertyName](toot, excludeOptions)
+			POST_MATCHERS[this.propertyName](post, excludeOptions)
 		) {
 			return false;
 		}
@@ -211,37 +211,37 @@ export default class BooleanFilter extends TootFilter {
 	}
 
 	/**
-	 * Return options with {@linkcode numToots} >= {@linkcode minToots} sorted by name
+	 * Return options with {@linkcode numPosts} >= {@linkcode minPosts} sorted by name
 	 * ({@linkcode this.selectedOptions} are always included).
-	 * @param {number} [minToots=0] - Minimum number of toots.
+	 * @param {number} [minPosts=0] - Minimum number of posts.
 	 * @param {boolean} [includeFollowed=false] - Always include options with {@linkcode isFollowed} set to true.
 	 * @returns {BooleanFilterOptionList}
 	 */
 	optionsSortedByName(
-		minToots = 0,
+		minPosts = 0,
 		includeFollowed = false,
 	): BooleanFilterOptionList {
 		const options = this.options.objs.toSorted((a, b) =>
 			compareStr(a.displayName || a.name, b.displayName || b.name),
 		);
 
-		return this.optionListWithMinToots(options, minToots, includeFollowed);
+		return this.optionListWithMinPosts(options, minPosts, includeFollowed);
 	}
 
 	/**
-	 * Return options with {@linkcode numToots} >= {@linkcode minToots} sorted by {@linkcode numToots}
+	 * Return options with {@linkcode numPosts} >= {@linkcode minPosts} sorted by {@linkcode numPosts}
 	 * ({@linkcode this.selectedOptions} are always included).
-	 * @param {number} [minToots=0] - Minimum number of toots.
+	 * @param {number} [minPosts=0] - Minimum number of posts.
 	 * @param {boolean} [includeFollowed=false] - Always include options with {@linkcode isFollowed} set to true.
 	 * @returns {BooleanFilterOptionList}
 	 */
 	optionsSortedByValue(
-		minToots = 0,
+		minPosts = 0,
 		includeFollowed = false,
 	): BooleanFilterOptionList {
-		const sortedObjs = this.optionListWithMinToots(
+		const sortedObjs = this.optionListWithMinPosts(
 			this.options.topObjs(),
-			minToots,
+			minPosts,
 			includeFollowed,
 		);
 		this.logger.trace(`optionsSortedByValue() sortedObjs:`, sortedObjs.objs);
@@ -305,24 +305,24 @@ export default class BooleanFilter extends TootFilter {
 	}
 
 	/**
-	 * Return only options that have at least {@linkcode minToots} or are in {@linkcode selectedOptions}.
+	 * Return only options that have at least {@linkcode minPosts} or are in {@linkcode selectedOptions}.
 	 * @private
 	 * @param {BooleanFilterOption[]} options - The options to filter.
-	 * @param {number} [minToots=0] - Minimum number of toots.
+	 * @param {number} [minPosts=0] - Minimum number of posts.
 	 * @param {boolean} [includeFollowed=false] - Always include options with {@linkcode isFollowed} set to true.
 	 * @returns {BooleanFilterOptionList}
 	 */
-	private optionListWithMinToots(
+	private optionListWithMinPosts(
 		options: BooleanFilterOption[],
-		minToots = 0,
+		minPosts = 0,
 		includeFollowed = false,
 	): BooleanFilterOptionList {
 		const newOptions = options.filter((o) => {
-			const numToots = o.numToots || 0;
+			const numPosts = o.numPosts || 0;
 			return (
-				numToots >= minToots ||
+				numPosts >= minPosts ||
 				this.isOptionActive(o.name) ||
-				(includeFollowed && o.isFollowed && numToots > 0)
+				(includeFollowed && o.isFollowed && numPosts > 0)
 			);
 		});
 
@@ -334,7 +334,7 @@ export default class BooleanFilter extends TootFilter {
 				newOptions.push({
 					name: selected,
 					displayName: selected,
-					numToots: 0,
+					numPosts: 0,
 				} as BooleanFilterOption);
 			}
 		});

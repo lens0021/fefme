@@ -5,7 +5,7 @@ import { capitalCase } from "change-case";
 import { Tooltip } from "react-tooltip";
 import {
 	type TagList,
-	type TagTootsCategory,
+	type TagPostsCategory,
 	type TagWithUsageCounts,
 	type TrendingObj,
 	type TrendingType,
@@ -15,17 +15,17 @@ import {
 import { config } from "../config";
 import { getLogger } from "../helpers/log_helpers";
 import {
-	computeMinTootsDefaultValue,
-	computeMinTootsMaxValue,
-} from "../helpers/min_toots";
+	computeMinPostsDefaultValue,
+	computeMinPostsMaxValue,
+} from "../helpers/min_posts";
 import { gridify } from "../helpers/ui";
 import Accordion from "./helpers/Accordion";
 import NewTabLink from "./helpers/NewTabLink";
 
 export type TrendingListObj = TrendingObj | string;
 export type TrendingPanelName =
-	| TagTootsCategory
-	| "toots"
+	| TagPostsCategory
+	| "posts"
 	| TrendingType.SERVERS;
 
 export type LinkRenderer = {
@@ -86,10 +86,10 @@ export default function TrendingSection(props: TrendingProps) {
 		[tagList, trendingObjs],
 	);
 
-	const minTootsSliderDefaultValue: number = useMemo(
+	const minPostsSliderDefaultValue: number = useMemo(
 		() =>
 			tagList
-				? computeMinTootsDefaultValue(
+				? computeMinPostsDefaultValue(
 						tagList,
 						panelType,
 						panelCfg.initialNumShown,
@@ -97,12 +97,12 @@ export default function TrendingSection(props: TrendingProps) {
 				: 0,
 		[panelCfg.initialNumShown, panelType, tagList],
 	);
-	const minTootsMaxValue = useMemo(
-		() => (tagList ? computeMinTootsMaxValue(tagList, panelType) : 0),
+	const minPostsMaxValue = useMemo(
+		() => (tagList ? computeMinPostsMaxValue(tagList, panelType) : 0),
 		[panelType, tagList],
 	);
 
-	const minTootsState = useState<number>(minTootsSliderDefaultValue);
+	const minPostsState = useState<number>(minPostsSliderDefaultValue);
 	const [numShown, setNumShown] = useState(
 		trendObjs.length
 			? Math.min(panelCfg.initialNumShown, trendObjs.length)
@@ -111,7 +111,7 @@ export default function TrendingSection(props: TrendingProps) {
 
 	// Memoize because react profiler says trending panels are most expensive to render
 	const footer: React.ReactNode = useMemo(() => {
-		// TagList uses the min-toots slider; other displays have a link to show all vs. show initialNumShown
+		// TagList uses the min-posts slider; other displays have a link to show all vs. show initialNumShown
 		if (tagList || trendingObjs.length <= panelCfg.initialNumShown) return null;
 
 		const toggleShown = () => {
@@ -152,11 +152,11 @@ export default function TrendingSection(props: TrendingProps) {
 		let objs: TrendingListObj[] = trendObjs;
 		logger.trace(`Rerendering list of ${objs.length} trending items...`);
 
-		// TagList uses the min-toots slider; other displays have a link to show all vs. show initialNumShown
+		// TagList uses the min-posts slider; other displays have a link to show all vs. show initialNumShown
 		if (tagList) {
-			if (minTootsState[0] > 0) {
+			if (minPostsState[0] > 0) {
 				objs = trendObjs.filter(
-					(obj: TagWithUsageCounts) => obj.numToots >= minTootsState[0],
+					(obj: TagWithUsageCounts) => obj.numPosts >= minPostsState[0],
 				);
 			}
 		} else {
@@ -177,7 +177,7 @@ export default function TrendingSection(props: TrendingProps) {
 		if (!linkRenderer) return null;
 
 		logger.trace(
-			`Sliced trendObjs to ${objs.length} items (minTootsState=${minTootsState[0]}, numShown=${numShown})`,
+			`Sliced trendObjs to ${objs.length} items (minPostsState=${minPostsState[0]}, numShown=${numShown})`,
 		);
 		const { infoTxt, linkLabel, linkUrl, onClick } = linkRenderer;
 		const labels = objs.map(
@@ -251,7 +251,7 @@ export default function TrendingSection(props: TrendingProps) {
 		footer,
 		linkRenderer,
 		logger,
-		minTootsState[0],
+		minPostsState[0],
 		numShown,
 		objRenderer,
 		panelCfg,
@@ -263,14 +263,14 @@ export default function TrendingSection(props: TrendingProps) {
 	const slider = useMemo(() => {
 		if (!tagList) return null;
 
-		const tooltipAnchor = `${panelType}-min-toots-slider-tooltip`;
+		const tooltipAnchor = `${panelType}-min-posts-slider-tooltip`;
 		const pluralizedPanelTitle = title.toLowerCase();
 
 		return (
-			<div key={`${panelType}-minTootsSlider`} className="w-full">
+			<div key={`${panelType}-minPostsSlider`} className="w-full">
 				<Tooltip
 					className="font-normal z-[2000] max-w-[calc(100vw-2rem)] whitespace-normal break-words"
-					delayShow={config.filters.boolean.minTootsSlider.tooltipHoverDelay}
+					delayShow={config.filters.boolean.minPostsSlider.tooltipHoverDelay}
 					id={tooltipAnchor}
 					place="bottom"
 				/>
@@ -279,26 +279,26 @@ export default function TrendingSection(props: TrendingProps) {
 					type="button"
 					className="text-left"
 					data-tooltip-id={tooltipAnchor}
-					data-tooltip-content={`Hide ${pluralizedPanelTitle} with less than ${minTootsState[0]} posts`}
+					data-tooltip-content={`Hide ${pluralizedPanelTitle} with less than ${minPostsState[0]} posts`}
 				>
 					<div className="flex items-center gap-3 text-sm">
 						<input
 							type="range"
 							className="custom-slider w-full"
 							min={1}
-							max={minTootsMaxValue}
+							max={minPostsMaxValue}
 							onChange={(e) =>
-								minTootsState[1](Number.parseInt(e.target.value, 10))
+								minPostsState[1](Number.parseInt(e.target.value, 10))
 							}
 							step={1}
-							value={minTootsState[0]}
+							value={minPostsState[0]}
 						/>
 						<span className="font-bold">Minimum</span>
 					</div>
 				</button>
 			</div>
 		);
-	}, [minTootsMaxValue, minTootsState[0], panelType, tagList, title]);
+	}, [minPostsMaxValue, minPostsState[0], panelType, tagList, title]);
 
 	if (tagList) {
 		return (

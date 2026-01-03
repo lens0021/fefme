@@ -5,7 +5,7 @@ import type React from "react";
 import type { CSSProperties, MouseEvent, ReactElement } from "react";
 
 import type tinycolor from "tinycolor2";
-import { type Toot, makeChunks } from "../core/index";
+import { type Post, makeChunks } from "../core/index";
 
 import { appLogger } from "./log_helpers";
 import type { GradientEndpoints } from "./styles";
@@ -23,13 +23,13 @@ export function followUri(uri: string, e: MouseEvent): boolean {
 
 // Open the Post in a new tab, resolved to its URL on the user's home server
 export async function openToot(
-	toot: Toot,
+	post: Post,
 	e: MouseEvent,
 	isGoToSocialUser?: boolean,
 ): Promise<boolean> {
 	e.preventDefault();
-	appLogger.log("openPost() called with:", toot);
-	const resolvedURL = isGoToSocialUser ? toot.url : await toot.localServerUrl();
+	appLogger.log("openPost() called with:", post);
+	const resolvedURL = isGoToSocialUser ? post.url : await post.localServerUrl();
 	return followUri(resolvedURL, e);
 }
 

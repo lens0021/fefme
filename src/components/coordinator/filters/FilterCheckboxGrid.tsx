@@ -13,7 +13,7 @@ import {
 	FILTER_OPTION_DATA_SOURCES,
 	type FilterOptionDataSource,
 	ScoreName,
-	TagTootsCategory,
+	TagPostsCategory,
 	TypeFilterName,
 } from "../../../core/index";
 
@@ -42,7 +42,7 @@ type DataSourceGradients = Record<
 
 interface FilterCheckboxGridProps extends HeaderSwitchState {
 	filter: BooleanFilter;
-	minToots?: number;
+	minPosts?: number;
 	tagSwitchState?: TagHighlightSwitchState;
 }
 
@@ -121,7 +121,7 @@ function FilterStateButtons<T extends string>({
 
 // TODO: maybe rename this BooleanFilterCheckboxGrid?
 export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
-	const { filter, highlightsOnly, minToots, sortByCount, tagSwitchState } =
+	const { filter, highlightsOnly, minPosts, sortByCount, tagSwitchState } =
 		props;
 	const {
 		algorithm,
@@ -255,7 +255,7 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 				? tooltipConfig[TypeFilterName.FOLLOWED_HASHTAGS]
 				: undefined;
 
-			const tagSources = Object.values(TagTootsCategory).reverse();
+			const tagSources = Object.values(TagPostsCategory).reverse();
 			for (const dataSource of tagSources) {
 				tooltip ||=
 					tagSwitchState?.[dataSource] &&
@@ -285,8 +285,8 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 	// Count the number of posts from the current user
 	const selfPostCount = useMemo(() => {
 		if (!algorithm?.timeline || !currentUserWebfinger) return 0;
-		return algorithm.timeline.filter((toot) =>
-			toot.accounts?.some(
+		return algorithm.timeline.filter((post) =>
+			post.accounts?.some(
 				(account) => account.webfingerURI === currentUserWebfinger,
 			),
 		).length;
@@ -300,8 +300,8 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 		);
 
 		let options = sortByCount
-			? filter.optionsSortedByValue(minToots, alwaysShowFollowed)
-			: filter.optionsSortedByName(minToots, alwaysShowFollowed);
+			? filter.optionsSortedByValue(minPosts, alwaysShowFollowed)
+			: filter.optionsSortedByName(minPosts, alwaysShowFollowed);
 
 		if (highlightsOnly && showFilterHighlights) {
 			options = options.filter((option) => !!findTooltip(option));
@@ -309,7 +309,7 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 
 		const optionCheckboxes = options.objs.map((option) => {
 			const label = option.displayName || option.name;
-			const labelExtra = option?.numToots?.toLocaleString();
+			const labelExtra = option?.numPosts?.toLocaleString();
 			const formattedLabel = optionsFormatCfg?.formatLabel
 				? optionsFormatCfg?.formatLabel(label)
 				: label;

@@ -3,7 +3,7 @@
  */
 import { useEffect } from "react";
 
-import { MediaCategory, type Toot, VIDEO_TYPES } from "../../core/index";
+import { MediaCategory, type Post, VIDEO_TYPES } from "../../core/index";
 
 import { getLogger } from "../../helpers/log_helpers";
 
@@ -12,21 +12,21 @@ const logger = getLogger("AttachmentsModal");
 interface AttachmentsModalProps {
 	mediaInspectionIdx: number;
 	setMediaInspectionIdx: (mediaInspectionIdx: number) => void;
-	toot: Toot;
+	post: Post;
 }
 
 export default function AttachmentsModal(props: AttachmentsModalProps) {
-	const { mediaInspectionIdx, setMediaInspectionIdx, toot } = props;
+	const { mediaInspectionIdx, setMediaInspectionIdx, post } = props;
 	const shouldShowModal = mediaInspectionIdx >= 0;
 	let element: JSX.Element = <></>;
 
 	if (shouldShowModal) {
-		const media = toot.mediaAttachments[mediaInspectionIdx];
+		const media = post.mediaAttachments[mediaInspectionIdx];
 
 		if (!media?.url) {
 			logger.warn(
 				`<AttachmentsModal> Invalid media.url at idx ${mediaInspectionIdx}. post:`,
-				toot,
+				post,
 			);
 		} else if (media.type === MediaCategory.IMAGE) {
 			element = (
@@ -43,14 +43,14 @@ export default function AttachmentsModal(props: AttachmentsModalProps) {
 		} else {
 			logger.warn(
 				`<AttachmentsModal> Unknown type at post.mediaAttachments[${mediaInspectionIdx}]`,
-				toot,
+				post,
 			);
 		}
 	}
 
 	// Increase mediaInspectionIdx on Right Arrow, decrease on Left Arrow.
 	useEffect(() => {
-		if (toot.imageAttachments.length <= 1) return;
+		if (post.imageAttachments.length <= 1) return;
 
 		const handleKeyDown = (e: KeyboardEvent): void => {
 			if (mediaInspectionIdx < 0) return;
@@ -60,10 +60,10 @@ export default function AttachmentsModal(props: AttachmentsModalProps) {
 				newIndex += 1;
 			} else if (e.key === "ArrowLeft") {
 				newIndex -= 1;
-				if (newIndex < 0) newIndex = toot.mediaAttachments.length - 1;
+				if (newIndex < 0) newIndex = post.mediaAttachments.length - 1;
 			}
 
-			setMediaInspectionIdx(newIndex % toot.mediaAttachments.length);
+			setMediaInspectionIdx(newIndex % post.mediaAttachments.length);
 		};
 
 		window.addEventListener("keydown", handleKeyDown);
@@ -71,8 +71,8 @@ export default function AttachmentsModal(props: AttachmentsModalProps) {
 	}, [
 		mediaInspectionIdx,
 		setMediaInspectionIdx,
-		toot.imageAttachments.length,
-		toot.mediaAttachments.length,
+		post.imageAttachments.length,
+		post.mediaAttachments.length,
 	]);
 
 	if (!shouldShowModal) return null;
@@ -88,7 +88,7 @@ export default function AttachmentsModal(props: AttachmentsModalProps) {
 			<div className="relative z-10 bg-white rounded-lg shadow-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
 				<div className="p-4 border-b flex justify-between items-center">
 					<h3 className="text-lg font-semibold text-black">
-						{toot.contentShortened()}
+						{post.contentShortened()}
 					</h3>
 					<button
 						type="button"

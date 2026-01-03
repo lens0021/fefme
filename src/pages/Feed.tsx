@@ -6,14 +6,14 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import FeedCoordinator, {
 	READY_TO_LOAD_MSG,
-	type Toot,
+	type Post,
 	optionalSuffix,
 	timeString,
 } from "../core/index";
 import {
 	CacheKey,
 	FEDERATED_TIMELINE_SOURCE,
-	TagTootsCategory,
+	TagPostsCategory,
 } from "../core/enums";
 
 import ApiErrorsPanel from "../components/ApiErrorsPanel";
@@ -53,15 +53,15 @@ export default function Feed() {
 		triggerMoarData,
 		triggerPullAllUserData,
 	} = useAlgorithm();
-	const { defaultNumDisplayedToots, numTootsToLoadOnScroll } = config.timeline;
+	const { defaultNumDisplayedPosts, numPostsToLoadOnScroll } = config.timeline;
 
 	// State variables
 	const [isLoadingThread, setIsLoadingThread] = useState(false);
-	const [numDisplayedToots, setNumDisplayedToots] = useState<number>(
-		defaultNumDisplayedToots,
+	const [numDisplayedPosts, setNumDisplayedPosts] = useState<number>(
+		defaultNumDisplayedPosts,
 	);
 	const [scrollPercentage, setScrollPercentage] = useState(0);
-	const [thread, setThread] = useState<Toot[]>([]);
+	const [thread, setThread] = useState<Post[]>([]);
 	const dataLoadingRef = useRef<HTMLDivElement>(null);
 
 	// Checkboxes for persistent user settings state variables
@@ -73,7 +73,7 @@ export default function Feed() {
 	// Computed variables etc.
 	const bottomRef = useRef<HTMLDivElement>(null);
 	const isBottom = useOnScreen(bottomRef);
-	const numShownToots = Math.max(defaultNumDisplayedToots, numDisplayedToots);
+	const numShownPosts = Math.max(defaultNumDisplayedPosts, numDisplayedPosts);
 	const showInitialLoading = isLoading && !hasInitialCache;
 	const showRebuildLoading = isRebuildLoading && hasInitialCache;
 	const hasFilterReason = pendingTimelineReasons?.includes("filters") ?? false;
@@ -87,8 +87,8 @@ export default function Feed() {
 	const visibleTimeline = useMemo(() => {
 		if (selfTypeFilterMode === "none" || !currentUserWebfinger) return timeline;
 		const shouldInvert = selfTypeFilterMode === "exclude";
-		return timeline.filter((toot) => {
-			const isSelf = toot.accounts?.some(
+		return timeline.filter((post) => {
+			const isSelf = post.accounts?.some(
 				(account) => account.webfingerURI === currentUserWebfinger,
 			);
 			return shouldInvert ? !isSelf : isSelf;
@@ -99,23 +99,23 @@ export default function Feed() {
 	// User can manually load using buttons shown in the empty state
 
 	// Show more posts when the user scrolls to bottom of the page
-	// TODO: this triggers twice: once when isBottom changes to true and again because numDisplayedToots
+	// TODO: this triggers twice: once when isBottom changes to true and again because numDisplayedPosts
 	//       is increased, triggering a second evaluation of the block
 	useEffect(() => {
-		const showMoreToots = () => {
-			if (numDisplayedToots < visibleTimeline.length) {
+		const showMorePosts = () => {
+			if (numDisplayedPosts < visibleTimeline.length) {
 				logger.log(
-					`Showing ${numDisplayedToots} posts, adding ${numTootsToLoadOnScroll} more (${visibleTimeline.length} available in feed)`,
+					`Showing ${numDisplayedPosts} posts, adding ${numPostsToLoadOnScroll} more (${visibleTimeline.length} available in feed)`,
 				);
-				setNumDisplayedToots((prev) => prev + numTootsToLoadOnScroll);
+				setNumDisplayedPosts((prev) => prev + numPostsToLoadOnScroll);
 			}
 		};
 
 		// If the user scrolls to the bottom of the page, show more posts
-		if (isBottom && visibleTimeline.length) showMoreToots();
-		// If there's less than numDisplayedToots in the feed set numDisplayedToots to the # of posts in the feed
-		if (visibleTimeline.length && visibleTimeline.length < numDisplayedToots)
-			setNumDisplayedToots(visibleTimeline.length);
+		if (isBottom && visibleTimeline.length) showMorePosts();
+		// If there's less than numDisplayedPosts in the feed set numDisplayedPosts to the # of posts in the feed
+		if (visibleTimeline.length && visibleTimeline.length < numDisplayedPosts)
+			setNumDisplayedPosts(visibleTimeline.length);
 
 		const handleScroll = () => {
 			const scrollHeight = document.documentElement.scrollHeight; // Total height
@@ -130,13 +130,13 @@ export default function Feed() {
 
 			if (
 				percentage <= 10 &&
-				numDisplayedToots > defaultNumDisplayedToots * 3
+				numDisplayedPosts > defaultNumDisplayedPosts * 3
 			) {
-				const newNumDisplayedToots = Math.floor(numDisplayedToots * 0.8);
+				const newNumDisplayedPosts = Math.floor(numDisplayedPosts * 0.8);
 				logger.log(
-					`Scroll pctage less than 10%, lowering numDisplayedToots to ${newNumDisplayedToots}`,
+					`Scroll pctage less than 10%, lowering numDisplayedPosts to ${newNumDisplayedPosts}`,
 				);
-				setNumDisplayedToots(newNumDisplayedToots);
+				setNumDisplayedPosts(newNumDisplayedPosts);
 			}
 		};
 
@@ -145,10 +145,10 @@ export default function Feed() {
 	}, [
 		isBottom,
 		isLoading,
-		numDisplayedToots,
+		numDisplayedPosts,
 		visibleTimeline.length,
-		defaultNumDisplayedToots,
-		numTootsToLoadOnScroll,
+		defaultNumDisplayedPosts,
+		numPostsToLoadOnScroll,
 	]);
 
 	// TODO: probably easier to not rely on fefme's measurement of the last load time; we can easily track it ourselves.
@@ -165,7 +165,7 @@ export default function Feed() {
 	const dataStats = useMemo(() => {
 		if (!algorithm) return null;
 		return algorithm.getDataStats();
-	}, [algorithm, lastLoadDurationSeconds, numDisplayedToots, timeline.length]);
+	}, [algorithm, lastLoadDurationSeconds, numDisplayedPosts, timeline.length]);
 
 	const mostRecentCachedTime = useMemo(() => {
 		if (!dataStats?.oldestCachedTime || !dataStats.mostRecentCachedTime) {
@@ -179,7 +179,7 @@ export default function Feed() {
 		isBottom &&
 		!showInitialLoading &&
 		visibleTimeline.length > 0 &&
-		numDisplayedToots >= visibleTimeline.length;
+		numDisplayedPosts >= visibleTimeline.length;
 	const formatSourceOldest = (sourceKey: string, usesId: boolean): string => {
 		const stats = sourceStats[sourceKey];
 		if (!stats || stats.total === 0)
@@ -197,7 +197,7 @@ export default function Feed() {
 	const sourceBackfills = useMemo(
 		() => [
 			{
-				key: CacheKey.HOME_TIMELINE_TOOTS,
+				key: CacheKey.HOME_TIMELINE_POSTS,
 				label: "home timeline",
 				onClick: triggerHomeTimelineBackFill,
 				usesId: true,
@@ -209,13 +209,13 @@ export default function Feed() {
 				usesId: true,
 			},
 			{
-				key: TagTootsCategory.FAVOURITED,
+				key: TagPostsCategory.FAVOURITED,
 				label: "favourited tags",
 				onClick: triggerFavouritedTagBackFill,
 				usesId: true,
 			},
 			{
-				key: TagTootsCategory.PARTICIPATED,
+				key: TagPostsCategory.PARTICIPATED,
 				label: "participated tags",
 				onClick: triggerParticipatedTagBackFill,
 				usesId: true,
@@ -269,7 +269,7 @@ export default function Feed() {
 												Visible now: {visibleTimeline.length.toLocaleString()}{" "}
 												posts (
 												{Math.min(
-													numShownToots,
+													numShownPosts,
 													visibleTimeline.length,
 												).toLocaleString()}{" "}
 												displayed)
@@ -277,7 +277,7 @@ export default function Feed() {
 											{!isLoading && <div>{footerMsg}</div>}
 											{FeedCoordinator.isDebugMode && (
 												<div>
-													Displaying {numDisplayedToots} Posts (Scroll:{" "}
+													Displaying {numDisplayedPosts} Posts (Scroll:{" "}
 													{scrollPercentage.toFixed(1)}%)
 												</div>
 											)}
@@ -368,12 +368,12 @@ export default function Feed() {
 								defaultOpen={true}
 								title="Thread"
 							>
-								{thread.map((toot) => (
+								{thread.map((post) => (
 									<StatusComponent
 										fontColor="black"
-										key={toot.uri}
+										key={post.uri}
 										showLinkPreviews={showLinkPreviews}
-										status={toot}
+										status={post}
 									/>
 								))}
 							</Accordion>
@@ -428,14 +428,14 @@ export default function Feed() {
 							</div>
 						) : (
 							<>
-								{visibleTimeline.slice(0, numShownToots).map((toot) => (
+								{visibleTimeline.slice(0, numShownPosts).map((post) => (
 									<StatusComponent
 										isLoadingThread={isLoadingThread}
-										key={toot.uri}
+										key={post.uri}
 										setThread={setThread}
 										setIsLoadingThread={setIsLoadingThread}
 										showLinkPreviews={showLinkPreviews}
-										status={toot}
+										status={post}
 									/>
 								))}
 
@@ -460,7 +460,7 @@ export default function Feed() {
 
 								{visibleTimeline.length === 0 && (
 									<div className="flex min-h-[40vh] flex-col items-center justify-center gap-4">
-										<p className="text-lg">{config.timeline.noTootsMsg}</p>
+										<p className="text-lg">{config.timeline.noPostsMsg}</p>
 										<div className="flex flex-col gap-2 text-sm">
 											<button
 												type="button"

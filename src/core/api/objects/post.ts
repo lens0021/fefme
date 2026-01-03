@@ -1,5 +1,5 @@
 /**
- * @fileoverview {@linkcode Toot} class and helper methods for dealing with Mastodon
+ * @fileoverview {@linkcode Post} class and helper methods for dealing with Mastodon
  * {@linkcode https://docs.joinmastodon.org/entities/Status/ Status} objects.
  * Includes methods for scoring, filtering, deduplication, and property repair.
  */
@@ -70,9 +70,9 @@ import type {
 	ScoreType,
 	TagWithUsageCounts,
 	TootLike,
-	TootNumberProp,
+	PostNumberProp,
 	TootScore,
-	TootSource,
+	PostSource,
 	TrendingLink,
 } from "../../types";
 import MastoApi from "../api";
@@ -94,7 +94,7 @@ enum TootVisibility {
 	UNLISTED = "unlisted",
 }
 
-// Cache for methods that build strings from the toot content.
+// Cache for methods that build strings from the post content.
 type TootCacheStrings = { [key in TootCacheKey]?: string };
 type TootCache = TootCacheStrings & { tagNames?: Set<string> };
 
@@ -108,7 +108,7 @@ const HASHTAG_PARAGRAPH_REGEX = new RegExp(
 );
 const PROPS_THAT_CHANGE = FILTERABLE_SCORES.concat("numTimesShown");
 
-const tootLogger = new Logger("Toot");
+const tootLogger = new Logger("Post");
 const repairLogger = tootLogger.tempLogger("repairToot");
 
 /**
@@ -116,18 +116,18 @@ const repairLogger = tootLogger.tempLogger("repairToot");
  * that should be serialized to storage.
  */
 export interface SerializableToot extends mastodon.v1.Status {
-	completedAt?: string; // Timestamp a full deep inspection of the toot was completed
-	followedTags?: Hashtag[]; // Array of tags that the user follows that exist in this toot
-	numTimesShown?: number; // Managed in client app. # of times the Toot has been shown to the user.
-	participatedTags?: TagWithUsageCounts[]; // Tags that the user has participated in that exist in this toot
-	reblog?: SerializableToot | null; // The toot that was retooted (if any)
-	reblogsBy?: AccountLike[]; // The accounts that retooted this toot (if any)
-	resolvedID?: string; // This Toot with URLs resolved to homeserver versions
-	scoreInfo?: TootScore; // Scoring info for weighting/sorting this toot
-	sources?: string[]; // Source of the toot (e.g. trending tag toots, home timeline, etc.)
-	trendingLinks?: TrendingLink[]; // Links that are trending in this toot
+	completedAt?: string; // Timestamp a full deep inspection of the post was completed
+	followedTags?: Hashtag[]; // Array of tags that the user follows that exist in this post
+	numTimesShown?: number; // Managed in client app. # of times the Post has been shown to the user.
+	participatedTags?: TagWithUsageCounts[]; // Tags that the user has participated in that exist in this post
+	reblog?: SerializableToot | null; // The post that was boosted (if any)
+	reblogsBy?: AccountLike[]; // The accounts that boosted this post (if any)
+	resolvedID?: string; // This Post with URLs resolved to homeserver versions
+	scoreInfo?: TootScore; // Scoring info for weighting/sorting this post
+	sources?: string[]; // Source of the post (e.g. trending tag posts, home timeline, etc.)
+	trendingLinks?: TrendingLink[]; // Links that are trending in this post
 	trendingRank?: number; // Most trending on a server gets a 10, next is a 9, etc.
-	trendingTags?: TagWithUsageCounts[]; // Tags that are trending in this toot
+	trendingTags?: TagWithUsageCounts[]; // Tags that are trending in this post
 	audioAttachments?: mastodon.v1.MediaAttachment[];
 	imageAttachments?: mastodon.v1.MediaAttachment[];
 	videoAttachments?: mastodon.v1.MediaAttachment[];
@@ -137,7 +137,7 @@ export interface SerializableToot extends mastodon.v1.Status {
  * Interface for mastodon.v1.Status object with additional helper methods.
  * @interface
  */
-interface TootObj extends SerializableToot {
+interface PostObj extends SerializableToot {
 	// Getters
 	accounts: Account[];
 	attachmentType: MediaCategory | undefined;
@@ -149,11 +149,11 @@ interface TootObj extends SerializableToot {
 	isPrivate: boolean;
 	isTrending: boolean;
 	popularity: number;
-	realToot: Toot;
+	realToot: Post;
 	realURI: string;
 	realURL: string;
 	score: number;
-	withRetoot: Toot[];
+	withBoost: Post[];
 	// Methods
 	containsString: (str: string) => boolean;
 	containsTag: (tag: TagWithUsageCounts, fullScan?: boolean) => boolean;
@@ -168,58 +168,58 @@ interface TootObj extends SerializableToot {
 		mutedKeywordRegex: RegExp,
 		blockedDomains: Set<string>,
 	) => boolean;
-	resolve: () => Promise<Toot>;
+	resolve: () => Promise<Post>;
 	resolveID: () => Promise<string>;
 	tagNames: () => Set<string>;
 }
 
 /**
- * Class representing a Mastodon {@linkcode Toot} with helper methods for scoring, filtering, and more.
+ * Class representing a Mastodon {@linkcode Post} with helper methods for scoring, filtering, and more.
  * Extends the base Mastodon {@linkcode https://docs.joinmastodon.org/entities/Status/ Status} object.
  * Note: the base {@linkcode https://docs.joinmastodon.org/entities/Status/ Status} class's
  * properties are not documented here.
  *
- * @implements {TootObj}
+ * @implements {PostObj}
  * @extends {mastodon.v1.Status}
- * @property {Account[]} accounts - Array with the author of the toot and (if it exists) the account that retooted it.
- * @property {number} ageInHours - Age of this toot in hours.
- * @property {mastodon.v1.CustomEmoji[]} allEmojis - All custom emojis in the toot, including the author's.
- * @property {MediaAttachmentType} [attachmentType] - The type of media in the toot (image, video, audio, etc.).
- * @property {Account} author - The account that posted this toot, not the account that reblogged it.
- * @property {string} [completedAt] - Timestamp when a full deep inspection of the toot was last completed.
+ * @property {Account[]} accounts - Array with the author of the post and (if it exists) the account that boosted it.
+ * @property {number} ageInHours - Age of this post in hours.
+ * @property {mastodon.v1.CustomEmoji[]} allEmojis - All custom emojis in the post, including the author's.
+ * @property {MediaAttachmentType} [attachmentType] - The type of media in the post (image, video, audio, etc.).
+ * @property {Account} author - The account that posted this post, not the account that reblogged it.
+ * @property {string} [completedAt] - Timestamp when a full deep inspection of the post was last completed.
  * @property {string} [contentTagsParagraph] - If the last paragraph is 100% hashtag this is the HTML for that paragraph.
- * @property {string} description - A string describing the toot, including author, content, and createdAt.
- * @property {MastodonTag[]} [followedTags] - Array of tags that the user follows that exist in this toot.
- * @property {string} homeserver - The homeserver of the author of the toot.
- * @property {boolean} isDM - True if the toot is a direct message (DM) to the user.
- * @property {boolean} isFollowed - True if this toot is from a followed account or contains a followed tag.
- * @property {boolean} isLocal - True if this toot is from the Fefme user's home server.
+ * @property {string} description - A string describing the post, including author, content, and createdAt.
+ * @property {MastodonTag[]} [followedTags] - Array of tags that the user follows that exist in this post.
+ * @property {string} homeserver - The homeserver of the author of the post.
+ * @property {boolean} isDM - True if the post is a direct message (DM) to the user.
+ * @property {boolean} isFollowed - True if this post is from a followed account or contains a followed tag.
+ * @property {boolean} isLocal - True if this post is from the Fefme user's home server.
  * @property {boolean} isPrivate - True if it's for followers only.
- * @property {boolean} isTrending - True if it's a trending toot or contains any trending hashtags or links.
- * @property {string} lastEditedAt - The date when the toot was last edited, or createdAt if never edited.
- * @property {number} [numTimesShown] - Managed in client app. # of times the Toot has been shown to the user.
- * @property {TagWithUsageCounts[]} [participatedTags] - Tags that the user has participated in that exist in this toot
+ * @property {boolean} isTrending - True if it's a trending post or contains any trending hashtags or links.
+ * @property {string} lastEditedAt - The date when the post was last edited, or createdAt if never edited.
+ * @property {number} [numTimesShown] - Managed in client app. # of times the Post has been shown to the user.
+ * @property {TagWithUsageCounts[]} [participatedTags] - Tags that the user has participated in that exist in this post
  * @property {number} popularity - Sum of the trendingRank, numReblogs, replies, and local server favourites. Currently unused.
- * @property {Toot} realToot - The toot that was reblogged if it's a reblog, otherwise this toot.
+ * @property {Post} realToot - The post that was reblogged if it's a reblog, otherwise this post.
  * @property {string} realURI - URI for the realToot.
  * @property {string} realURL - Default to this.realURI if url property is empty.
- * @property {SerializableToot | null} [reblog] - The toot that was retooted (if any).
- * @property {AccountLike[]} [reblogsBy] - The accounts that retooted this toot (if any)
- * @property {string[]} replyMentions - The webfinger URIs of the accounts mentioned in the toot + the author prepended with @.
- * @property {string} [resolvedID] - This Toot with URLs resolved to homeserver versions
- * @property {number} score - Current overall score for this toot.
- * @property {TootScore} [scoreInfo] - Scoring info for weighting/sorting this toot
- * @property {string[]} [sources] - Source of the toot (e.g. trending tag toots, home timeline, etc.)
- * @property {Date} tootedAt - Timestamp of toot's createdAt.
- * @property {TrendingLink[]} [trendingLinks] - Links that are trending in this toot
+ * @property {SerializableToot | null} [reblog] - The post that was boosted (if any).
+ * @property {AccountLike[]} [reblogsBy] - The accounts that boosted this post (if any)
+ * @property {string[]} replyMentions - The webfinger URIs of the accounts mentioned in the post + the author prepended with @.
+ * @property {string} [resolvedID] - This Post with URLs resolved to homeserver versions
+ * @property {number} score - Current overall score for this post.
+ * @property {TootScore} [scoreInfo] - Scoring info for weighting/sorting this post
+ * @property {string[]} [sources] - Source of the post (e.g. trending tag posts, home timeline, etc.)
+ * @property {Date} tootedAt - Timestamp of post's createdAt.
+ * @property {TrendingLink[]} [trendingLinks] - Links that are trending in this post
  * @property {number} [trendingRank] - Most trending on a server gets a 10, next is a 9, etc.
- * @property {TagWithUsageCounts[]} [trendingTags] - Tags that are trending in this toot
- * @property {Toot[]} withRetoot - Returns the toot and the retoot, if it exists, as an array.
+ * @property {TagWithUsageCounts[]} [trendingTags] - Tags that are trending in this post
+ * @property {Post[]} withBoost - Returns the post and the boost, if it exists, as an array.
  * @property {mastodon.v1.MediaAttachment[]} [audioAttachments]
  * @property {mastodon.v1.MediaAttachment[]} [imageAttachments]
  * @property {mastodon.v1.MediaAttachment[]} [videoAttachments]
  */
-export default class Toot implements TootObj {
+export default class Post implements PostObj {
 	// Props from mastodon.v1.Status
 	id!: string;
 	uri!: string;
@@ -249,30 +249,30 @@ export default class Toot implements TootObj {
 	muted?: boolean | null;
 	pinned?: boolean | null;
 	poll?: mastodon.v1.Poll | null;
-	@Type(() => Toot) reblog?: Toot | null;
+	@Type(() => Post) reblog?: Post | null;
 	reblogged?: boolean | null;
 	text?: string | null;
 	url?: string | null;
 
 	// extensions to mastodon.v1.Status. Most of these are set in completeProperties()
 	completedAt?: string;
-	followedTags?: mastodon.v1.Tag[]; // Array of tags that the user follows that exist in this toot
+	followedTags?: mastodon.v1.Tag[]; // Array of tags that the user follows that exist in this post
 	numTimesShown!: number;
-	participatedTags?: TagWithUsageCounts[]; // Array of tags that the user has participated in that exist in this toot
-	@Type(() => Account) reblogsBy!: Account[]; // The accounts that retooted this toot
-	resolvedID?: string; // This Toot with URLs resolved to homeserver versions
-	scoreInfo?: TootScore; // Scoring info for weighting/sorting this toot
-	sources?: string[]; // Source of the toot (e.g. trending tag toots, home timeline, etc.)
-	trendingLinks?: TrendingLink[]; // Links that are trending in this toot
+	participatedTags?: TagWithUsageCounts[]; // Array of tags that the user has participated in that exist in this post
+	@Type(() => Account) reblogsBy!: Account[]; // The accounts that boosted this post
+	resolvedID?: string; // This Post with URLs resolved to homeserver versions
+	scoreInfo?: TootScore; // Scoring info for weighting/sorting this post
+	sources?: string[]; // Source of the post (e.g. trending tag posts, home timeline, etc.)
+	trendingLinks?: TrendingLink[]; // Links that are trending in this post
 	trendingRank?: number; // Most trending on a server gets a 10, next is a 9, etc.
-	trendingTags?: TagWithUsageCounts[]; // Tags that are trending that appear in this toot
+	trendingTags?: TagWithUsageCounts[]; // Tags that are trending that appear in this post
 	audioAttachments!: mastodon.v1.MediaAttachment[];
 	imageAttachments!: mastodon.v1.MediaAttachment[];
 	videoAttachments!: mastodon.v1.MediaAttachment[];
 
 	// See JSDoc comment for explanations of the various getters
 	get accounts(): Account[] {
-		return this.withRetoot.map((toot) => toot.account);
+		return this.withBoost.map((post) => post.account);
 	}
 	get ageInHours(): number {
 		return AgeIn.hours(this.createdAt);
@@ -319,7 +319,7 @@ export default class Toot implements TootObj {
 			this.trendingRank,
 		]);
 	}
-	get realToot(): Toot {
+	get realToot(): Post {
 		return this.reblog ?? this;
 	}
 	get realURI(): string {
@@ -338,7 +338,7 @@ export default class Toot implements TootObj {
 		return new Date(this.createdAt);
 	}
 	// TODO: should this consider the values in reblogsBy?
-	get withRetoot(): Toot[] {
+	get withBoost(): Post[] {
 		return [this, ...asOptionalArray(this.reblog)];
 	}
 
@@ -372,63 +372,63 @@ export default class Toot implements TootObj {
 	 * Alternate constructor because {@linkcode https://www.npmjs.com/package/class-transformer class-transformer}
 	 * doesn't work with constructor arguments.
 	 * @static
-	 * @param {SerializableToot} toot - The toot data to build from.
-	 * @returns {Toot} The constructed Toot instance.
+	 * @param {SerializableToot} post - The post data to build from.
+	 * @returns {Post} The constructed Post instance.
 	 */
-	static build(toot: SerializableToot | Toot): Toot {
-		if (toot instanceof Toot) {
-			// Clear the cache if the toot was edited // TODO: Probably not the ideal time to clear the cache
-			if (toot.editedAt) toot.contentCache = {};
-			return toot;
+	static build(post: SerializableToot | Post): Post {
+		if (post instanceof Post) {
+			// Clear the cache if the post was edited // TODO: Probably not the ideal time to clear the cache
+			if (post.editedAt) post.contentCache = {};
+			return post;
 		}
 
-		const tootObj = new Toot();
-		tootObj.id = toot.id;
-		tootObj.uri = toot.uri;
-		tootObj.account = Account.build(toot.account);
-		tootObj.application = toot.application;
-		tootObj.bookmarked = toot.bookmarked;
-		tootObj.card = toot.card;
-		tootObj.content = toot.content;
-		tootObj.createdAt = toot.createdAt;
-		tootObj.editedAt = toot.editedAt;
-		tootObj.emojis = toot.emojis;
-		tootObj.favourited = toot.favourited;
-		tootObj.favouritesCount = toot.favouritesCount;
-		tootObj.filtered = toot.filtered;
-		tootObj.inReplyToAccountId = toot.inReplyToAccountId;
-		tootObj.inReplyToId = toot.inReplyToId;
-		tootObj.language = toot.language;
-		tootObj.mediaAttachments = toot.mediaAttachments || [];
-		tootObj.mentions = toot.mentions;
-		tootObj.muted = toot.muted;
-		tootObj.pinned = toot.pinned;
-		tootObj.poll = toot.poll;
-		tootObj.reblogged = toot.reblogged;
-		tootObj.reblogsCount = toot.reblogsCount;
-		tootObj.repliesCount = toot.repliesCount;
-		tootObj.sensitive = toot.sensitive;
-		tootObj.spoilerText = toot.spoilerText;
-		tootObj.tags = toot.tags;
-		tootObj.text = toot.text;
-		tootObj.url = toot.url;
-		tootObj.visibility = toot.visibility;
+		const tootObj = new Post();
+		tootObj.id = post.id;
+		tootObj.uri = post.uri;
+		tootObj.account = Account.build(post.account);
+		tootObj.application = post.application;
+		tootObj.bookmarked = post.bookmarked;
+		tootObj.card = post.card;
+		tootObj.content = post.content;
+		tootObj.createdAt = post.createdAt;
+		tootObj.editedAt = post.editedAt;
+		tootObj.emojis = post.emojis;
+		tootObj.favourited = post.favourited;
+		tootObj.favouritesCount = post.favouritesCount;
+		tootObj.filtered = post.filtered;
+		tootObj.inReplyToAccountId = post.inReplyToAccountId;
+		tootObj.inReplyToId = post.inReplyToId;
+		tootObj.language = post.language;
+		tootObj.mediaAttachments = post.mediaAttachments || [];
+		tootObj.mentions = post.mentions;
+		tootObj.muted = post.muted;
+		tootObj.pinned = post.pinned;
+		tootObj.poll = post.poll;
+		tootObj.reblogged = post.reblogged;
+		tootObj.reblogsCount = post.reblogsCount;
+		tootObj.repliesCount = post.repliesCount;
+		tootObj.sensitive = post.sensitive;
+		tootObj.spoilerText = post.spoilerText;
+		tootObj.tags = post.tags;
+		tootObj.text = post.text;
+		tootObj.url = post.url;
+		tootObj.visibility = post.visibility;
 
 		// Unique to fefme
-		tootObj.numTimesShown = toot.numTimesShown || 0;
-		tootObj.completedAt = toot.completedAt;
-		tootObj.followedTags = toot.followedTags;
-		tootObj.reblog = toot.reblog ? Toot.build(toot.reblog) : undefined;
+		tootObj.numTimesShown = post.numTimesShown || 0;
+		tootObj.completedAt = post.completedAt;
+		tootObj.followedTags = post.followedTags;
+		tootObj.reblog = post.reblog ? Post.build(post.reblog) : undefined;
 		// TODO: the reblogsBy don't necessarily have the isFollowed flag set correctly
-		tootObj.reblogsBy = (toot.reblogsBy ?? []).map((account) =>
+		tootObj.reblogsBy = (post.reblogsBy ?? []).map((account) =>
 			Account.build(account),
 		);
-		tootObj.resolvedID = toot.resolvedID;
-		tootObj.scoreInfo = toot.scoreInfo;
-		tootObj.sources = toot.sources;
-		tootObj.trendingLinks = toot.trendingLinks;
-		tootObj.trendingRank = toot.trendingRank;
-		tootObj.trendingTags = toot.trendingTags;
+		tootObj.resolvedID = post.resolvedID;
+		tootObj.scoreInfo = post.scoreInfo;
+		tootObj.sources = post.sources;
+		tootObj.trendingLinks = post.trendingLinks;
+		tootObj.trendingRank = post.trendingRank;
+		tootObj.trendingTags = post.trendingTags;
 
 		tootObj.repair();
 		// These must be set after repair() has a chance to fix any broken media types
@@ -439,16 +439,16 @@ export default class Toot implements TootObj {
 		);
 
 		if (tootObj.account.suspended) {
-			tootLogger.warn(`Toot from suspended account:`, tootObj);
+			tootLogger.warn(`Post from suspended account:`, tootObj);
 		} else if (tootObj.account.limited) {
-			tootLogger.trace(`Toot from limited account:`, tootObj);
+			tootLogger.trace(`Post from limited account:`, tootObj);
 		}
 
 		return tootObj;
 	}
 
 	/**
-	 * True if toot contains {@linkcode pattern} in the tags, the content, or the link preview card description.
+	 * True if post contains {@linkcode pattern} in the tags, the content, or the link preview card description.
 	 * @param {string} pattern - The string to search for.
 	 * @returns {boolean}
 	 */
@@ -457,7 +457,7 @@ export default class Toot implements TootObj {
 	}
 
 	/**
-	 * Return true if the toot contains the tag or hashtag. If fullScan is true uses containsString() to search.
+	 * Return true if the post contains the tag or hashtag. If fullScan is true uses containsString() to search.
 	 * @param {TagWithUsageCounts} tag - The tag to search for.
 	 * @param {boolean} [fullScan] - Whether to use full scan.
 	 * @returns {boolean}
@@ -488,7 +488,7 @@ export default class Toot implements TootObj {
 	}
 
 	/**
-	 * Generate a string describing the followed, trending, and participated tags in the toot.
+	 * Generate a string describing the followed, trending, and participated tags in the post.
 	 * TODO: add favourited tags?
 	 * @returns {string | undefined}
 	 */
@@ -504,7 +504,7 @@ export default class Toot implements TootObj {
 	}
 
 	/**
-	 * Returns {@linkcode true} if the fefme user is mentioned in this {@linkcode Toot}.
+	 * Returns {@linkcode true} if the fefme user is mentioned in this {@linkcode Post}.
 	 * @returns {boolean}
 	 */
 	containsUserMention(): boolean {
@@ -539,7 +539,7 @@ export default class Toot implements TootObj {
 	 * @returns {string}
 	 */
 	contentShortened(maxChars?: number): string {
-		maxChars ||= config.toots.maxContentPreviewChars;
+		maxChars ||= config.posts.maxContentPreviewChars;
 		let content = replaceHttpsLinks(this.contentString());
 
 		// Fill in placeholders if content string is empty, truncate it if it's too long
@@ -567,31 +567,31 @@ export default class Toot implements TootObj {
 	}
 
 	/**
-	 * Fetch the conversation for this toot (Mastodon API calls this a
+	 * Fetch the conversation for this post (Mastodon API calls this a
 	 * {@linkcode https://docs.joinmastodon.org/entities/Context/ Context}).
-	 * @returns {Promise<Toot[]>}
+	 * @returns {Promise<Post[]>}
 	 */
-	async getConversation(): Promise<Toot[]> {
+	async getConversation(): Promise<Post[]> {
 		const action = LoadAction.GET_CONVERSATION;
 		const logger = tootLogger.tempLogger(action);
-		logger.debug(`Fetching conversation for toot:`, this.description);
+		logger.debug(`Fetching conversation for post:`, this.description);
 		const startTime = new Date();
 		const context = await MastoApi.instance.api.v1.statuses
 			.$select(await this.resolveID())
 			.context.fetch();
-		const toots = await Toot.buildToots(
+		const posts = await Post.buildPosts(
 			[...context.ancestors, this, ...context.descendants],
 			action,
 		);
 		logger.trace(
-			`Fetched ${toots.length} toots ${ageString(startTime)}`,
-			toots.map((t) => t.description),
+			`Fetched ${posts.length} posts ${ageString(startTime)}`,
+			posts.map((t) => t.description),
 		);
-		return toots;
+		return posts;
 	}
 
 	/**
-	 * Get an individual score for this {@linkcode Toot}.
+	 * Get an individual score for this {@linkcode Post}.
 	 * @param {ScoreType} scoreType - The score type.
 	 * @param {ScoreName} name - The score name.
 	 * @returns {number}
@@ -606,7 +606,7 @@ export default class Toot implements TootObj {
 	}
 
 	/**
-	 * Return true if the {@linkcode Toot} should not be filtered out of the feed by the current filters.
+	 * Return true if the {@linkcode Post} should not be filtered out of the feed by the current filters.
 	 * @param {FeedFilterSettings} filters - The feed filter settings.
 	 * @returns {boolean}
 	 */
@@ -623,7 +623,7 @@ export default class Toot implements TootObj {
 	}
 
 	/**
-	 * Return false if {@linkcode Toot} should be discarded from feed altogether and permanently.
+	 * Return false if {@linkcode Post} should be discarded from feed altogether and permanently.
 	 * @param {mastodon.v2.Filter[]} serverSideFilters - Server-side filters.
 	 * @returns {boolean}
 	 */
@@ -633,13 +633,13 @@ export default class Toot implements TootObj {
 	): boolean {
 		if (this.reblog?.muted || this.muted) {
 			tootLogger.trace(
-				`Removing toot from muted account (${this.author.description}):`,
+				`Removing post from muted account (${this.author.description}):`,
 				this,
 			);
 			return false;
 		} else if (Date.now() < this.tootedAt.getTime()) {
 			// Sometimes there are wonky statuses that are like years in the future so we filter them out.
-			tootLogger.warn(`Removing toot with future timestamp:`, this);
+			tootLogger.warn(`Removing post with future timestamp:`, this);
 			return false;
 		} else if (this.filtered?.length || this.reblog?.filtered?.length) {
 			// The user can configure suppression filters through a Mastodon GUI (webapp or whatever)
@@ -648,20 +648,20 @@ export default class Toot implements TootObj {
 			);
 			const filterMatchStr = filterMatches[0].keywordMatches?.join(" ");
 			tootLogger.trace(
-				`Removing toot matching server filter (${filterMatchStr}): ${this.description}`,
+				`Removing post matching server filter (${filterMatchStr}): ${this.description}`,
 			);
 			return false;
 		} else if (this.tootedAt < timelineCutoffAt()) {
 			tootLogger.trace(
-				`Removing toot older than ${timelineCutoffAt()}:`,
+				`Removing post older than ${timelineCutoffAt()}:`,
 				this.tootedAt,
 			);
 			return false;
 		} else if (blockedDomains.has(this.author.homeserver)) {
-			tootLogger.trace(`Removing toot from blocked domain:`, this);
+			tootLogger.trace(`Removing post from blocked domain:`, this);
 			return false;
 		} else if (this.matchesRegex(mutedKeywordRegex)) {
-			tootLogger.trace(`Removing toot matching muted keyword regex:`, this);
+			tootLogger.trace(`Removing post matching muted keyword regex:`, this);
 			return false;
 		}
 
@@ -669,8 +669,8 @@ export default class Toot implements TootObj {
 	}
 
 	/**
-	 * Make an API call to get this {@linkcode Toot}'s URL on the Fefme user's home server instead of on
-	 * the {@linkcode Toot}'s home server.
+	 * Make an API call to get this {@linkcode Post}'s URL on the Fefme user's home server instead of on
+	 * the {@linkcode Post}'s home server.
 	 * @example "https://fosstodon.org/@kate/114360290341300577" => "https://mastodon.social/@kate@fosstodon.org/114360290578867339"
 	 * @returns {Promise<string>} The home server URL.
 	 */
@@ -683,7 +683,7 @@ export default class Toot implements TootObj {
 	}
 
 	/**
-	 * True if {@linkcode Toot} matches {@linkcode regex} in the tags, the content, or the link preview card description.
+	 * True if {@linkcode Post} matches {@linkcode regex} in the tags, the content, or the link preview card description.
 	 * @param {RegExp} regex - The string to search for.
 	 * @returns {boolean}
 	 */
@@ -692,21 +692,21 @@ export default class Toot implements TootObj {
 	}
 
 	/**
-	 * Get {@linkcode https://docs.joinmastodon.org/entities/Status/ Status} obj for this {@linkcode Toot}
+	 * Get {@linkcode https://docs.joinmastodon.org/entities/Status/ Status} obj for this {@linkcode Post}
 	 * from user's home server so the property URLs point to the home server.
-	 * @returns {Promise<Toot>}
+	 * @returns {Promise<Post>}
 	 */
-	async resolve(): Promise<Toot> {
+	async resolve(): Promise<Post> {
 		try {
-			tootLogger.trace(`Resolving local toot ID for`, this);
+			tootLogger.trace(`Resolving local post ID for`, this);
 			const resolvedToot = await MastoApi.instance.resolveToot(this);
 			this.resolvedID = resolvedToot.id; // Cache the resolved ID for future calls
 			return resolvedToot;
 		} catch (error) {
 			tootLogger.error(
-				`Error resolving a toot:`,
+				`Error resolving a post:`,
 				error,
-				`\nThis was the toot:`,
+				`\nThis was the post:`,
 				this,
 			);
 			throw error;
@@ -714,7 +714,7 @@ export default class Toot implements TootObj {
 	}
 
 	/**
-	 * Get {@linkcode https://docs.joinmastodon.org/entities/Status/ Status} ID for {@linkcode Toot} from
+	 * Get {@linkcode https://docs.joinmastodon.org/entities/Status/ Status} ID for {@linkcode Post} from
 	 * user's home server so the property URLs point to the home server.
 	 * @returns {Promise<string>}
 	 */
@@ -724,8 +724,8 @@ export default class Toot implements TootObj {
 	}
 
 	/**
-	 * Get the {@linkcode Toot}'s tags as a {@linkcode Set} of strings. Caches results for future calls.
-	 * @returns {Set<string>} Set of the names of the tags in this toot.
+	 * Get the {@linkcode Post}'s tags as a {@linkcode Set} of strings. Caches results for future calls.
+	 * @returns {Set<string>} Set of the names of the tags in this post.
 	 */
 	tagNames(): Set<string> {
 		// TODO: class-transformer doesn't serialize Sets correctly so we have to check if it's an array
@@ -780,18 +780,18 @@ export default class Toot implements TootObj {
 	 * @param {UserData} userData - The user data.
 	 * @param {TrendingLink[]} trendingLinks - The trending links.
 	 * @param {TagWithUsageCounts[]} trendingTags - The trending tags.
-	 * @param {TootSource} [source] - The source of the toot (e.g. REFRESH_HOME_TIMELINE).
+	 * @param {PostSource} [source] - The source of the post (e.g. REFRESH_HOME_TIMELINE).
 	 */
 	private completeProperties(
 		userData: UserData,
 		trendingLinks: TrendingLink[],
 		trendingTags: TagWithUsageCounts[],
-		source?: TootSource,
+		source?: PostSource,
 	): void {
 		if (source) {
 			this.sources ??= [];
 
-			// REFRESH_MUTED_ACCOUNTS isn't a sources for toots even if it's a reason for invoking this method.
+			// REFRESH_MUTED_ACCOUNTS isn't a sources for posts even if it's a reason for invoking this method.
 			if (
 				source != LoadAction.REFRESH_MUTED_ACCOUNTS &&
 				!this.sources.includes(source)
@@ -812,34 +812,34 @@ export default class Toot implements TootObj {
 
 		// TODO: We handled muted/followed before checking if complete so we can refresh mutes & follows which sucks
 		if (this.isComplete()) return;
-		const toot = this.realToot; // Retoots never have their own tags, etc.
+		const post = this.realToot; // Boosts never have their own tags, etc.
 
-		// containsString() matched way too many toots so we use containsTag() for participated tags
+		// containsString() matched way too many posts so we use containsTag() for participated tags
 		// TODO: things might be fast enough to try this again
-		toot.participatedTags = userData.participatedTags.filter((tag) =>
-			toot.containsTag(tag),
+		post.participatedTags = userData.participatedTags.filter((tag) =>
+			post.containsTag(tag),
 		).objs;
-		// With all the containsString() calls it takes ~1.1 seconds to build 40 toots
+		// With all the containsString() calls it takes ~1.1 seconds to build 40 posts
 		// Without them it's ~0.1 seconds. In particular the trendingLinks are slow! maybe 90% of that time.
-		toot.followedTags = userData.followedTags.filter((tag) =>
-			toot.containsTag(tag, isDeepInspect),
+		post.followedTags = userData.followedTags.filter((tag) =>
+			post.containsTag(tag, isDeepInspect),
 		).objs;
-		toot.trendingTags = trendingTags.filter((tag) =>
-			toot.containsTag(tag, isDeepInspect),
+		post.trendingTags = trendingTags.filter((tag) =>
+			post.containsTag(tag, isDeepInspect),
 		);
 
 		// Only set the completedAt field if isDeepInspect is true  // TODO: might be fast enough to try this again?
 		if (isDeepInspect) {
-			toot.trendingLinks = trendingLinks.filter((link) =>
-				toot.matchesRegex(link.regex!),
+			post.trendingLinks = trendingLinks.filter((link) =>
+				post.matchesRegex(link.regex!),
 			);
-			this.completedAt = toot.completedAt = new Date().toISOString(); // Note the multiple assignmnet!
+			this.completedAt = post.completedAt = new Date().toISOString(); // Note the multiple assignmnet!
 		} else {
-			toot.trendingLinks ??= []; // Very slow to calculate so skip it unless isDeepInspect is true
+			post.trendingLinks ??= []; // Very slow to calculate so skip it unless isDeepInspect is true
 		}
 	}
 
-	// Generate a string describing the followed and trending tags in the toot
+	// Generate a string describing the followed and trending tags in the post
 	private containsTagsOfTypeMsg(tagType: TypeFilterName): string | undefined {
 		let tags: Hashtag[] = [];
 
@@ -862,7 +862,7 @@ export default class Toot implements TootObj {
 	}
 
 	/**
-	 * Return the toot's 'content' field stripped of HTML tags and emojis.
+	 * Return the post's 'content' field stripped of HTML tags and emojis.
 	 * @private
 	 * @returns {string}
 	 */
@@ -871,8 +871,8 @@ export default class Toot implements TootObj {
 	}
 
 	/**
-	 * Return the toot's content + link description stripped of everything (links, mentions, tags, etc.)
-	 * Used for inferring the Toot's language.
+	 * Return the post's content + link description stripped of everything (links, mentions, tags, etc.)
+	 * Used for inferring the Post's language.
 	 * @private
 	 * @returns {string}
 	 */
@@ -908,12 +908,12 @@ export default class Toot implements TootObj {
 		return this.contentCache[TootCacheKey.CONTENT_WITH_CARD];
 	}
 
-	// Figure out an appropriate language for the toot based on the content.
+	// Figure out an appropriate language for the post based on the content.
 	private determineLanguage(): void {
 		const text = this.contentStripped();
 
-		// if (this.isUsersOwnToot() || text.length < config.toots.minCharsForLanguageDetect) {
-		if (text.length < config.toots.minCharsForLanguageDetect) {
+		// if (this.isUsersOwnToot() || text.length < config.posts.minCharsForLanguageDetect) {
+		if (text.length < config.posts.minCharsForLanguageDetect) {
 			this.language ??= config.locale.defaultLanguage;
 			return;
 		}
@@ -923,7 +923,7 @@ export default class Toot implements TootObj {
 		const langLogObj = {
 			...langDetectInfo,
 			text,
-			toot: this,
+			post: this,
 			tootLanguage: this.language,
 		};
 		const logTrace = (msg: string) =>
@@ -943,7 +943,7 @@ export default class Toot implements TootObj {
 					`Falling back to foreign script "${foreignScript}" as language`,
 				);
 				this.language = foreignScript;
-			} else if (text.length > config.toots.minCharsForLanguageDetect * 2) {
+			} else if (text.length > config.posts.minCharsForLanguageDetect * 2) {
 				repairLogger.warn(`no language detected`, langLogObj);
 			}
 
@@ -985,7 +985,7 @@ export default class Toot implements TootObj {
 			return;
 		}
 
-		// Prioritize English in edge cases with low tinyLD accuracy but "en" either in toot or in LangDetector result
+		// Prioritize English in edge cases with low tinyLD accuracy but "en" either in post or in LangDetector result
 		if (
 			!tinyLD.isAccurate &&
 			langDetector.isAccurate &&
@@ -997,7 +997,7 @@ export default class Toot implements TootObj {
 		}
 
 		if (this.language) {
-			if (text.length > 2 * config.toots.minCharsForLanguageDetect) {
+			if (text.length > 2 * config.posts.minCharsForLanguageDetect) {
 				logTrace(
 					`No guess good enough to override language "${this.language}" for "${text}"`,
 				);
@@ -1007,14 +1007,14 @@ export default class Toot implements TootObj {
 			this.language ??= config.locale.defaultLanguage;
 		}
 
-		// If this is the user's own toot and we have a language set, log it
+		// If this is the user's own post and we have a language set, log it
 		// TODO: remove this eventually
 		if (
 			this.isUsersOwnToot() &&
 			this.language != config.locale.defaultLanguage
 		) {
 			repairLogger.warn(
-				`User's own toot language set to "${this.language}"`,
+				`User's own post language set to "${this.language}"`,
 				langLogObj,
 			);
 		}
@@ -1031,7 +1031,7 @@ export default class Toot implements TootObj {
 	}
 
 	/**
-	 * Returns true if the {@linkcode Toot} needs to be (re-)evaluated for trending tags, links, etc.
+	 * Returns true if the {@linkcode Post} needs to be (re-)evaluated for trending tags, links, etc.
 	 * @private
 	 */
 	private isComplete(): boolean {
@@ -1045,15 +1045,15 @@ export default class Toot implements TootObj {
 
 		// If we have completed it, check if we need to re-evaluate for newer trending tags, links, etc.
 		return (
-			// Check if toot was completed long enough ago that we might want to re-evaluate it
+			// Check if post was completed long enough ago that we might want to re-evaluate it
 			AgeIn.minutes(this.completedAt) < config.minTrendingMinutesUntilStale() ||
 			// But not tooted so long ago that there's little chance of new data
-			AgeIn.minutes(this.createdAt) > config.toots.completeAfterMinutes
+			AgeIn.minutes(this.createdAt) > config.posts.completeAfterMinutes
 		);
 	}
 
 	/**
-	 * Returns true if this toot is by the fefme user.
+	 * Returns true if this post is by the fefme user.
 	 * @private
 	 */
 	private isUsersOwnToot(): boolean {
@@ -1063,9 +1063,9 @@ export default class Toot implements TootObj {
 	}
 
 	/**
-	 * Repair toot properties:
-	 *   1. Set {@linkcode Toot.application.name} to UNKNOWN if missing
-	 *   2. Call {@linkcode Toot.determineLanguage} to set the language
+	 * Repair post properties:
+	 *   1. Set {@linkcode Post.application.name} to UNKNOWN if missing
+	 *   2. Call {@linkcode Post.determineLanguage} to set the language
 	 *   3. Lowercase all tags
 	 *   4. Repair {@linkcode mediaAttachment} types if reparable based on URL file extension
 	 *   5. Repair {@linkcode https://docs.joinmastodon.org/entities/StatusMention/ StatusMention} objects for users on home server
@@ -1101,7 +1101,7 @@ export default class Toot implements TootObj {
 
 				if (category) {
 					repairLogger.trace(
-						`Repaired broken ${category} attachment in toot:`,
+						`Repaired broken ${category} attachment in post:`,
 						this,
 					);
 					media.type = category;
@@ -1112,25 +1112,25 @@ export default class Toot implements TootObj {
 				) {
 					// Special handling for Bluesky bridge images
 					repairLogger.debug(
-						`Repairing broken bluesky bridge image attachment in toot:`,
+						`Repairing broken bluesky bridge image attachment in post:`,
 						this,
 					);
 					media.type = MediaCategory.IMAGE;
 				} else {
 					repairLogger.warn(
-						`Unknown media type for URL: '${media.remoteUrl}' for toot:`,
+						`Unknown media type for URL: '${media.remoteUrl}' for post:`,
 						this,
 					);
 				}
 			} else if (!MEDIA_TYPES.includes(media.type)) {
 				repairLogger.warn(
-					`Unknown media of type: '${media.type}' for toot:`,
+					`Unknown media of type: '${media.type}' for post:`,
 					this,
 				);
 			}
 
 			if (isEmpty(media?.url)) {
-				repairLogger.warn(`Media attachment URL is empty for toot:`, this);
+				repairLogger.warn(`Media attachment URL is empty for post:`, this);
 			}
 		});
 
@@ -1147,149 +1147,149 @@ export default class Toot implements TootObj {
 	////////////////////////////////
 
 	/**
-	 * Build array of new {@linkcode Toot} objects from an array of
-	 * {@linkcode https://docs.joinmastodon.org/entities/Status/ Status} objects (or {@linkcode Toot}s).
-	 * {@linkcode Toot}s returned are sorted by score and should have most of their properties set correctly.
-	 * @param {TootLike[]} statuses - Array of status objects or Toots.
-	 * @param {TootSource} source - The source label for logging.
-	 * @returns {Promise<Toot[]>}
+	 * Build array of new {@linkcode Post} objects from an array of
+	 * {@linkcode https://docs.joinmastodon.org/entities/Status/ Status} objects (or {@linkcode Post}s).
+	 * {@linkcode Post}s returned are sorted by score and should have most of their properties set correctly.
+	 * @param {TootLike[]} statuses - Array of status objects or Posts.
+	 * @param {PostSource} source - The source label for logging.
+	 * @returns {Promise<Post[]>}
 	 */
-	static async buildToots(
+	static async buildPosts(
 		statuses: TootLike[],
-		source: TootSource,
-	): Promise<Toot[]> {
+		source: PostSource,
+	): Promise<Post[]> {
 		if (!statuses.length) return []; // Avoid the data fetching if we don't to build anything
-		const logger = tootLogger.tempLogger(source, `buildToots`);
+		const logger = tootLogger.tempLogger(source, `buildPosts`);
 		const startedAt = new Date();
 
-		let toots = await this.completeToots(statuses, logger, source);
-		toots = await this.removeInvalidToots(toots, logger);
-		toots = Toot.dedupeToots(toots, logger);
-		// "Best effort" scoring. Note scoreToots() does not sort 'toots' in place but the return value is sorted.
-		const tootsSortedByScore = await Scorer.scoreToots(toots, false);
+		let posts = await this.completePosts(statuses, logger, source);
+		posts = await this.removeInvalidPosts(posts, logger);
+		posts = Post.dedupePosts(posts, logger);
+		// "Best effort" scoring. Note scorePosts() does not sort 'posts' in place but the return value is sorted.
+		const postsSortedByScore = await Scorer.scorePosts(posts, false);
 
 		if (source != LoadAction.GET_CONVERSATION) {
-			toots = this.removeUsersOwnToots(tootsSortedByScore, logger);
+			posts = this.removeUsersOwnPosts(postsSortedByScore, logger);
 		}
 
-		logger.trace(`${toots.length} toots built in ${ageString(startedAt)}`);
-		return toots;
+		logger.trace(`${posts.length} posts built in ${ageString(startedAt)}`);
+		return posts;
 	}
 
 	/**
-	 * Fetch all the data we need to set dependent properties and set them on the toots.
-	 * If {@linkcode source} arg is provided we set it as the {@linkcode Toot.source} prop and avoid doing an
-	 * {@linkcode Toot.isDeepInspect} completion.
-	 * @param {TootLike[]} toots - Array of toots to complete.
+	 * Fetch all the data we need to set dependent properties and set them on the posts.
+	 * If {@linkcode source} arg is provided we set it as the {@linkcode Post.source} prop and avoid doing an
+	 * {@linkcode Post.isDeepInspect} completion.
+	 * @param {TootLike[]} posts - Array of posts to complete.
 	 * @param {Logger} logger - Logger for logging.
 	 * @param {string} [source] - Optional source label.
-	 * @returns {Promise<Toot[]>}
+	 * @returns {Promise<Post[]>}
 	 */
-	static async completeToots(
-		toots: TootLike[],
+	static async completePosts(
+		posts: TootLike[],
 		logger: Logger,
-		source?: TootSource,
-	): Promise<Toot[]> {
-		logger = logger.tempLogger(`completeToots(${source || ""})`);
+		source?: PostSource,
+	): Promise<Post[]> {
+		logger = logger.tempLogger(`completePosts(${source || ""})`);
 		const isDeepInspect = !source;
 		const startedAt = new Date();
 
 		const userData = await MastoApi.instance.getUserData();
 		const trendingTags: TagWithUsageCounts[] = [];
 		const trendingLinks: TrendingLink[] = [];
-		let completedToots: TootLike[] = [];
-		let incompleteToots = toots;
+		let completedPosts: TootLike[] = [];
+		let incompletePosts = posts;
 
-		// If isDeepInspect separate toots that need completing bc it's slow to rely on isComplete() + batching
+		// If isDeepInspect separate posts that need completing bc it's slow to rely on isComplete() + batching
 		if (isDeepInspect) {
-			[completedToots, incompleteToots] = split(
-				toots,
-				(t) => t instanceof Toot && t.isComplete(),
+			[completedPosts, incompletePosts] = split(
+				posts,
+				(t) => t instanceof Post && t.isComplete(),
 			);
 		}
 
-		const newCompleteToots: Toot[] = await batchMap(
-			incompleteToots,
+		const newCompletePosts: Post[] = await batchMap(
+			incompletePosts,
 			async (tootLike: TootLike) => {
-				const toot = tootLike instanceof Toot ? tootLike : Toot.build(tootLike);
-				toot.completeProperties(userData, trendingLinks, trendingTags, source);
-				return toot as Toot;
+				const post = tootLike instanceof Post ? tootLike : Post.build(tootLike);
+				post.completeProperties(userData, trendingLinks, trendingTags, source);
+				return post as Post;
 			},
 			{
-				batchSize: config.toots.batchCompleteSize,
+				batchSize: config.posts.batchCompleteSize,
 				logger,
 				sleepBetweenMS: isDeepInspect
-					? config.toots.batchCompleteSleepBetweenMS
+					? config.posts.batchCompleteSleepBetweenMS
 					: 0,
 			},
 		);
 
-		const msg = `${toots.length} toots ${ageString(startedAt)}`;
+		const msg = `${posts.length} posts ${ageString(startedAt)}`;
 		logger.debug(
-			`${msg} (${newCompleteToots.length} completed, ${completedToots.length} skipped)`,
+			`${msg} (${newCompletePosts.length} completed, ${completedPosts.length} skipped)`,
 		);
-		return newCompleteToots.concat(completedToots as Toot[]);
+		return newCompletePosts.concat(completedPosts as Post[]);
 	}
 
 	/**
-	 * Remove dupes by uniquifying on the {@linkcode Toot}'s URI.
-	 * @param {Toot[]} toots - Array of toots.
+	 * Remove dupes by uniquifying on the {@linkcode Post}'s URI.
+	 * @param {Post[]} posts - Array of posts.
 	 * @param {Logger} [inLogger] - Logger for logging.
-	 * @returns {Toot[]} Deduped array of toots.
+	 * @returns {Post[]} Deduped array of posts.
 	 */
-	static dedupeToots(toots: Toot[], inLogger?: Logger): Toot[] {
+	static dedupePosts(posts: Post[], inLogger?: Logger): Post[] {
 		inLogger ||= tootLogger;
-		const logger = inLogger.tempLogger("dedupeToots()");
-		const tootsByURI = groupBy<Toot>(toots, (toot) => toot.realURI);
+		const logger = inLogger.tempLogger("dedupePosts()");
+		const postsByURI = groupBy<Post>(posts, (post) => post.realURI);
 
-		// Collect the properties of a single Toot from all the instances of the same URI (we can
-		// encounter the same Toot both in the user's feed as well as in a Trending toot list).
-		Object.values(tootsByURI).forEach((uriToots) => {
-			if (uriToots.length == 1) return; // If there's only one toot, nothing to do
+		// Collect the properties of a single Post from all the instances of the same URI (we can
+		// encounter the same Post both in the user's feed as well as in a Trending post list).
+		Object.values(postsByURI).forEach((uriPosts) => {
+			if (uriPosts.length == 1) return; // If there's only one post, nothing to do
 
-			uriToots.sort((a, b) => (b.lastEditedAt < a.lastEditedAt ? -1 : 1));
-			const lastCompleted = uriToots.find(
-				(toot) => !!toot.realToot.completedAt,
+			uriPosts.sort((a, b) => (b.lastEditedAt < a.lastEditedAt ? -1 : 1));
+			const lastCompleted = uriPosts.find(
+				(post) => !!post.realToot.completedAt,
 			);
-			const lastScored = uriToots.find((toot) => !!toot.scoreInfo); // TODO: this is probably not 100% correct
-			const lastTrendingRank = uriToots.find(
-				(toot) => !!toot.realToot.trendingRank,
+			const lastScored = uriPosts.find((post) => !!post.scoreInfo); // TODO: this is probably not 100% correct
+			const lastTrendingRank = uriPosts.find(
+				(post) => !!post.realToot.trendingRank,
 			);
 			// Deal with array properties that we want to collate
 			const uniqFiltered = this.uniqFlatMap<mastodon.v1.FilterResult>(
-				uriToots,
+				uriPosts,
 				"filtered",
 				(f) => f.filter.id,
 			);
 			const uniqFollowedTags = this.uniqFlatMap<mastodon.v1.Tag>(
-				uriToots,
+				uriPosts,
 				"followedTags",
 				(t) => t.name,
 			);
 			const uniqTrendingLinks = this.uniqFlatMap<TrendingLink>(
-				uriToots,
+				uriPosts,
 				"trendingLinks",
 				(t) => t.url,
 			);
 			const uniqTrendingTags = this.uniqFlatMap<TagWithUsageCounts>(
-				uriToots,
+				uriPosts,
 				"trendingTags",
 				(t) => t.name,
 			);
 			const uniqSources = this.uniqFlatMap<string>(
-				uriToots,
+				uriPosts,
 				"sources",
 				(source) => source,
 			);
-			// Collate multiple retooters if they exist
+			// Collate multiple boosters if they exist
 			let reblogsBy = this.uniqFlatMap<Account>(
-				uriToots,
+				uriPosts,
 				"reblogsBy",
 				(account) => account.webfingerURI,
 			);
 			reblogsBy = sortObjsByProps(reblogsBy, ["displayName"], true, true);
 			// Collate accounts - reblogs and realToot accounts
-			const allAccounts = uriToots.flatMap((toot) => toot.accounts);
+			const allAccounts = uriPosts.flatMap((post) => post.accounts);
 			// Helper method to collate the isFollowed property for the accounts
 			const isFollowed = (uri: string) =>
 				allAccounts.some((a) => a.isFollowed && a.webfingerURI == uri);
@@ -1300,85 +1300,85 @@ export default class Toot implements TootObj {
 			const propsThatChange = PROPS_THAT_CHANGE.reduce(
 				(propValues, propName) => {
 					propValues[propName] = Math.max(
-						...uriToots.map((t) => t.realToot[propName] || 0),
+						...uriPosts.map((t) => t.realToot[propName] || 0),
 					);
 					return propValues;
 				},
-				{} as Record<TootNumberProp, number>,
+				{} as Record<PostNumberProp, number>,
 			);
 
-			uriToots.forEach((toot) => {
+			uriPosts.forEach((post) => {
 				// propsThatChange are only set on the realToot
-				toot.realToot.favouritesCount = propsThatChange.favouritesCount;
-				toot.realToot.numTimesShown = propsThatChange.numTimesShown;
-				toot.realToot.reblogsCount = propsThatChange.reblogsCount;
-				toot.realToot.repliesCount = propsThatChange.repliesCount;
+				post.realToot.favouritesCount = propsThatChange.favouritesCount;
+				post.realToot.numTimesShown = propsThatChange.numTimesShown;
+				post.realToot.reblogsCount = propsThatChange.reblogsCount;
+				post.realToot.repliesCount = propsThatChange.repliesCount;
 				// Props set on first found
-				toot.realToot.completedAt ??= lastCompleted?.realToot.completedAt;
-				toot.realToot.trendingRank ??= lastTrendingRank?.realToot.trendingRank;
-				toot.scoreInfo ??= lastScored?.scoreInfo; // TODO: this is probably wrong... retoot scores could differ but should be corrected
+				post.realToot.completedAt ??= lastCompleted?.realToot.completedAt;
+				post.realToot.trendingRank ??= lastTrendingRank?.realToot.trendingRank;
+				post.scoreInfo ??= lastScored?.scoreInfo; // TODO: this is probably wrong... boost scores could differ but should be corrected
 				// Tags + sources + server side filter matches
-				toot.realToot.followedTags = uniqFollowedTags;
-				toot.realToot.trendingLinks = uniqTrendingLinks;
-				toot.realToot.trendingTags = uniqTrendingTags;
-				toot.filtered = uniqFiltered;
-				toot.sources = uniqSources;
+				post.realToot.followedTags = uniqFollowedTags;
+				post.realToot.trendingLinks = uniqTrendingLinks;
+				post.realToot.trendingTags = uniqTrendingTags;
+				post.filtered = uniqFiltered;
+				post.sources = uniqSources;
 				// Booleans usually only set on the realToot
-				toot.realToot.bookmarked = uriToots.some(
-					(toot) => toot.realToot.bookmarked,
+				post.realToot.bookmarked = uriPosts.some(
+					(post) => post.realToot.bookmarked,
 				);
-				toot.realToot.favourited = uriToots.some(
-					(toot) => toot.realToot.favourited,
+				post.realToot.favourited = uriPosts.some(
+					(post) => post.realToot.favourited,
 				);
-				toot.realToot.reblogged = uriToots.some(
-					(toot) => toot.realToot.reblogged,
+				post.realToot.reblogged = uriPosts.some(
+					(post) => post.realToot.reblogged,
 				);
-				toot.muted = uriToots.some((toot) => toot.muted || toot.realToot.muted); // Liberally set muted on retoots and real toots
+				post.muted = uriPosts.some((post) => post.muted || post.realToot.muted); // Liberally set muted on boosts and real posts
 
-				toot.accounts.forEach((account) => {
+				post.accounts.forEach((account) => {
 					account.isFollowed ||= isFollowed(account.webfingerURI);
 					account.suspended ||= isSuspended(account.webfingerURI);
 				});
 
 				// Reblog props
-				if (toot.reblog) {
-					toot.reblog.completedAt ??= lastCompleted?.realToot.completedAt;
-					toot.reblog.filtered = uniqFiltered;
-					toot.reblog.reblogsBy = reblogsBy;
-					toot.reblog.sources = uniqSources;
+				if (post.reblog) {
+					post.reblog.completedAt ??= lastCompleted?.realToot.completedAt;
+					post.reblog.filtered = uniqFiltered;
+					post.reblog.reblogsBy = reblogsBy;
+					post.reblog.sources = uniqSources;
 				}
 			});
 		});
 
-		// Choose the most recent retoot from the group of toots with the same realURI value
-		const deduped = Object.values(tootsByURI).map((toots) => {
-			const mostRecent = mostRecentToot(toots)! as Toot;
+		// Choose the most recent boost from the group of posts with the same realURI value
+		const deduped = Object.values(postsByURI).map((posts) => {
+			const mostRecent = mostRecentToot(posts)! as Post;
 
 			// Skip logging this in production
-			if (!isProduction && uniquify(toots.map((t) => t.uri))!.length > 1) {
+			if (!isProduction && uniquify(posts.map((t) => t.uri))!.length > 1) {
 				logger.deep(
-					`deduped ${toots.length} toots to ${mostRecent.description}:`,
-					toots,
+					`deduped ${posts.length} posts to ${mostRecent.description}:`,
+					posts,
 				);
 			}
 
 			return mostRecent;
 		});
 
-		logger.logArrayReduction(toots, deduped, "Toot", "duplicate");
+		logger.logArrayReduction(posts, deduped, "Post", "duplicate");
 		return deduped;
 	}
 
 	/**
-	 * Get rid of {@linkcode Toot}s we never want to see again.
-	 * @param {Toot[]} toots - Array of toots.
+	 * Get rid of {@linkcode Post}s we never want to see again.
+	 * @param {Post[]} posts - Array of posts.
 	 * @param {Logger} logger - Logger for logging.
-	 * @returns {Promise<Toot[]>}
+	 * @returns {Promise<Post[]>}
 	 */
-	static async removeInvalidToots(
-		toots: Toot[],
+	static async removeInvalidPosts(
+		posts: Post[],
 		logger: Logger,
-	): Promise<Toot[]> {
+	): Promise<Post[]> {
 		let blockedDomains: Set<string> = new Set();
 		let mutedKeywordsRegex: RegExp;
 
@@ -1391,123 +1391,123 @@ export default class Toot implements TootObj {
 		}
 
 		return filterWithLog(
-			toots,
-			(toot) => toot.isValidForFeed(mutedKeywordsRegex, blockedDomains),
+			posts,
+			(post) => post.isValidForFeed(mutedKeywordsRegex, blockedDomains),
 			logger,
 			"invalid",
-			"Toot",
+			"Post",
 		);
 	}
 
 	/**
-	 * Get rid of the user's own {@linkcode Toot}s.
-	 * @param {Toot[]} toots - Array of toots.
+	 * Get rid of the user's own {@linkcode Post}s.
+	 * @param {Post[]} posts - Array of posts.
 	 * @param {Logger} logger - Logger for logging.
-	 * @returns {Toot[]} Array without user's own toots.
+	 * @returns {Post[]} Array without user's own posts.
 	 */
-	static removeUsersOwnToots(toots: Toot[], logger: Logger): Toot[] {
-		const newToots = toots.filter((toot) => !toot.isUsersOwnToot());
-		logger.logArrayReduction(toots, newToots, "Toot", "user's own toots");
-		return newToots;
+	static removeUsersOwnPosts(posts: Post[], logger: Logger): Post[] {
+		const newPosts = posts.filter((post) => !post.isUsersOwnToot());
+		logger.logArrayReduction(posts, newPosts, "Post", "user's own posts");
+		return newPosts;
 	}
 
 	/**
-	 * Filter an array of {@linkcode Toot}s down to just the retoots.
-	 * @param {Toot[]} toots - Array of toots.
-	 * @returns {Toot[]} Array of retoots.
+	 * Filter an array of {@linkcode Post}s down to just the boosts.
+	 * @param {Post[]} posts - Array of posts.
+	 * @returns {Post[]} Array of boosts.
 	 */
-	static onlyRetoots(toots: Toot[]): Toot[] {
-		return toots.filter((toot) => toot.reblog);
+	static onlyBoosts(posts: Post[]): Post[] {
+		return posts.filter((post) => post.reblog);
 	}
 
 	/**
-	 * Filter an array of {@linkcode Toot}s down to just the replies.
-	 * @param {Toot[]} toots - Array of toots.
-	 * @returns {Toot[]} Array of replies.
+	 * Filter an array of {@linkcode Post}s down to just the replies.
+	 * @param {Post[]} posts - Array of posts.
+	 * @returns {Post[]} Array of replies.
 	 */
-	static onlyReplies(toots: Toot[]): Toot[] {
-		return toots.filter((toot) => toot.inReplyToAccountId);
+	static onlyReplies(posts: Post[]): Post[] {
+		return posts.filter((post) => post.inReplyToAccountId);
 	}
 
 	/**
-	 * Return a new array of a {@linkcode Toot} property collected and uniquified from an array of {@linkcode Toot}s.
+	 * Return a new array of a {@linkcode Post} property collected and uniquified from an array of {@linkcode Post}s.
 	 * @private
 	 * @template T
-	 * @param {Toot[]} toots - Array of toots.
-	 * @param {KeysOfValueType<Toot, any[] | undefined>} property - The property to collect.
+	 * @param {Post[]} posts - Array of posts.
+	 * @param {KeysOfValueType<Post, any[] | undefined>} property - The property to collect.
 	 * @param {(elem: T) => string} uniqFxn - Function to get unique key for each element.
 	 * @returns {T[]} Array of unique property values.
 	 */
 	private static uniqFlatMap<T>(
-		toots: Toot[],
-		property: KeysOfValueType<Toot, unknown[] | undefined>,
+		posts: Post[],
+		property: KeysOfValueType<Post, unknown[] | undefined>,
 		uniqFxn: (elem: T) => string,
 	): T[] {
-		const mappedReblogs = toots.flatMap(
-			(toot) => (toot.reblog?.[property] as T[] | undefined) ?? [],
+		const mappedReblogs = posts.flatMap(
+			(post) => (post.reblog?.[property] as T[] | undefined) ?? [],
 		);
-		const mapped = toots
-			.flatMap((toot) => (toot[property] as T[] | undefined) ?? [])
+		const mapped = posts
+			.flatMap((post) => (post[property] as T[] | undefined) ?? [])
 			.concat(mappedReblogs);
 		return uniquifyByProp(mapped, uniqFxn);
 	}
 }
 
 /**
- * Get the Date the {@linkcode Toot} was created.
+ * Get the Date the {@linkcode Post} was created.
  * @private
- * @param {TootLike} toot - The toot object.
+ * @param {TootLike} post - The post object.
  * @returns {Date}
  */
-export const tootedAt = (toot: TootLike): Date => new Date(toot.createdAt);
+export const tootedAt = (post: TootLike): Date => new Date(post.createdAt);
 
 /**
- * Get the earliest {@linkcode Toot} from a list.
+ * Get the earliest {@linkcode Post} from a list.
  * @private
- * @param {TootLike[]} toots - List of toots.
+ * @param {TootLike[]} posts - List of posts.
  * @returns {TootLike | null}
  */
-export const earliestToot = (toots: TootLike[]): TootLike | null =>
-	sortByCreatedAt(toots)[0];
+export const earliestToot = (posts: TootLike[]): TootLike | null =>
+	sortByCreatedAt(posts)[0];
 
 /**
- * Get the most recent {@linkcode Toot} from a list.
+ * Get the most recent {@linkcode Post} from a list.
  * @private
- * @param {TootLike[]} toots - List of toots.
+ * @param {TootLike[]} posts - List of posts.
  * @returns {TootLike | null}
  */
-export const mostRecentToot = (toots: TootLike[]): TootLike | null =>
-	sortByCreatedAt(toots).slice(-1)[0];
+export const mostRecentToot = (posts: TootLike[]): TootLike | null =>
+	sortByCreatedAt(posts).slice(-1)[0];
 
 /**
- * Returns array with oldest {@linkcode Toot} first.
+ * Returns array with oldest {@linkcode Post} first.
  * @private
  * @template T extends TootLike
- * @param {T} toots - List of toots.
+ * @param {T} posts - List of posts.
  * @returns {T}
  */
-export function sortByCreatedAt<T extends TootLike[]>(toots: T): T {
-	return toots.toSorted((a, b) => (a.createdAt < b.createdAt ? -1 : 1)) as T;
+export function sortByCreatedAt<T extends TootLike[]>(posts: T): T {
+	return posts.toSorted((a, b) => (a.createdAt < b.createdAt ? -1 : 1)) as T;
 }
 
 /**
- * Get the Date of the earliest {@linkcode Toot} in a list.
+ * Get the Date of the earliest {@linkcode Post} in a list.
  * @private
- * @param {TootLike[]} toots - List of toots.
+ * @param {TootLike[]} posts - List of posts.
  * @returns {Date | null}
  */
-export const earliestTootedAt = (toots: TootLike[]): Date | null => {
-	const earliest = earliestToot(toots);
+export const earliestTootedAt = (posts: TootLike[]): Date | null => {
+	const earliest = earliestToot(posts);
 	return earliest ? tootedAt(earliest) : null;
 };
 
 /**
- * Get the Date of the most recent {@linkcode Toot} in a list.
+ * Get the Date of the most recent {@linkcode Post} in a list.
  * @private
- * @param {TootLike[]} toots - List of toots.
+ * @param {TootLike[]} posts - List of posts.
  * @returns {Date | null}
  */
-export const mostRecentTootedAt = (toots: TootLike[]): Date | null => {
-	const newest = mostRecentToot(toots);
+export const mostRecentTootedAt = (posts: TootLike[]): Date | null => {
+	const newest = mostRecentToot(posts);
 	return newest ? tootedAt(newest) : null;
 };

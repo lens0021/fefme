@@ -5,7 +5,7 @@
 import type { ChangeEvent } from "react";
 
 import { Tooltip } from "react-tooltip";
-import { TagTootsCategory } from "../../../core/index";
+import { TagPostsCategory } from "../../../core/index";
 
 import { config } from "../../../config";
 import { getLogger } from "../../../helpers/log_helpers";
@@ -15,15 +15,15 @@ import Checkbox from "../../helpers/Checkbox";
 
 const HEADER_SWITCH_TOOLTIP_ANCHOR = "header-switch-tooltip-anchor";
 
-const TAG_HIGHLIGHT_LABELS: Record<TagTootsCategory, string> = {
-	[TagTootsCategory.FAVOURITED]: "Colour Favourites",
-	[TagTootsCategory.PARTICIPATED]: "Colour Participated",
-	[TagTootsCategory.TRENDING]: "Colour Trending",
+const TAG_HIGHLIGHT_LABELS: Record<TagPostsCategory, string> = {
+	[TagPostsCategory.FAVOURITED]: "Colour Favourites",
+	[TagPostsCategory.PARTICIPATED]: "Colour Participated",
+	[TagPostsCategory.TRENDING]: "Colour Trending",
 };
 
 // Only invert selection requires a call to fefme's updateFilters() method
 const SKIP_UPDATE_FILTERS_SWITCHES = [
-	...Object.values(TagTootsCategory),
+	...Object.values(TagPostsCategory),
 	SwitchType.HIGHLIGHTS_ONLY,
 	SwitchType.SORT_BY_COUNT,
 ];
@@ -42,7 +42,7 @@ export const HEADER_SWITCH_TOOLTIP = (
 
 interface HeaderSwitchProps {
 	isChecked: boolean;
-	label: SwitchType | TagTootsCategory;
+	label: SwitchType | TagPostsCategory;
 	onChange: (e: ChangeEvent<HTMLInputElement>) => void;
 	tooltipText?: string;
 	tooltip?: CheckboxTooltipConfig;

@@ -1,18 +1,18 @@
 import MastoApi from "../api/api";
 import { FEDERATED_TIMELINE_SOURCE } from "../enums";
-import type Toot from "../api/objects/toot";
+import type Post from "../api/objects/post";
 import type { AlgorithmState } from "./state";
 import { getSourceBounds } from "./stats";
 import { mergeExternalStatuses } from "./feed";
 import type { Logger } from "../helpers/logger";
 
 export async function getHomeTimeline(
-	mergeTootsToFeed: (toots: Toot[], logger: Logger) => Promise<void>,
-	moreOldToots?: boolean,
-): Promise<Toot[]> {
+	mergePostsToFeed: (posts: Post[], logger: Logger) => Promise<void>,
+	moreOldPosts?: boolean,
+): Promise<Post[]> {
 	return await MastoApi.instance.fetchHomeFeed({
-		mergeTootsToFeed,
-		moar: moreOldToots,
+		mergePostsToFeed,
+		moar: moreOldPosts,
 	});
 }
 

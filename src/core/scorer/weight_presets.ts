@@ -37,14 +37,14 @@ export const DEFAULT_WEIGHTS: Weights = {
 	[ScoreName.INTERACTIONS]: 1.0,
 	[ScoreName.MENTIONS_FOLLOWED]: 2.0,
 	[ScoreName.MOST_REPLIED_ACCOUNTS]: 1.0,
-	[ScoreName.MOST_RETOOTED_ACCOUNTS]: 1.5,
+	[ScoreName.MOST_BOOSTED_ACCOUNTS]: 1.5,
 	[ScoreName.NUM_FAVOURITES]: 0.0, // Favourites only show up on the home server so underweight this
 	[ScoreName.NUM_REPLIES]: 1.0,
-	[ScoreName.NUM_RETOOTS]: 1.0,
+	[ScoreName.NUM_BOOSTS]: 1.0,
 	[ScoreName.PARTICIPATED_TAGS]: 0.15,
-	[ScoreName.RETOOTED_IN_FEED]: 2.0,
+	[ScoreName.BOOSTED_IN_FEED]: 2.0,
 	[ScoreName.TRENDING_TAGS]: 0.2,
-	[ScoreName.TRENDING_TOOTS]: 1.0,
+	[ScoreName.TRENDING_POSTS]: 1.0,
 	[ScoreName.VIDEO_ATTACHMENTS]: 0,
 } as const;
 
@@ -74,12 +74,12 @@ export const WEIGHT_PRESETS: WeightPresets = {
 		[ScoreName.INTERACTIONS]: 1.0,
 		[ScoreName.MENTIONS_FOLLOWED]: 5.0,
 		[ScoreName.MOST_REPLIED_ACCOUNTS]: 0.15,
-		[ScoreName.MOST_RETOOTED_ACCOUNTS]: 0.2,
+		[ScoreName.MOST_BOOSTED_ACCOUNTS]: 0.2,
 		[ScoreName.NUM_REPLIES]: 50.0,
-		[ScoreName.NUM_RETOOTS]: 0.2,
+		[ScoreName.NUM_BOOSTS]: 0.2,
 		[ScoreName.PARTICIPATED_TAGS]:
 			DEFAULT_WEIGHTS[ScoreName.PARTICIPATED_TAGS] * 2,
-		[ScoreName.RETOOTED_IN_FEED]: 6.0,
+		[ScoreName.BOOSTED_IN_FEED]: 6.0,
 	},
 
 	[WeightPresetLabel.FRIENDS]: {
@@ -88,9 +88,9 @@ export const WEIGHT_PRESETS: WeightPresets = {
 		[ScoreName.INTERACTIONS]: 4,
 		[ScoreName.MENTIONS_FOLLOWED]: 3,
 		[ScoreName.NUM_REPLIES]: DEFAULT_WEIGHTS[ScoreName.NUM_REPLIES] * 0.3,
-		[ScoreName.NUM_RETOOTS]: DEFAULT_WEIGHTS[ScoreName.NUM_RETOOTS] * 0.3,
+		[ScoreName.NUM_BOOSTS]: DEFAULT_WEIGHTS[ScoreName.NUM_BOOSTS] * 0.3,
 		[ScoreName.MOST_REPLIED_ACCOUNTS]: 3,
-		[ScoreName.MOST_RETOOTED_ACCOUNTS]: 3,
+		[ScoreName.MOST_BOOSTED_ACCOUNTS]: 3,
 	},
 
 	[WeightPresetLabel.PICTURES]: {
@@ -117,8 +117,8 @@ export const WEIGHT_PRESETS: WeightPresets = {
 		[ScoreName.CHAOS]: 5,
 		[ScoreName.FOLLOWED_TAGS]: 0.1,
 		[ScoreName.NUM_REPLIES]: DEFAULT_WEIGHTS[ScoreName.NUM_REPLIES] * 3,
-		[ScoreName.NUM_RETOOTS]: DEFAULT_WEIGHTS[ScoreName.NUM_RETOOTS] * 3,
+		[ScoreName.NUM_BOOSTS]: DEFAULT_WEIGHTS[ScoreName.NUM_BOOSTS] * 3,
 		[ScoreName.TRENDING_TAGS]: DEFAULT_WEIGHTS[ScoreName.TRENDING_TAGS] * 3,
-		[ScoreName.TRENDING_TOOTS]: DEFAULT_WEIGHTS[ScoreName.TRENDING_TOOTS] * 3,
+		[ScoreName.TRENDING_POSTS]: DEFAULT_WEIGHTS[ScoreName.TRENDING_POSTS] * 3,
 	},
 } as const;

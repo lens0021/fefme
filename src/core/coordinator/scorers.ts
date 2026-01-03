@@ -3,42 +3,42 @@ import { NonScoreWeightName } from "../enums";
 import DiversityFeedScorer from "../scorer/feed/diversity_feed_scorer";
 import type FeedScorer from "../scorer/feed_scorer";
 import Scorer from "../scorer/scorer";
-import AlreadyShownScorer from "../scorer/toot/already_shown_scorer";
-import AuthorFollowersScorer from "../scorer/toot/author_followers_scorer";
-import ChaosScorer from "../scorer/toot/chaos_scorer";
-import FollowedAccountsScorer from "../scorer/toot/followed_accounts_scorer";
-import FollowedTagsScorer from "../scorer/toot/followed_tags_scorer";
-import FollowersScorer from "../scorer/toot/followers_scorer";
-import InteractionsScorer from "../scorer/toot/interactions_scorer";
-import MentionsFollowedScorer from "../scorer/toot/mentions_followed_scorer";
-import MostFavouritedAccountsScorer from "../scorer/toot/most_favourited_accounts_scorer";
-import MostRepliedAccountsScorer from "../scorer/toot/most_replied_accounts_scorer";
-import MostRetootedAccountsScorer from "../scorer/toot/most_retooted_accounts_scorer";
+import AlreadyShownScorer from "../scorer/post/already_shown_scorer";
+import AuthorFollowersScorer from "../scorer/post/author_followers_scorer";
+import ChaosScorer from "../scorer/post/chaos_scorer";
+import FollowedAccountsScorer from "../scorer/post/followed_accounts_scorer";
+import FollowedTagsScorer from "../scorer/post/followed_tags_scorer";
+import FollowersScorer from "../scorer/post/followers_scorer";
+import InteractionsScorer from "../scorer/post/interactions_scorer";
+import MentionsFollowedScorer from "../scorer/post/mentions_followed_scorer";
+import MostFavouritedAccountsScorer from "../scorer/post/most_favourited_accounts_scorer";
+import MostRepliedAccountsScorer from "../scorer/post/most_replied_accounts_scorer";
+import MostBoostedAccountsScorer from "../scorer/post/most_boosted_accounts_scorer";
 import NumFavouritesScorer, {
 	ImageAttachmentScorer,
 	NumRepliesScorer,
-	NumRetootsScorer,
-	TrendingTootScorer,
+	NumBoostsScorer,
+	TrendingPostScorer,
 	VideoAttachmentScorer,
-} from "../scorer/toot/property_scorer_factory";
-import RetootsInFeedScorer from "../scorer/toot/retoots_in_feed_scorer";
+} from "../scorer/post/property_scorer_factory";
+import BoostsInFeedScorer from "../scorer/post/boosts_in_feed_scorer";
 import FavouritedTagsScorer, {
 	HashtagParticipationScorer,
-} from "../scorer/toot/tag_scorer_factory";
-import TrendingTagsScorer from "../scorer/toot/trending_tags_scorer";
-import type TootScorer from "../scorer/toot_scorer";
+} from "../scorer/post/tag_scorer_factory";
+import TrendingTagsScorer from "../scorer/post/trending_tags_scorer";
+import type PostScorer from "../scorer/post_scorer";
 import type { WeightInfoDict } from "../types";
 
 export type ScorerBundle = {
 	feedScorers: FeedScorer[];
-	tootScorers: TootScorer[];
+	postScorers: PostScorer[];
 	weightedScorers: Scorer[];
 	weightsInfo: WeightInfoDict;
 };
 
 export function buildScorerBundle(): ScorerBundle {
 	const feedScorers: FeedScorer[] = [new DiversityFeedScorer()];
-	const tootScorers: TootScorer[] = [
+	const postScorers: PostScorer[] = [
 		new AlreadyShownScorer(),
 		new AuthorFollowersScorer(),
 		new ChaosScorer(),
@@ -52,17 +52,17 @@ export function buildScorerBundle(): ScorerBundle {
 		new MentionsFollowedScorer(),
 		new MostFavouritedAccountsScorer(),
 		new MostRepliedAccountsScorer(),
-		new MostRetootedAccountsScorer(),
+		new MostBoostedAccountsScorer(),
 		new NumFavouritesScorer(),
 		new NumRepliesScorer(),
-		new NumRetootsScorer(),
-		new RetootsInFeedScorer(),
+		new NumBoostsScorer(),
+		new BoostsInFeedScorer(),
 		new TrendingTagsScorer(),
-		new TrendingTootScorer(),
+		new TrendingPostScorer(),
 		new VideoAttachmentScorer(),
 	];
 
-	const weightedScorers: Scorer[] = [...tootScorers, ...feedScorers];
+	const weightedScorers: Scorer[] = [...postScorers, ...feedScorers];
 
 	const weightsInfo: WeightInfoDict = weightedScorers.reduce(
 		(scorerInfos, scorer) => {
@@ -80,5 +80,5 @@ export function buildScorerBundle(): ScorerBundle {
 		}, {} as WeightInfoDict),
 	);
 
-	return { feedScorers, tootScorers, weightedScorers, weightsInfo };
+	return { feedScorers, postScorers, weightedScorers, weightsInfo };
 }

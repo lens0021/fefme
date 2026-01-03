@@ -39,7 +39,7 @@ export function buildTag(str: string): TagWithUsageCounts {
  * @returns {boolean}
  */
 export function isValidForSubstringSearch(tag: TagWithUsageCounts): boolean {
-	return tag.name.length > 1 && !config.toots.tagOnlyStrings.has(tag.name);
+	return tag.name.length > 1 && !config.posts.tagOnlyStrings.has(tag.name);
 }
 
 /** Lowercase the tag name, replace URL with one on homeserver. */
@@ -70,6 +70,6 @@ export function repairTag(tag: TagWithUsageCounts): TagWithUsageCounts {
 
 /** Create a string representation of the tag with its usage counts & language. */
 export function tagInfoStr(tag: TagWithUsageCounts): string {
-	const infoStr = `${tag.numToots} numToots${optionalSuffix(tag.language)}`;
+	const infoStr = `${tag.numPosts} numPosts${optionalSuffix(tag.language)}`;
 	return `${tag.name} (${infoStr})`;
 }

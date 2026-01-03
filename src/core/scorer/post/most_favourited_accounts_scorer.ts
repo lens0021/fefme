@@ -6,7 +6,7 @@ import AccountScorer from "./acccount_scorer";
 
 /**
  * Score how many times the current user has favourited the tooter in the past.
- * @memberof module:toot_scorers
+ * @memberof module:post_scorers
  * @augments Scorer
  */
 export default class MostFavouritedAccountsScorer extends AccountScorer {
@@ -17,8 +17,8 @@ export default class MostFavouritedAccountsScorer extends AccountScorer {
 	}
 
 	async prepareScoreData(): Promise<StringNumberDict> {
-		let favouritedToots = await MastoApi.instance.getFavouritedToots();
-		favouritedToots = favouritedToots.filter((toot) => !toot.isDM); // Ignore DMs
-		return Account.countAccounts(favouritedToots.map((toot) => toot.account));
+		let favouritedPosts = await MastoApi.instance.getFavouritedPosts();
+		favouritedPosts = favouritedPosts.filter((post) => !post.isDM); // Ignore DMs
+		return Account.countAccounts(favouritedPosts.map((post) => post.account));
 	}
 }

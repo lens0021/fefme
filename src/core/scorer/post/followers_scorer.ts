@@ -6,7 +6,7 @@ import AccountScorer from "./acccount_scorer";
 
 /**
  * One point for accounts that follow the Fedialgo user.
- * @memberof module:toot_scorers
+ * @memberof module:post_scorers
  * @augments Scorer
  */
 export default class FollowersScorer extends AccountScorer {

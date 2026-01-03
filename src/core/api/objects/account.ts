@@ -182,8 +182,8 @@ export default class Account implements AccountObj {
 		// Optional fields
 		accountObj.moved = account.moved ? Account.build(account.moved) : null;
 		// Fedialgo extension fields
-		accountObj.isFollowed = false; // Must be set later, in Toot.complete() or manually get getFollowedAccounts()
-		accountObj.isFollower = false; // Must be set later, in Toot.complete() or manually get getFollowedAccounts()
+		accountObj.isFollowed = false; // Must be set later, in Post.complete() or manually get getFollowedAccounts()
+		accountObj.isFollower = false; // Must be set later, in Post.complete() or manually get getFollowedAccounts()
 		accountObj.webfingerURI = accountObj.buildWebfingerURI; // Memoized for future use
 
 		return accountObj;
@@ -226,7 +226,7 @@ export default class Account implements AccountObj {
 
 	/**
 	 * HTML combining the account bio (AKA the {@linkcode Account.note} property) with {@linkcode createdAt},
-	 * follower count, and toots count.
+	 * follower count, and posts count.
 	 * @param {number} [fontSize=DEFAULT_FONT_SIZE] - Size of returned HTML text (not just emoji &lt;img&gt; tags).
 	 * @returns {Promise<InstanceResponse>}
 	 */
@@ -237,7 +237,7 @@ export default class Account implements AccountObj {
 		const accountStats = [
 			`Created ${createdAt.toLocaleDateString(config.locale.locale, ACCOUNT_CREATION_FMT)}`,
 			`${this.followersCount.toLocaleString()} Followers`,
-			`${this.statusesCount.toLocaleString()} Toots`,
+			`${this.statusesCount.toLocaleString()} Posts`,
 		];
 
 		const noteHTML = `${txt}<br /><p style="font-weight: bold; font-size: ${fontSize}px;">`;

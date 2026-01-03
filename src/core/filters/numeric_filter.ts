@@ -1,41 +1,41 @@
 /**
- * @fileoverview Filter toots based on numeric properties like replies, reblogs, and favourites.
+ * @fileoverview Filter posts based on numeric properties like replies, reblogs, and favourites.
  */
 import { isFinite, isNil } from "lodash";
 
-import type Toot from "../api/objects/toot";
-import type { TootNumberProp } from "../types";
-import TootFilter, { type FilterArgs } from "./toot_filter";
+import type Post from "../api/objects/post";
+import type { PostNumberProp } from "../types";
+import PostFilter, { type FilterArgs } from "./post_filter";
 
-// List of toot numeric properties that can be filtered.
-export const FILTERABLE_SCORES: TootNumberProp[] = [
+// List of post numeric properties that can be filtered.
+export const FILTERABLE_SCORES: PostNumberProp[] = [
 	"repliesCount",
 	"reblogsCount",
 	"favouritesCount",
 ];
 
 export interface NumericFilterArgs extends Omit<FilterArgs, "description"> {
-	propertyName: TootNumberProp;
+	propertyName: PostNumberProp;
 	value?: number;
 }
 
 /**
- * Filter for numeric properties of a {@linkcode Toot} (e.g. replies, reblogs, favourites).
- * Allows filtering {@linkcode Toot}s based on a minimum value for a given property.
- * @augments TootFilter
+ * Filter for numeric properties of a {@linkcode Post} (e.g. replies, reblogs, favourites).
+ * Allows filtering {@linkcode Post}s based on a minimum value for a given property.
+ * @augments PostFilter
  * @property {string} [description] - Optional description of the filter for display or documentation purposes.
  * @property {boolean} [invertSelection] - If true, the filter logic is inverted (e.g. exclude instead of include).
- * @property {TootNumberProp} propertyName - The property of the toot to filter on (e.g. {@linkcode repliesCount}).
- * @property {number} value - Minimum value a toot must have in the {@linkcode propertyName} field to be included in the timeline.
+ * @property {PostNumberProp} propertyName - The property of the post to filter on (e.g. {@linkcode repliesCount}).
+ * @property {number} value - Minimum value a post must have in the {@linkcode propertyName} field to be included in the timeline.
  */
-export default class NumericFilter extends TootFilter {
-	propertyName: TootNumberProp;
+export default class NumericFilter extends PostFilter {
+	propertyName: PostNumberProp;
 	value: number;
 
 	/**
 	 * @param {NumericFilterArgs} params - The filter arguments.
 	 * @param {boolean} [params.invertSelection] - If true, the filter logic is inverted (exclude instead of include).
-	 * @param {TootNumberProp} params.propertyName - Toot property to filter on (e.g.{@linkcode repliesCount}).
+	 * @param {PostNumberProp} params.propertyName - Post property to filter on (e.g.{@linkcode repliesCount}).
 	 * @param {number} [params.value] - The minimum value for the filter.
 	 */
 	constructor(params: NumericFilterArgs) {
@@ -52,17 +52,17 @@ export default class NumericFilter extends TootFilter {
 	}
 
 	/**
-	 * Check if the {@linkcode Toot} meets the filter criterion.
-	 * @param {Toot} toot - The toot to check.
-	 * @returns {boolean} True if the toot should appear in the timeline feed.
+	 * Check if the {@linkcode Post} meets the filter criterion.
+	 * @param {Post} post - The post to check.
+	 * @returns {boolean} True if the post should appear in the timeline feed.
 	 */
-	isAllowed(toot: Toot): boolean {
+	isAllowed(post: Post): boolean {
 		if (this.invertSelection && this.value === 0) return true; // 0 doesn't work as a maximum
-		const propertyValue = toot.realToot[this.propertyName];
+		const propertyValue = post.realToot[this.propertyName];
 
 		if (!isFinite(propertyValue)) {
 			this.logger.warn(
-				`No value found for ${this.propertyName} (interrupted scoring?) in toot: ${toot.description}`,
+				`No value found for ${this.propertyName} (interrupted scoring?) in post: ${post.description}`,
 			);
 			return true;
 		}
@@ -95,6 +95,6 @@ export default class NumericFilter extends TootFilter {
 	 * @returns {boolean} True if the name is a filterable numeric property.
 	 */
 	static isValidFilterProperty(name: string | undefined): boolean {
-		return !isNil(name) && FILTERABLE_SCORES.includes(name as TootNumberProp);
+		return !isNil(name) && FILTERABLE_SCORES.includes(name as PostNumberProp);
 	}
 }

@@ -4,23 +4,23 @@ import { truncateToLength } from "../helpers/collection_helpers";
 import Scorer from "../scorer/scorer";
 import ScorerCache from "../scorer/scorer_cache";
 import { config } from "../config";
-import type Toot from "../api/objects/toot";
+import type Post from "../api/objects/post";
 import { filterFeedAndSetInApp } from "./filters";
 import { logger } from "./loggers";
 import type { AlgorithmState } from "./state";
 
 export async function scoreAndFilterFeed(
 	state: AlgorithmState,
-): Promise<Toot[]> {
-	state.feed = await Scorer.scoreToots(state.feed, true);
+): Promise<Post[]> {
+	state.feed = await Scorer.scorePosts(state.feed, true);
 
 	state.feed = truncateToLength(
 		state.feed,
-		config.toots.maxTimelineLength,
+		config.posts.maxTimelineLength,
 		logger.tempLogger("scoreAndFilterFeed()"),
 	);
 
-	await Storage.set(AlgorithmStorageKey.TIMELINE_TOOTS, state.feed);
+	await Storage.set(AlgorithmStorageKey.TIMELINE_POSTS, state.feed);
 	return filterFeedAndSetInApp(state);
 }
 

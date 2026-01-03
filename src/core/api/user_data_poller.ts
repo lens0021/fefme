@@ -85,10 +85,10 @@ export default class UserDataPoller {
 
 		// TODO: Add followed accounts?  for people who follow > 5,000 users?
 		const pollers: Poller[] = [
-			// NOTE: getFavouritedToots API doesn't use maxId argument so each time is a full repull
-			MastoApi.instance.getFavouritedToots.bind(MastoApi.instance),
+			// NOTE: getFavouritedPosts API doesn't use maxId argument so each time is a full repull
+			MastoApi.instance.getFavouritedPosts.bind(MastoApi.instance),
 			MastoApi.instance.getNotifications.bind(MastoApi.instance),
-			MastoApi.instance.getRecentUserToots.bind(MastoApi.instance),
+			MastoApi.instance.getRecentUserPosts.bind(MastoApi.instance),
 		];
 
 		try {

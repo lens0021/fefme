@@ -1,15 +1,15 @@
-import type Toot from "../api/objects/toot";
+import type Post from "../api/objects/post";
 import type { StringNumberDict } from "../types";
 import Scorer from "./scorer";
 
 /**
  * Base class for scorers that require processing external data before they can score anything.
- * For example {@linkcode DiversityFeedScorer} has to count how many toots by each user are in
+ * For example {@linkcode DiversityFeedScorer} has to count how many posts by each user are in
  * your feed before it knows how much to penalize prolific tooters.
  */
 export default abstract class FeedScorer extends Scorer {
-	// Take an array of Toots and extract the scoreData needed to score a toot
-	extractScoreDataFromFeed(feed: Toot[]): void {
+	// Take an array of Posts and extract the scoreData needed to score a post
+	extractScoreDataFromFeed(feed: Post[]): void {
 		this.scoreData = this.extractScoringData(feed);
 		this.logger.trace(
 			`extractScoringData() returned scoreData:`,
@@ -19,5 +19,5 @@ export default abstract class FeedScorer extends Scorer {
 	}
 
 	// Required implementation of the feed extractor function called in setFeed()
-	abstract extractScoringData(feed: Toot[]): StringNumberDict;
+	abstract extractScoringData(feed: Post[]): StringNumberDict;
 }

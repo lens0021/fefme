@@ -9,7 +9,7 @@ import FeedCoordinator, {
 	FEDIALGO,
 	BooleanFilterName,
 	ScoreName,
-	TagTootsCategory,
+	TagPostsCategory,
 	TrendingType,
 	TypeFilterName,
 	optionalSuffix,
@@ -91,7 +91,7 @@ type FilterOptionFormatCfg = {
 type FilterConfig = {
 	readonly boolean: {
 		readonly maxLabelLength: number;
-		readonly minTootsSlider: {
+		readonly minPostsSlider: {
 			readonly idealNumOptions: number;
 			readonly minItems: number;
 			readonly tooltipHoverDelay: number;
@@ -126,20 +126,20 @@ type TimelineConfig = {
 	readonly autoloadOnFocusAfterMinutes: number;
 	readonly apiErrorsUserMsgSuffix: string;
 	readonly defaultLoadingMsg: string;
-	readonly defaultNumDisplayedToots: number;
+	readonly defaultNumDisplayedPosts: number;
 	readonly dmBackgroundColor: CSSProperties["backgroundColor"];
 	readonly guiCheckboxLabels: Record<
 		GuiCheckboxName,
 		Readonly<GuiCheckboxLabel>
 	>;
 	readonly loadingErroMsg: string;
-	readonly loadTootsButtonLabels: {
-		readonly loadNewToots: Readonly<LinkWithTooltipCfg>;
-		readonly loadOldToots: Readonly<LinkWithTooltipCfg>;
+	readonly loadPostsButtonLabels: {
+		readonly loadNewPosts: Readonly<LinkWithTooltipCfg>;
+		readonly loadOldPosts: Readonly<LinkWithTooltipCfg>;
 		readonly loadUserDataForAlgorithm: Readonly<LinkWithTooltipCfg>;
 	};
-	readonly noTootsMsg: string;
-	readonly numTootsToLoadOnScroll: number;
+	readonly noPostsMsg: string;
+	readonly numPostsToLoadOnScroll: number;
 	readonly tooltips: {
 		readonly accountTooltipDelayMS: number;
 		readonly defaultTooltipDelayMS: number;
@@ -180,7 +180,7 @@ interface ConfigType {
 	readonly stats: StatsConfig;
 	readonly theme: ThemeConfig;
 	readonly timeline: TimelineConfig;
-	readonly toots: TootConfig;
+	readonly posts: TootConfig;
 	readonly trending: TrendingConfig;
 	readonly weights: WeightsConfig;
 }
@@ -206,10 +206,10 @@ const config: Readonly<ConfigType> = {
 	filters: {
 		boolean: {
 			maxLabelLength: 19, // Maximum length of a filter option label
-			minTootsSlider: {
-				idealNumOptions: 60, // Ideal number of options to show in the minTootsSlider
+			minPostsSlider: {
+				idealNumOptions: 60, // Ideal number of options to show in the minPostsSlider
 				minItems: 10, // Minimum number of items to show (used for max value calculation)
-				tooltipHoverDelay: 50, // Delay for the minimum toots slider tooltip in milliseconds
+				tooltipHoverDelay: 50, // Delay for the minimum posts slider tooltip in milliseconds
 			},
 			optionsFormatting: {
 				// How filter options should be displayed w/what header switches
@@ -221,7 +221,7 @@ const config: Readonly<ConfigType> = {
 				[BooleanFilterName.HASHTAG]: {
 					position: 2,
 					tooltips: {
-						[TagTootsCategory.FAVOURITED]: {
+						[TagPostsCategory.FAVOURITED]: {
 							highlight: {
 								gradient: {
 									endpoints: THEME.favouritedTagGradient,
@@ -231,7 +231,7 @@ const config: Readonly<ConfigType> = {
 							},
 							text: "You favourited this hashtag",
 						},
-						[TagTootsCategory.PARTICIPATED]: {
+						[TagPostsCategory.PARTICIPATED]: {
 							highlight: {
 								gradient: {
 									adjustment: {
@@ -245,7 +245,7 @@ const config: Readonly<ConfigType> = {
 							},
 							text: "You posted this hashtag", // the string "N times" is appended in getTooltipInfo()
 						},
-						[TagTootsCategory.TRENDING]: {
+						[TagPostsCategory.TRENDING]: {
 							highlight: {
 								gradient: {
 									endpoints: THEME.trendingTagGradient,
@@ -291,8 +291,8 @@ const config: Readonly<ConfigType> = {
 					formatLabel: (name: string) => {
 						if (name === "me") return "Me";
 						const normalized = name
-							.replace("retoots", "reposts")
-							.replace("toots", "posts");
+							.replace("boosts", "reposts")
+							.replace("posts", "posts");
 						return capitalCase(normalized);
 					},
 				},
@@ -355,7 +355,7 @@ const config: Readonly<ConfigType> = {
 		autoloadOnFocusAfterMinutes: 5, // Autoload new posts if timeline is this old (and feature is enabled)
 		apiErrorsUserMsgSuffix: "warnings while retrieving Mastodon data",
 		defaultLoadingMsg: "Loading (first time can take up to a minute or so)", // Message when first loading posts
-		defaultNumDisplayedToots: 20, // Default number of posts displayed in the timeline
+		defaultNumDisplayedPosts: 20, // Default number of posts displayed in the timeline
 		dmBackgroundColor: "var(--color-dm-bg)", // Background color for DMs (theme-aware)
 
 		guiCheckboxLabels: {
@@ -383,12 +383,12 @@ const config: Readonly<ConfigType> = {
 			},
 		},
 
-		loadTootsButtonLabels: {
-			loadNewToots: {
+		loadPostsButtonLabels: {
+			loadNewPosts: {
 				label: "(load new posts)",
 				tooltipText: "Load posts created since the last time you loaded posts.",
 			},
-			loadOldToots: {
+			loadOldPosts: {
 				label: "(load old posts)",
 				tooltipText:
 					"Load more posts but starting from the oldest post in your feed and working backwards",
@@ -401,15 +401,15 @@ const config: Readonly<ConfigType> = {
 		},
 
 		loadingErroMsg: "Currently loading, please wait a moment and try again.", // Error message when busy
-		noTootsMsg: "No posts in feed! Maybe check your filter settings?", // Message when no posts are available
-		numTootsToLoadOnScroll: 10, // Number of posts to load on scroll to bottom of page
+		noPostsMsg: "No posts in feed! Maybe check your filter settings?", // Message when no posts are available
+		numPostsToLoadOnScroll: 10, // Number of posts to load on scroll to bottom of page
 		tooltips: {
 			accountTooltipDelayMS: 100, // Delay for account tooltips in milliseconds
 			defaultTooltipDelayMS: 800, // Default delay for tooltips in milliseconds;
 		},
 	},
 
-	toots: {
+	posts: {
 		imageHeight: 314, // Default height for images in posts
 		maxPreviewCardLength: 350, // Maximum length of preview card description
 		scoreDigits: 3, // Number of digits to display in the score
@@ -418,12 +418,12 @@ const config: Readonly<ConfigType> = {
 	trending: {
 		maxLengthForMulticolumn: 55, // Maximum length of a trending object label to use multicolumn layout
 		panels: {
-			[TagTootsCategory.FAVOURITED]: {
+			[TagPostsCategory.FAVOURITED]: {
 				initialNumShown: 40,
 				objTypeLabel: "of your favourite hashtags",
 				title: "Hashtags You Often Favourite",
 			},
-			[TagTootsCategory.PARTICIPATED]: {
+			[TagPostsCategory.PARTICIPATED]: {
 				initialNumShown: 40,
 				objTypeLabel: "of your hashtags",
 				title: "Hashtags You Often Post About",
@@ -434,11 +434,11 @@ const config: Readonly<ConfigType> = {
 				initialNumShown: 40, // TODO: unused
 				title: "Servers Telling Us What's Trending In The Fediverse",
 			},
-			[TagTootsCategory.TRENDING]: {
+			[TagPostsCategory.TRENDING]: {
 				initialNumShown: 30,
 				objTypeLabel: "trending hashtags",
 			},
-			toots: {
+			posts: {
 				initialNumShown: 10,
 				objTypeLabel: "trending posts",
 			},

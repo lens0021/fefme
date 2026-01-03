@@ -5,16 +5,16 @@ import type { MutexInterface, SemaphoreInterface } from "async-mutex";
 import type { mastodon } from "masto";
 
 import type Account from "./api/objects/account";
-import type Toot from "./api/objects/toot";
-import type { SerializableToot } from "./api/objects/toot";
+import type Post from "./api/objects/post";
+import type { SerializableToot } from "./api/objects/post";
 import type TagList from "./api/tag_list";
 import {
 	BooleanFilterName,
 	type FediverseCacheKey,
 	type NonScoreWeightName,
 	ScoreName,
-	type TOOT_SOURCES,
-	TagTootsCategory,
+	type POST_SOURCES,
+	TagPostsCategory,
 	TrendingType,
 } from "./enums";
 import type BooleanFilter from "./filters/boolean_filter";
@@ -40,15 +40,15 @@ export type ConcurrencyLockRelease =
 	| MutexInterface.Releaser
 	| SemaphoreInterface.Releaser;
 export type CountKey = FilterProperty | string;
-export type FeedFetcher = (api: mastodon.rest.Client) => Promise<Toot[]>;
-export type FilterProperty = BooleanFilterName | TootNumberProp;
+export type FeedFetcher = (api: mastodon.rest.Client) => Promise<Post[]>;
+export type FilterProperty = BooleanFilterName | PostNumberProp;
 export type Optional<T> = T | null | undefined;
 export type OptionalNumber = Optional<number>;
 export type OptionalString = Optional<string>;
 export type StringSet = Set<string | undefined>;
-export type TootLike = mastodon.v1.Status | SerializableToot | Toot;
-export type TootNumberProp = KeysOfValueType<Toot, number>;
-export type TootSource = (typeof TOOT_SOURCES)[number];
+export type TootLike = mastodon.v1.Status | SerializableToot | Post;
+export type PostNumberProp = KeysOfValueType<Post, number>;
+export type PostSource = (typeof POST_SOURCES)[number];
 
 ////////////////////
 //    Filters     //
@@ -56,7 +56,7 @@ export type TootSource = (typeof TOOT_SOURCES)[number];
 
 /** These are both both filter option property names as well as demo app gradient config keys. */
 export const FILTER_OPTION_DATA_SOURCES = [
-	...Object.values(TagTootsCategory), // TODO: these are really the wrong cache keys for the use case but it's consistent w/demo app for now
+	...Object.values(TagPostsCategory), // TODO: these are really the wrong cache keys for the use case but it's consistent w/demo app for now
 	BooleanFilterName.LANGUAGE,
 	ScoreName.FAVOURITED_ACCOUNTS,
 ] as const;
@@ -64,7 +64,7 @@ export const FILTER_OPTION_DATA_SOURCES = [
 export type FilterOptionDataSource =
 	(typeof FILTER_OPTION_DATA_SOURCES)[number];
 export type BooleanFilters = Record<BooleanFilterName, BooleanFilter>;
-export type NumericFilters = Record<TootNumberProp, NumericFilter>;
+export type NumericFilters = Record<PostNumberProp, NumericFilter>;
 type FilterOptionUserData = { [key in FilterOptionDataSource]?: number };
 
 /** Add FilterOptionDataSource properties to the {@linkcode NamedTootCount} interface. */
@@ -85,7 +85,7 @@ export type FeedFilterSettingsSerialized = {
  * of all boolean and numeric filters applied to a feed, as well as the arguments needed to reconstruct them.
  * @augments FeedFilterSettingsSerialized
  * @property {BooleanFilters} booleanFilters - Map of boolean filter names to BooleanFilter instances.
- * @property {NumericFilters} numericFilters - Map of toot number property names to NumericFilter instances.
+ * @property {NumericFilters} numericFilters - Map of post number property names to NumericFilter instances.
  */
 export interface FeedFilterSettings extends FeedFilterSettingsSerialized {
 	booleanFilters: BooleanFilters;
@@ -107,7 +107,7 @@ export type KeysOfValueType<T, SuperClass> = Exclude<
 
 /**
  * Union type representing any object that can be returned from the Mastodon API and handled by
- * the app in addition to our local extensions like {@linkcode Toot}, {@linkcode Account}, and
+ * the app in addition to our local extensions like {@linkcode Post}, {@linkcode Account}, and
  * {@linkcode TagWithUsageCounts}.
  */
 export type ApiObj = ApiObjWithID | Hashtag | mastodon.v1.TrendLink | string;
@@ -162,7 +162,7 @@ export interface MinMaxAvgScore extends MinMax {
 	averageFinalScore: number;
 }
 
-/** Abstract interface for objects that have numToots of some kind. */
+/** Abstract interface for objects that have numPosts of some kind. */
 export interface NamedTootCount extends TootCount {
 	displayName?: string;
 	displayNameWithEmoji?: string; // TODO: just testing this
@@ -182,34 +182,34 @@ export interface TagWithUsageCounts extends mastodon.v1.Tag, NamedTootCount {
 	language?: string;
 }
 
-/** Interface for objects that contain counts of accoutns and toots. */
+/** Interface for objects that contain counts of accoutns and posts. */
 export interface TootCount {
 	numAccounts?: number;
-	numToots?: number;
+	numPosts?: number;
 	regex?: RegExp; // TODO: this shouldn't be here
 }
 
-/** Information about a {@link Toot}'s weighted score. */
+/** Information about a {@link Post}'s weighted score. */
 export type TootScore = {
 	rawScore: number; // Raw score without time decay etc. applied
 	score: number; // Actual final score
-	scores: TootScores; // All the scores for this toot
+	scores: TootScores; // All the scores for this post
 	timeDecayMultiplier: number; // Multiplier that reduces the score of older posts
-	trendingMultiplier: number; // Multiplier applied to trending toots and tags
+	trendingMultiplier: number; // Multiplier applied to trending posts and tags
 	weightedScore: number; // Score before applying timeDecayMultiplier
 };
 
 export type TootScores = Record<ScoreName, WeightedScore>;
 
-// TODO: "toots" is different from TrendingType.STATUSES ("statuses" is a Mastodon API type)
+// TODO: "posts" is different from TrendingType.STATUSES ("statuses" is a Mastodon API type)
 export type TrendingData = {
 	[TrendingType.SERVERS]: MastodonInstances;
 	[TrendingType.TAGS]: TagList;
-	toots: Toot[];
+	posts: Post[];
 };
 
 export interface TrendingLink extends mastodon.v1.TrendLink, TootCount {}
-export type TrendingObj = Toot | TrendingWithHistory;
+export type TrendingObj = Post | TrendingWithHistory;
 export type TrendingWithHistory = TagWithUsageCounts | TrendingLink;
 
 /** Holds both the raw and unweighted score for a given {@linkcode ScoreName}. */

@@ -3,15 +3,15 @@ import type { ObjList } from "../core/index";
 import { config } from "../config";
 import { getLogger } from "./log_helpers";
 
-export const computeMinTootsDefaultValue = (
+export const computeMinPostsDefaultValue = (
 	objList: ObjList,
 	title: string,
 	idealNumOptions?: number,
 ): number => {
-	const logger = getMinTootsLogger(title);
-	const minTootsSliderCfg = config.filters.boolean.minTootsSlider;
+	const logger = getMinPostsLogger(title);
+	const minPostsSliderCfg = config.filters.boolean.minPostsSlider;
 	const resolvedIdealNumOptions =
-		idealNumOptions ?? minTootsSliderCfg.idealNumOptions;
+		idealNumOptions ?? minPostsSliderCfg.idealNumOptions;
 	logger.deep(
 		`Computing default value for minPosts slider with ${objList.length} options`,
 	);
@@ -20,7 +20,7 @@ export const computeMinTootsDefaultValue = (
 	if (objList.objs.length < resolvedIdealNumOptions - 1) {
 		return 0;
 	}
-	// It's "ideal" just in the sense that it has a value for numToots that works well
+	// It's "ideal" just in the sense that it has a value for numPosts that works well
 	const idealOption = objList.topObjs()[resolvedIdealNumOptions];
 	let sliderDefault = 0;
 
@@ -33,7 +33,7 @@ export const computeMinTootsDefaultValue = (
 				? Math.floor(resolvedIdealNumOptions / 10)
 				: 0;
 	} else {
-		sliderDefault = idealOption.numToots;
+		sliderDefault = idealOption.numPosts;
 	}
 
 	// TODO: if the objList gets refreshed while the filter is set to a high value, the slider will disappear :(
@@ -43,9 +43,9 @@ export const computeMinTootsDefaultValue = (
 	return sliderDefault;
 };
 
-export const computeMinTootsMaxValue = (objList: ObjList, title: string) => {
-	const logger = getMinTootsLogger(title);
-	const minTootsSliderCfg = config.filters.boolean.minTootsSlider;
+export const computeMinPostsMaxValue = (objList: ObjList, title: string) => {
+	const logger = getMinPostsLogger(title);
+	const minPostsSliderCfg = config.filters.boolean.minPostsSlider;
 
 	if (objList.length === 0) {
 		logger.info("No tags found in objList, using default maxValue of 5");
@@ -53,13 +53,13 @@ export const computeMinTootsMaxValue = (objList: ObjList, title: string) => {
 	}
 
 	const topTags = objList.topObjs();
-	const maxValueInTags = objList.maxNumToots;
+	const maxValueInTags = objList.maxNumPosts;
 	const maxValueOptionIdx = Math.min(
-		minTootsSliderCfg.minItems,
+		minPostsSliderCfg.minItems,
 		objList.length - 1,
 	);
 	const maxValueOption = topTags[maxValueOptionIdx];
-	let maxValue = maxValueOption?.numToots;
+	let maxValue = maxValueOption?.numPosts;
 
 	if (!maxValue) {
 		const msg = `No max found at maxValueOptionIdx ${maxValueOptionIdx} in ${topTags.length} objs,`;
@@ -76,4 +76,4 @@ export const computeMinTootsMaxValue = (objList: ObjList, title: string) => {
 	return maxValue;
 };
 
-const getMinTootsLogger = (title: string) => getLogger("MinPostsSlider", title);
+const getMinPostsLogger = (title: string) => getLogger("MinPostsSlider", title);

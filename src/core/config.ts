@@ -12,7 +12,7 @@ import {
 	MONTHS_SHORT,
 	NonScoreWeightName,
 	SECONDS_IN_HOUR,
-	TagTootsCategory,
+	TagPostsCategory,
 } from "./enums";
 /**
  * @fileoverview Centralized location for non-user configurable settings.
@@ -26,7 +26,7 @@ import { optionalSuffix, suffixedInt } from "./helpers/string_helpers";
 import { timeString } from "./helpers/time_helpers";
 import type { NonScoreWeightInfoDict, Optional } from "./types";
 
-// Number of notifications, replies, etc. to pull in initial load. KEY BOTTLENECK on RecentUserToots
+// Number of notifications, replies, etc. to pull in initial load. KEY BOTTLENECK on RecentUserPosts
 export const MIN_RECORDS_FOR_FEATURE_SCORING = 320;
 export const MAX_ENDPOINT_RECORDS_TO_PULL = 5_000;
 
@@ -99,13 +99,13 @@ type LocaleConfig = {
 	messages: LoadingStatusMsgs & TriggerLoadMsgFxn; // TRIGGER_FEED_UPDATE is a fxn, everything else is a string
 };
 
-interface ParticipatedTagsConfig extends TagTootsConfig {
-	minPctToCountRetoots: number;
+interface ParticipatedTagsConfig extends TagPostsConfig {
+	minPctToCountBoosts: number;
 }
 
 type ScoringConfig = {
-	diversityScorerMinTrendingTagTootsForPenalty: number;
-	diversityScorerRetootMultiplier: number; // How much to multiply the diversity score of a toot with retweets by
+	diversityScorerMinTrendingTagPostsForPenalty: number;
+	diversityScorerBoostMultiplier: number; // How much to multiply the diversity score of a post with retweets by
 	excessiveTags: number;
 	excessiveTagsPenalty: number;
 	nonScoreWeightMinValue: number;
@@ -114,18 +114,18 @@ type ScoringConfig = {
 	timeDecayExponent: number;
 };
 
-export interface TagTootsConfig {
+export interface TagPostsConfig {
 	invalidTags?: string[];
-	maxToots: number;
+	maxPosts: number;
 	numTags: number;
-	numTootsPerTag: number;
+	numPostsPerTag: number;
 }
 
-type TootsConfig = {
+type PostsConfig = {
 	batchCompleteSize: number;
 	batchCompleteSleepBetweenMS: number;
 	completeAfterMinutes: number;
-	filterUpdateBatchSize: number; // How many new Toots before calling updateFilterOptions()
+	filterUpdateBatchSize: number; // How many new Posts before calling updateFilterOptions()
 	maxAgeInDays: number;
 	maxTimelineLength: number;
 	minToSkipFilterUpdates: number;
@@ -135,29 +135,29 @@ type TootsConfig = {
 	truncateFullTimelineToLength: number;
 };
 
-interface TrendingTagsConfig extends TagTootsConfig {
+interface TrendingTagsConfig extends TagPostsConfig {
 	numTagsPerServer: number;
 }
 
-type TrendingTootsConfig = {
-	numTrendingTootsPerServer: number;
+type TrendingPostsConfig = {
+	numTrendingPostsPerServer: number;
 };
 
 type TrendingConfig = {
 	daysToCountTrendingData: number;
 	tags: Readonly<TrendingTagsConfig>;
-	toots: Readonly<TrendingTootsConfig>;
+	posts: Readonly<TrendingPostsConfig>;
 };
 
 // See Config for comments explaining these values
 interface ConfigType {
 	api: ApiConfig;
-	favouritedTags: Readonly<TagTootsConfig>;
+	favouritedTags: Readonly<TagPostsConfig>;
 	fediverse: Readonly<FediverseConfig>;
 	locale: Readonly<LocaleConfig>;
 	participatedTags: Readonly<ParticipatedTagsConfig>;
 	scoring: Readonly<ScoringConfig>;
-	toots: Readonly<TootsConfig>;
+	posts: Readonly<PostsConfig>;
 	trending: Readonly<TrendingConfig>;
 }
 
@@ -171,13 +171,13 @@ interface ConfigType {
  * @class
  * @implements {ConfigType}
  * @property {ApiConfig} api - API request and caching configuration.
- * @property {TagTootsConfig} favouritedTags - Settings for favourited tags and related toot fetching.
+ * @property {TagPostsConfig} favouritedTags - Settings for favourited tags and related post fetching.
  * @property {FediverseConfig} fediverse - Fediverse-wide server and trending configuration.
  * @property {LocaleConfig} locale - Locale, language, and country settings.
  * @property {ParticipatedTagsConfig} participatedTags - Settings for user's participated tags.
- * @property {ScoringConfig} scoring - Scoring and weighting configuration for toots and tags.
- * @property {TootsConfig} toots - Timeline and toot cache configuration.
- * @property {TrendingConfig} trending - Trending data configuration for links, tags, and toots.
+ * @property {ScoringConfig} scoring - Scoring and weighting configuration for posts and tags.
+ * @property {PostsConfig} posts - Timeline and post cache configuration.
+ * @property {TrendingConfig} trending - Trending data configuration for links, tags, and posts.
  */
 class Config implements ConfigType {
 	api = {
@@ -194,7 +194,7 @@ class Config implements ConfigType {
 			rateLimitWarning:
 				"Your Mastodon server is complaining about too many requests coming too quickly. Wait a bit and try again later.",
 		},
-		maxConcurrentHashtagRequests: 15, // How many toot requests to make in parallel to the search and hashtag timeline endpoints
+		maxConcurrentHashtagRequests: 15, // How many post requests to make in parallel to the search and hashtag timeline endpoints
 		maxRecordsForFeatureScoring: 1_500, // number of notifications, replies, etc. to pull slowly in background for scoring
 		maxSecondsPerPage: 60, // If loading a single page of results takes longer than this, just give up
 		minutesUntilStaleDefault: 10, // Default how long to wait before considering data stale
@@ -211,7 +211,7 @@ class Config implements ConfigType {
 				initialMaxRecords: MAX_ENDPOINT_RECORDS_TO_PULL,
 				minutesUntilStale: MINUTES_IN_DAY,
 			},
-			[CacheKey.FAVOURITED_TOOTS]: {
+			[CacheKey.FAVOURITED_POSTS]: {
 				initialMaxRecords: Math.floor(MIN_RECORDS_FOR_FEATURE_SCORING / 2), // Seems to be the biggest bottleneck
 				minutesUntilStale: 12 * MINUTES_IN_HOUR,
 			},
@@ -230,14 +230,14 @@ class Config implements ConfigType {
 				limit: 80,
 				minutesUntilStale: 24 * MINUTES_IN_HOUR,
 			},
-			[CacheKey.HASHTAG_TOOTS]: {
-				// hashtag timeline toots are not cached as a group, they're pulled in small amounts and used
-				// to create other sets of toots from a lot of small requests, e.g. TRENDING_TAG_TOOTS or PARTICIPATED_TAG_TOOTS
+			[CacheKey.HASHTAG_POSTS]: {
+				// hashtag timeline posts are not cached as a group, they're pulled in small amounts and used
+				// to create other sets of posts from a lot of small requests, e.g. TRENDING_TAG_POSTS or PARTICIPATED_TAG_POSTS
 				canBeDisabledOnGoToSocial: true,
 			},
-			[CacheKey.HOME_TIMELINE_TOOTS]: {
+			[CacheKey.HOME_TIMELINE_POSTS]: {
 				initialMaxRecords: 800,
-				lookbackForUpdatesMinutes: 180, // How far before the most recent toot we already have to look back for updates (edits, increased reblogs, etc.)
+				lookbackForUpdatesMinutes: 180, // How far before the most recent post we already have to look back for updates (edits, increased reblogs, etc.)
 				supportsMinMaxId: true,
 			},
 			[CacheKey.INSTANCE_INFO]: {
@@ -254,7 +254,7 @@ class Config implements ConfigType {
 				minutesUntilStale: 6 * MINUTES_IN_HOUR,
 				supportsMinMaxId: true,
 			},
-			[CacheKey.RECENT_USER_TOOTS]: {
+			[CacheKey.RECENT_USER_POSTS]: {
 				initialMaxRecords: MIN_RECORDS_FOR_FEATURE_SCORING,
 				minutesUntilStale: 2 * MINUTES_IN_HOUR,
 				supportsMinMaxId: true,
@@ -269,33 +269,33 @@ class Config implements ConfigType {
 			[FediverseCacheKey.TRENDING_TAGS]: {
 				minutesUntilStale: 6 * MINUTES_IN_HOUR,
 			},
-			[FediverseCacheKey.TRENDING_TOOTS]: {
+			[FediverseCacheKey.TRENDING_POSTS]: {
 				minutesUntilStale: 4 * MINUTES_IN_HOUR,
 			},
-			[TagTootsCategory.FAVOURITED]: {
+			[TagPostsCategory.FAVOURITED]: {
 				minutesUntilStale: 60,
 			},
-			[TagTootsCategory.PARTICIPATED]: {
+			[TagPostsCategory.PARTICIPATED]: {
 				minutesUntilStale: 20,
 			},
-			[TagTootsCategory.TRENDING]: {
+			[TagPostsCategory.TRENDING]: {
 				minutesUntilStale: 15,
 			},
 		} as ApiDataConfig,
 	};
 
 	favouritedTags = {
-		maxParticipations: 3, // Remove tags that have been used in more than this many toots by the user
-		maxToots: 100, // How many toots to pull for each tag
-		numTags: 15, // How many tags to pull toots for
-		numTootsPerTag: 5, // How many toots to pull for each tag
+		maxParticipations: 3, // Remove tags that have been used in more than this many posts by the user
+		maxPosts: 100, // How many posts to pull for each tag
+		numTags: 15, // How many tags to pull posts for
+		numPostsPerTag: 5, // How many posts to pull for each tag
 	};
 
 	fediverse = {
-		minServerMAU: 100, // Minimum MAU for a server to be considered for trending toots/tags
+		minServerMAU: 100, // Minimum MAU for a server to be considered for trending posts/tags
 		numServersToCheck: 30, // NUM_SERVERS_TO_CHECK
 		// Popular servers that are used as fallbacks if the user isn't following accounts on enough
-		// servers to make for a good set of trending toots and hashtags.
+		// servers to make for a good set of trending posts and hashtags.
 		// Culled from https://mastodonservers.net and https://joinmastodon.org/ and
 		// https://fedidb.com/software/mastodon?registration=open
 		defaultServers: [
@@ -319,18 +319,18 @@ class Config implements ConfigType {
 			"defcon.social",
 			"mstdn.party",
 			"sfba.social",
-			"toot.community",
+			"post.community",
 			"ravenation.club",
 			"metalhead.club",
 			"sciences.social",
-			"toot.io",
+			"post.io",
 			"mastodon.ie",
 			"mastodon.nz",
 			// Servers that are no bueno for various reasons
 			// "baraag.net",                 // very NSFW (anime porn)
 			// "mstdn.social",               // Slow, blocked by CORS
 			// "mastodon.lol",               // Doesn't return MAU data
-			// "fosstodon.org",              // Doesn't support trending toots
+			// "fosstodon.org",              // Doesn't support trending posts
 			// "mastodon.technology",        // Doesn't return MAU data
 			// "mathstodon.xyz",             // Doesn't return MAU data
 		],
@@ -433,17 +433,17 @@ class Config implements ConfigType {
 
 	participatedTags = {
 		invalidTags: ["eupol", "news", "uspol", "uspolitics"],
-		maxToots: 200, // How many total toots to include for the user's most participated tags
-		minPctToCountRetoots: 0.75, // Minimum percentage of retweets to count them as "participation"
-		numTags: 30, // Pull toots for this many of the user's most participated tags
-		numTootsPerTag: 10, // How many toots to pull for each participated tag
+		maxPosts: 200, // How many total posts to include for the user's most participated tags
+		minPctToCountBoosts: 0.75, // Minimum percentage of retweets to count them as "participation"
+		numTags: 30, // Pull posts for this many of the user's most participated tags
+		numPostsPerTag: 10, // How many posts to pull for each participated tag
 	};
 
 	scoring = {
-		excessiveTags: 25, // Toots with more than this many tags will be penalized
-		excessiveTagsPenalty: 0.1, // Multiplier to penalize toots with excessive tags
-		diversityScorerMinTrendingTagTootsForPenalty: 9, // Min number of toots w/a trending tag before DiversityFeedScorer applies a penalty
-		diversityScorerRetootMultiplier: 4, // How much to multiply the diversity score of a toot with retweets by
+		excessiveTags: 25, // Posts with more than this many tags will be penalized
+		excessiveTagsPenalty: 0.1, // Multiplier to penalize posts with excessive tags
+		diversityScorerMinTrendingTagPostsForPenalty: 9, // Min number of posts w/a trending tag before DiversityFeedScorer applies a penalty
+		diversityScorerBoostMultiplier: 4, // How much to multiply the diversity score of a post with retweets by
 		nonScoreWeightMinValue: 0.001, // Min value for non-score weights (trending, time decay, etc.)
 		nonScoreWeightsConfig: {
 			// Factor in an exponential function that gives a value between 0 and 1. See Scorer class for details.
@@ -460,21 +460,21 @@ class Config implements ConfigType {
 				description: "Dampens the effect of outlier scores",
 			},
 		},
-		scoringBatchSize: 100, // How many toots to score at once
-		timeDecayExponent: 1.2, // Exponent for the time decay function (higher = more recent toots are favoured)
+		scoringBatchSize: 100, // How many posts to score at once
+		timeDecayExponent: 1.2, // Exponent for the time decay function (higher = more recent posts are favoured)
 	};
 
-	toots = {
-		batchCompleteSize: 25, // How many toots call completeToot() on at once
-		batchCompleteSleepBetweenMS: 210, // How long to wait between batches of Toot.completeProperties() calls
-		completeAfterMinutes: MINUTES_IN_DAY, // Toots younger than this will periodically have their derived fields reevaluated by Toot.completeToot()
-		filterUpdateBatchSize: 240, // How many new Toots before calling updateFilterOptions()
-		maxAgeInDays: 1, // How long to keep toots in the cache before removing them
-		maxContentPreviewChars: 110, // How many characters to show in a Toot preview
-		maxTimelineLength: 3_000, // Max toots to keep in browser storage. Larger cache doesn't seem to impact performance much
-		minCharsForLanguageDetect: 8, // Min number of characters in a toot before we try to detect its language
-		minToSkipFilterUpdates: 300, // Min timeline toots before we start getting choosy about calling updateFilterOptions()
-		saveChangesIntervalSeconds: 5, // How often to check for updates to toots' numTimesShown
+	posts = {
+		batchCompleteSize: 25, // How many posts call completeToot() on at once
+		batchCompleteSleepBetweenMS: 210, // How long to wait between batches of Post.completeProperties() calls
+		completeAfterMinutes: MINUTES_IN_DAY, // Posts younger than this will periodically have their derived fields reevaluated by Post.completeToot()
+		filterUpdateBatchSize: 240, // How many new Posts before calling updateFilterOptions()
+		maxAgeInDays: 1, // How long to keep posts in the cache before removing them
+		maxContentPreviewChars: 110, // How many characters to show in a Post preview
+		maxTimelineLength: 3_000, // Max posts to keep in browser storage. Larger cache doesn't seem to impact performance much
+		minCharsForLanguageDetect: 8, // Min number of characters in a post before we try to detect its language
+		minToSkipFilterUpdates: 300, // Min timeline posts before we start getting choosy about calling updateFilterOptions()
+		saveChangesIntervalSeconds: 5, // How often to check for updates to posts' numTimesShown
 		truncateFullTimelineToLength: 2_000, // If on startup the timeline is full, truncate it to this length
 		tagOnlyStrings: new Set<string>([
 			// These strings can only be matched as tags, not as content
@@ -3521,13 +3521,13 @@ class Config implements ConfigType {
 				"news",
 				"photography",
 			],
-			maxToots: 200, // Max number of toots with trending tags to push into the user's feed
+			maxPosts: 200, // Max number of posts with trending tags to push into the user's feed
 			numTagsPerServer: 20, // How many trending tags to pull from each server (Mastodon default is 10)
 			numTags: 20, // How many trending tags to use after ranking their popularity
-			numTootsPerTag: 15, // How many toots to pull for each trending tag
+			numPostsPerTag: 15, // How many posts to pull for each trending tag
 		},
-		toots: {
-			numTrendingTootsPerServer: 30, // How many trending toots to pull per server // TODO: unused?
+		posts: {
+			numTrendingPostsPerServer: 30, // How many trending posts to pull per server // TODO: unused?
 		},
 	};
 
@@ -3599,10 +3599,10 @@ class Config implements ConfigType {
 	private validate(cfg?: ConfigType | object): void {
 		if (!cfg) {
 			if (
-				!this.api.data[CacheKey.HOME_TIMELINE_TOOTS]?.lookbackForUpdatesMinutes
+				!this.api.data[CacheKey.HOME_TIMELINE_POSTS]?.lookbackForUpdatesMinutes
 			) {
 				throw new Error(
-					`${LOG_PREFIX} HOME_TIMELINE_TOOTS lookbackForUpdatesMinutes is not set!`,
+					`${LOG_PREFIX} HOME_TIMELINE_POSTS lookbackForUpdatesMinutes is not set!`,
 				);
 			}
 		}
@@ -3629,11 +3629,11 @@ const config = new Config();
 // Quick load mode settings
 if (isQuickMode) {
 	console.debug(`${LOG_PREFIX} QUICK_MODE enabled, applying debug settings...`);
-	config.api.data[CacheKey.HOME_TIMELINE_TOOTS]!.initialMaxRecords = 240;
-	config.api.data[CacheKey.HOME_TIMELINE_TOOTS]!.lookbackForUpdatesMinutes = 10;
+	config.api.data[CacheKey.HOME_TIMELINE_POSTS]!.initialMaxRecords = 240;
+	config.api.data[CacheKey.HOME_TIMELINE_POSTS]!.lookbackForUpdatesMinutes = 10;
 	config.api.backgroundLoadIntervalMinutes = SECONDS_IN_HOUR;
 	config.favouritedTags.numTags = 5;
-	config.toots.maxTimelineLength = 1_500;
+	config.posts.maxTimelineLength = 1_500;
 	config.participatedTags.numTags = 10;
 	config.trending.tags.numTags = 10;
 }
@@ -3647,10 +3647,10 @@ if (isDebugMode) {
 	config.api.data[CacheKey.FOLLOWED_TAGS]!.minutesUntilStale = 60;
 	config.api.data[CacheKey.FOLLOWERS]!.initialMaxRecords = 320;
 	config.api.data[CacheKey.NOTIFICATIONS]!.minutesUntilStale = 10;
-	config.api.data[CacheKey.RECENT_USER_TOOTS]!.minutesUntilStale = 5;
+	config.api.data[CacheKey.RECENT_USER_POSTS]!.minutesUntilStale = 5;
 	config.api.backgroundLoadIntervalMinutes = 5;
 	config.api.maxRecordsForFeatureScoring = 2_500;
-	config.toots.saveChangesIntervalSeconds = 15;
+	config.posts.saveChangesIntervalSeconds = 15;
 }
 
 // Heavy load test settings
@@ -3658,13 +3658,13 @@ if (isLoadTest) {
 	console.debug(
 		`${LOG_PREFIX} LOAD_TEST mode enabled, applying debug settings...`,
 	);
-	config.api.data[CacheKey.HOME_TIMELINE_TOOTS]!.initialMaxRecords = 2_500;
-	config.toots.maxTimelineLength = 5_000;
+	config.api.data[CacheKey.HOME_TIMELINE_POSTS]!.initialMaxRecords = 2_500;
+	config.posts.maxTimelineLength = 5_000;
 	config.api.maxRecordsForFeatureScoring = 15_000;
-	config.participatedTags.maxToots = 500;
+	config.participatedTags.maxPosts = 500;
 	config.participatedTags.numTags = 50;
-	config.participatedTags.numTootsPerTag = 10;
-	config.trending.tags.maxToots = 1_000;
+	config.participatedTags.numPostsPerTag = 10;
+	config.trending.tags.maxPosts = 1_000;
 	config.trending.tags.numTags = 40;
 }
 

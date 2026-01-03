@@ -1,7 +1,7 @@
 /**
- * @fileoverview Abstract class for filtering {@linkcode Toot} objects in or out of the timeline feed.
+ * @fileoverview Abstract class for filtering {@linkcode Post} objects in or out of the timeline feed.
  */
-import type Toot from "../api/objects/toot";
+import type Post from "../api/objects/post";
 import { split } from "../helpers/collection_helpers";
 import { Logger } from "../helpers/logger";
 import type { FilterProperty } from "../types";
@@ -13,15 +13,15 @@ export interface FilterArgs {
 }
 
 /**
- * Abstract base class representing a filter that can be applied to a {@linkcode Toot} to determine
+ * Abstract base class representing a filter that can be applied to a {@linkcode Post} to determine
  * if it should be included in the timeline feed. Subclasses must implement the
- * {@linkcode TootFilter.isAllowed} method.
+ * {@linkcode PostFilter.isAllowed} method.
  * @property {string} description - Description of the filter for display or documentation purposes.
  * @property {boolean} invertSelection - If true, the filter logic is inverted (e.g. exclude instead of include).
  * @property {Logger} logger - Logger instance for this filter.
  * @property {FilterProperty} propertyName - The property this filter works on
  */
-export default abstract class TootFilter {
+export default abstract class PostFilter {
 	description: string;
 	invertSelection: boolean;
 	logger: Logger;
@@ -38,16 +38,16 @@ export default abstract class TootFilter {
 		this.description = description ?? (propertyName as string);
 		this.invertSelection = invertSelection ?? false;
 		this.propertyName = propertyName;
-		this.logger = Logger.withParenthesizedName("TootFilter", propertyName);
+		this.logger = Logger.withParenthesizedName("PostFilter", propertyName);
 	}
 
 	/**
-	 * Determines if the given {@linkcode Toot} should appear in the timeline feed.
+	 * Determines if the given {@linkcode Post} should appear in the timeline feed.
 	 * @abstract
-	 * @param {Toot} toot - The toot to check.
-	 * @returns {boolean} True if the toot meets the filter criteria, false otherwise.
+	 * @param {Post} post - The post to check.
+	 * @returns {boolean} True if the post meets the filter criteria, false otherwise.
 	 */
-	abstract isAllowed(toot: Toot): boolean;
+	abstract isAllowed(post: Post): boolean;
 
 	/**
 	 * Returns the arguments needed to reconstruct this filter. Extend in subclasses for serialization.

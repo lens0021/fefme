@@ -1,5 +1,5 @@
 /*
- * Main class that handles scoring and sorting a feed made of Toot objects.
+ * Main class that handles scoring and sorting a feed made of Post objects.
  */
 import "reflect-metadata"; // Required for class-transformer
 import { Buffer } from "buffer"; // Maybe Required for class-transformer though seems to be required in client?
@@ -10,9 +10,9 @@ import MastoApi, { FULL_HISTORY_PARAMS } from "./api/api";
 import type { ObjList } from "./api/counted_list";
 import { isAccessTokenRevokedError, throwSanitizedRateLimitError } from "./api/errors";
 import Account from "./api/objects/account";
-import Toot from "./api/objects/toot";
+import Post from "./api/objects/post";
 import TagList from "./api/tag_list";
-import TagsForFetchingToots from "./api/tags_for_fetching_toots";
+import TagsForFetchingPosts from "./api/tags_for_fetching_posts";
 import UserData from "./api/user_data";
 import { MAX_ENDPOINT_RECORDS_TO_PULL, config } from "./config";
 import {
@@ -25,7 +25,7 @@ import {
 	MediaCategory,
 	NonScoreWeightName,
 	ScoreName,
-	TagTootsCategory,
+	TagPostsCategory,
 	TrendingType,
 	TypeFilterName,
 	isValueInStringEnum,
@@ -69,7 +69,7 @@ import {
 	type ScoreStats,
 	type StringNumberDict,
 	type TagWithUsageCounts,
-	type TootSource,
+	type PostSource,
 	type TrendingData,
 	type TrendingLink,
 	type TrendingObj,
@@ -86,7 +86,7 @@ import { updateFilters } from "./coordinator/filters";
 import { loadCachedData, resetSeenState, saveTimelineToCache } from "./coordinator/cache";
 import { recomputeScores, scoreAndFilterFeed } from "./coordinator/scoring";
 import {
-	fetchAndMergeToots,
+	fetchAndMergePosts,
 	finishFeedUpdate,
 	lockedMergeToFeed,
 	mergeExternalStatuses,
@@ -101,25 +101,25 @@ import {
 	type SourceStats,
 } from "./coordinator/stats";
 
-const DEFAULT_SET_TIMELINE_IN_APP = (_feed: Toot[]) =>
+const DEFAULT_SET_TIMELINE_IN_APP = (_feed: Post[]) =>
 	console.debug(`Default setTimelineInApp() called`);
 
 interface AlgorithmArgs {
 	api: mastodon.rest.Client;
 	user: mastodon.v1.Account;
 	locale?: string; // Optional locale to use for date formatting
-	setTimelineInApp?: (feed: Toot[]) => void; // Optional callback to set the feed in the code using this package
+	setTimelineInApp?: (feed: Post[]) => void; // Optional callback to set the feed in the code using this package
 }
 
 /**
- * Main class for scoring, sorting, and managing a Mastodon feed made of {@linkcode Toot} objects.
+ * Main class for scoring, sorting, and managing a Mastodon feed made of {@linkcode Post} objects.
  *
  * {@linkcode FeedCoordinator} orchestrates fetching, scoring, filtering, and updating the user's timeline/feed.
  * It manages feature and feed scorers, trending data, filters, user weights, and background polling. Key
  * responsibilities:
  *
- *  1. Fetches and merges toots from multiple sources (home timeline, trending, hashtags, etc.).
- *  2. Applies scoring algorithms and user-defined weights to rank toots.
+ *  1. Fetches and merges posts from multiple sources (home timeline, trending, hashtags, etc.).
+ *  2. Applies scoring algorithms and user-defined weights to rank posts.
  *  3. Filters the feed based on user settings and filter options.
  *  4. Handles background polling for new data and saving state to storage.
  *  5. Provides methods for updating filters, weights, and retrieving current state.
@@ -130,8 +130,8 @@ interface AlgorithmArgs {
  * @property {boolean} isLoading - Whether a feed load is in progress*
  * @property {number} [lastLoadTimeInSeconds] - Duration of the last load in seconds
  * @property {string | null} loadingStatus - String describing load activity
- * @property {Toot[]} timeline - The current filtered timeline
- * @property {TrendingData} trendingData - Trending data (tags, servers, toots)
+ * @property {Post[]} timeline - The current filtered timeline
+ * @property {TrendingData} trendingData - Trending data (tags, servers, posts)
  * @property {UserData} userData - User data for scoring and filtering
  * @property {WeightInfoDict} weightsInfo - Info about all scoring weights
  */
@@ -172,7 +172,7 @@ export default class FeedCoordinator {
 	get isLoading(): boolean {
 		return this.state.loadingMutex.isLocked();
 	}
-	get timeline(): Toot[] {
+	get timeline(): Post[] {
 		return [...this.state.filteredTimeline];
 	}
 	get userData(): UserData {
@@ -185,7 +185,7 @@ export default class FeedCoordinator {
 	 * @param {mastodon.rest.Client} params.api - The Mastodon REST API client instance.
 	 * @param {mastodon.v1.Account} params.user - The Mastodon user account for which to build the feed.
 	 * @param {string} [params.locale] - Optional locale string for date formatting.
-	 * @param {(feed: Toot[]) => void} [params.setTimelineInApp] - Optional callback to set the feed in the consuming app.
+	 * @param {(feed: Post[]) => void} [params.setTimelineInApp] - Optional callback to set the feed in the consuming app.
 	 * @returns {Promise<FeedCoordinator>} FeedCoordinator instance.
 	 */
 	static async create(params: AlgorithmArgs): Promise<FeedCoordinator> {
@@ -196,7 +196,7 @@ export default class FeedCoordinator {
 
 		// Construct the algorithm object, set the default weights, load feed and filters
 		const algo = new FeedCoordinator(params);
-		ScorerCache.addScorers(algo.state.tootScorers, algo.state.feedScorers);
+		ScorerCache.addScorers(algo.state.postScorers, algo.state.feedScorers);
 		await loadCachedData(algo.state, false);
 		return algo;
 	}
@@ -222,30 +222,30 @@ export default class FeedCoordinator {
 		await startAction(this.state, action);
 
 		try {
-			const tootsForHashtags = async (
-				key: TagTootsCategory,
-			): Promise<Toot[]> => {
-				hereLogger.trace(`Fetching toots for hashtags with key: ${key}`);
-				const tagList = await TagsForFetchingToots.create(key);
-				return await fetchAndMergeToots(
+			const postsForHashtags = async (
+				key: TagPostsCategory,
+			): Promise<Post[]> => {
+				hereLogger.trace(`Fetching posts for hashtags with key: ${key}`);
+				const tagList = await TagsForFetchingPosts.create(key);
+				return await fetchAndMergePosts(
 					this.state,
-					tagList.getToots(),
+					tagList.getPosts(),
 					tagList.logger,
 				);
 			};
 
 			const dataLoads: Promise<unknown>[] = [
-				// Toot fetchers
+				// Post fetchers
 				getHomeTimeline(
-					(toots, logger) => lockedMergeToFeed(this.state, toots, logger),
-				).then((toots) => {
-					this.state.homeFeed = toots;
+					(posts, logger) => lockedMergeToFeed(this.state, posts, logger),
+				).then((posts) => {
+					this.state.homeFeed = posts;
 				}),
-				// Federated timeline toots
+				// Federated timeline posts
 				mergeFederatedTimeline(this.state, "newer", 40),
-				...Object.values(TagTootsCategory)
-					.filter((key) => key !== TagTootsCategory.TRENDING)
-					.map(async (key) => await tootsForHashtags(key)),
+				...Object.values(TagPostsCategory)
+					.filter((key) => key !== TagPostsCategory.TRENDING)
+					.map(async (key) => await postsForHashtags(key)),
 				// Other data fetchers
 				MastoApi.instance.getUserData(),
 				ScorerCache.prepareScorers(),
@@ -260,7 +260,7 @@ export default class FeedCoordinator {
 	}
 
 	/**
-	 * Trigger the fetching of additional earlier {@linkcode Toot}s from the server.
+	 * Trigger the fetching of additional earlier {@linkcode Post}s from the server.
 	 * @returns {Promise<void>}
 	 */
 	async triggerHomeTimelineBackFill(): Promise<void> {
@@ -268,7 +268,7 @@ export default class FeedCoordinator {
 
 		try {
 			this.state.homeFeed = await getHomeTimeline(
-				(toots, logger) => lockedMergeToFeed(this.state, toots, logger),
+				(posts, logger) => lockedMergeToFeed(this.state, posts, logger),
 				true,
 			);
 			await finishFeedUpdate(this.state);
@@ -278,7 +278,7 @@ export default class FeedCoordinator {
 	}
 
 	/**
-	 * Trigger the fetching of additional earlier {@linkcode Toot}s from the federated timeline.
+	 * Trigger the fetching of additional earlier {@linkcode Post}s from the federated timeline.
 	 * @returns {Promise<void>}
 	 */
 	async triggerFederatedTimelineBackFill(): Promise<void> {
@@ -293,11 +293,11 @@ export default class FeedCoordinator {
 	}
 
 	/**
-	 * Trigger the fetching of additional earlier {@linkcode Toot}s for a tag category.
-	 * @param {TagTootsCategory} category - Tag category to backfill.
+	 * Trigger the fetching of additional earlier {@linkcode Post}s for a tag category.
+	 * @param {TagPostsCategory} category - Tag category to backfill.
 	 * @returns {Promise<void>}
 	 */
-	async triggerTagTimelineBackFill(category: TagTootsCategory): Promise<void> {
+	async triggerTagTimelineBackFill(category: TagPostsCategory): Promise<void> {
 		await startAction(this.state, LoadAction.TIMELINE_BACKFILL);
 		const hereLogger = loggers[LoadAction.TIMELINE_BACKFILL];
 
@@ -305,16 +305,16 @@ export default class FeedCoordinator {
 			const { minId } = getSourceBounds(this.state, category);
 			if (!minId) {
 				hereLogger.info(
-					`No cached toots found for ${category}, skipping tag backfill`,
+					`No cached posts found for ${category}, skipping tag backfill`,
 				);
 				await finishFeedUpdate(this.state);
 				return;
 			}
 
-			const tagList = await TagsForFetchingToots.create(category);
-			await fetchAndMergeToots(
+			const tagList = await TagsForFetchingPosts.create(category);
+			await fetchAndMergePosts(
 				this.state,
-				tagList.getOlderToots(minId),
+				tagList.getOlderPosts(minId),
 				tagList.logger,
 			);
 			await finishFeedUpdate(this.state);
@@ -326,25 +326,25 @@ export default class FeedCoordinator {
 	/**
 	 * Merge external statuses into the feed, score, and filter.
 	 * @param {mastodon.v1.Status[]} statuses - Statuses to merge.
-	 * @param {TootSource} source - Source label used for completion/scoring metadata.
+	 * @param {PostSource} source - Source label used for completion/scoring metadata.
 	 */
 	async mergeExternalStatuses(
 		statuses: mastodon.v1.Status[],
-		source: TootSource,
+		source: PostSource,
 	): Promise<void> {
 		await mergeExternalStatuses(this.state, statuses, source);
 	}
 
 	/**
-	 * Fetch and merge federated timeline toots into the feed.
-	 * @param {number} [limit=40] - Maximum number of toots to fetch.
+	 * Fetch and merge federated timeline posts into the feed.
+	 * @param {number} [limit=40] - Maximum number of posts to fetch.
 	 */
 	async triggerFederatedTimelineMerge(limit = 40): Promise<void> {
 		await mergeFederatedTimeline(this.state, "newer", limit);
 	}
 
 	/**
-	 * Manually trigger the loading of "moar" user data (recent toots, favourites, notifications, etc).
+	 * Manually trigger the loading of "moar" user data (recent posts, favourites, notifications, etc).
 	 * Usually done by a background task on a set interval.
 	 * @returns {Promise<void>}
 	 */
@@ -367,7 +367,7 @@ export default class FeedCoordinator {
 	}
 
 	/**
-	 * Collect **ALL** the user's history data from the server - past toots, favourites, etc.
+	 * Collect **ALL** the user's history data from the server - past posts, favourites, etc.
 	 * Use with caution!
 	 * @returns {Promise<void>}
 	 */
@@ -380,13 +380,13 @@ export default class FeedCoordinator {
 			this.state.userDataPoller.stop(); // Stop the dataPoller if it's running
 
 			const _allResults = await Promise.allSettled([
-				MastoApi.instance.getFavouritedToots(FULL_HISTORY_PARAMS),
+				MastoApi.instance.getFavouritedPosts(FULL_HISTORY_PARAMS),
 				// TODO: there's just too many notifications to pull all of them
 				MastoApi.instance.getNotifications({
 					maxRecords: MAX_ENDPOINT_RECORDS_TO_PULL,
 					moar: true,
 				}),
-				MastoApi.instance.getRecentUserToots(FULL_HISTORY_PARAMS),
+				MastoApi.instance.getRecentUserPosts(FULL_HISTORY_PARAMS),
 			]);
 
 			await recomputeScores(this.state);
@@ -426,15 +426,15 @@ export default class FeedCoordinator {
 	}
 
 	/**
-	 * Return the timestamp of the most recent toot from followed accounts + hashtags ONLY.
-	 * @returns {Date | null} The most recent toot date or null.
+	 * Return the timestamp of the most recent post from followed accounts + hashtags ONLY.
+	 * @returns {Date | null} The most recent post date or null.
 	 */
 	mostRecentHomeTootAt(): Date | null {
 		return mostRecentHomeTootAt(this.state);
 	}
 
 	/**
-	 * Return the number of seconds since the most recent home timeline {@linkcode Toot}.
+	 * Return the number of seconds since the most recent home timeline {@linkcode Post}.
 	 * @returns {number | null} Age in seconds or null.
 	 */
 	mostRecentHomeTootAgeInSeconds(): number | null {
@@ -459,7 +459,7 @@ export default class FeedCoordinator {
 			`Found ${mutedAccounts.length} muted accounts after refresh...`,
 		);
 		this.userData.mutedAccounts = Account.buildAccountNames(mutedAccounts);
-		await Toot.completeToots(
+		await Post.completePosts(
 			this.state.feed,
 			hereLogger,
 			LoadAction.REFRESH_MUTED_ACCOUNTS,
@@ -479,7 +479,7 @@ export default class FeedCoordinator {
 			this.state.userDataPoller.stop();
 			if (this.state.cacheUpdater) clearInterval(this.state.cacheUpdater);
 			this.state.cacheUpdater = undefined;
-			this.state.hasProvidedAnyTootsToClient = false;
+			this.state.hasProvidedAnyPostsToClient = false;
 			this.state.loadingStatus =
 				config.locale.messages[LogAction.INITIAL_LOADING_STATUS];
 			this.state.loadStartedAt = new Date();
@@ -505,7 +505,7 @@ export default class FeedCoordinator {
 	}
 
 	/**
-	 * Reset only the "already seen" state for all cached toots.
+	 * Reset only the "already seen" state for all cached posts.
 	 * @returns {Promise<void>}
 	 */
 	async resetSeenState(): Promise<void> {
@@ -513,7 +513,7 @@ export default class FeedCoordinator {
 	}
 
 	/**
-	 * Save the current timeline to the browser storage. Used to save the state of {@linkcode Toot.numTimesShown}.
+	 * Save the current timeline to the browser storage. Used to save the state of {@linkcode Post.numTimesShown}.
 	 * @returns {Promise<void>}
 	 */
 	async saveTimelineToCache(): Promise<void> {
@@ -558,18 +558,18 @@ export default class FeedCoordinator {
 	/**
 	 * Update the feed filters and return the newly filtered feed.
 	 * @param {FeedFilterSettings} newFilters - The new filter settings.
-	 * @returns {Toot[]} The filtered feed.
+	 * @returns {Post[]} The filtered feed.
 	 */
-	updateFilters(newFilters: FeedFilterSettings): Toot[] {
+	updateFilters(newFilters: FeedFilterSettings): Post[] {
 		return updateFilters(this.state, newFilters);
 	}
 
 	/**
 	 * Update user weightings and rescore / resort the feed.
 	 * @param {Weights} userWeights - The new user weights.
-	 * @returns {Promise<Toot[]>} The filtered and rescored feed.
+	 * @returns {Promise<Post[]>} The filtered and rescored feed.
 	 */
-	async updateUserWeights(userWeights: Weights): Promise<Toot[]> {
+	async updateUserWeights(userWeights: Weights): Promise<Post[]> {
 		logger.info("updateUserWeights() called with weights:", userWeights);
 		Scorer.validateWeights(userWeights);
 		await Storage.setWeightings(userWeights);
@@ -579,11 +579,11 @@ export default class FeedCoordinator {
 	/**
 	 * Update user weightings to one of the preset values and rescore / resort the feed.
 	 * @param {WeightPresetLabel | string} presetName - The preset name.
-	 * @returns {Promise<Toot[]>} The filtered and rescored feed.
+	 * @returns {Promise<Post[]>} The filtered and rescored feed.
 	 */
 	async updateUserWeightsToPreset(
 		presetName: WeightPresetLabel | string,
-	): Promise<Toot[]> {
+	): Promise<Post[]> {
 		logger.info(
 			"updateUserWeightsToPreset() called with presetName:",
 			presetName,
@@ -604,7 +604,7 @@ export default class FeedCoordinator {
 		unseenTotal: number;
 		oldestCachedTime: Date | null;
 		mostRecentCachedTime: Date | null;
-		sourceStats: Record<TootSource, SourceStats>;
+		sourceStats: Record<PostSource, SourceStats>;
 	} {
 		return getDataStats(this.state);
 	}
@@ -661,13 +661,13 @@ export {
 	Logger,
 	NumericFilter,
 	TagList,
-	Toot,
+	Post,
 	// Enums
 	BooleanFilterName,
 	MediaCategory,
 	NonScoreWeightName,
 	ScoreName,
-	TagTootsCategory,
+	TagPostsCategory,
 	TrendingType,
 	TypeFilterName,
 	type WeightName,
