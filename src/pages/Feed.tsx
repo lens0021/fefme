@@ -406,79 +406,82 @@ export default function Feed() {
 
 					{/* Feed column */}
 					<div className="flex flex-col gap-3">
-						{visibleTimeline.slice(0, numShownToots).map((toot) => (
-							<StatusComponent
-								isLoadingThread={isLoadingThread}
-								key={toot.uri}
-								setThread={setThread}
-								setIsLoadingThread={setIsLoadingThread}
-								showLinkPreviews={showLinkPreviews}
-								status={toot}
-							/>
-						))}
-
-						{isEndOfCachedFeed && (
-							<div className="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] p-4 text-sm text-[color:var(--color-muted-fg)]">
-								You have reached the end of cached posts. Use{" "}
-								<button
-									type="button"
-									className="font-semibold text-[color:var(--color-primary)] underline underline-offset-2"
-									onClick={() =>
-										dataLoadingRef.current?.scrollIntoView({
-											behavior: "smooth",
-											block: "start",
-										})
-									}
-								>
-									Data Loading & History
-								</button>{" "}
-								to backfill more.
+						{showInitialLoading ? (
+							<div className="flex min-h-[40vh] items-center justify-center gap-3">
+								<div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600" />
+								<p>{`${config.timeline.defaultLoadingMsg}...`}</p>
 							</div>
-						)}
+						) : (
+							<>
+								{visibleTimeline.slice(0, numShownToots).map((toot) => (
+									<StatusComponent
+										isLoadingThread={isLoadingThread}
+										key={toot.uri}
+										setThread={setThread}
+										setIsLoadingThread={setIsLoadingThread}
+										showLinkPreviews={showLinkPreviews}
+										status={toot}
+									/>
+								))}
 
-						{visibleTimeline.length === 0 &&
-							(showInitialLoading ? (
-								<div className="flex min-h-[40vh] items-center justify-center gap-3">
-									<div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600" />
-									<p>{`${config.timeline.defaultLoadingMsg}...`}</p>
-								</div>
-							) : (
-								<div className="flex min-h-[40vh] flex-col items-center justify-center gap-4">
-									<p className="text-lg">{config.timeline.noTootsMsg}</p>
-									<div className="flex flex-col gap-2 text-sm">
+								{isEndOfCachedFeed && (
+									<div className="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] p-4 text-sm text-[color:var(--color-muted-fg)]">
+										You have reached the end of cached posts. Use{" "}
 										<button
 											type="button"
-											onClick={triggerFeedUpdate}
-											className="rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] px-4 py-2 font-semibold text-[color:var(--color-primary)] hover:bg-[color:var(--color-muted)]"
+											className="font-semibold text-[color:var(--color-primary)] underline underline-offset-2"
+											onClick={() =>
+												dataLoadingRef.current?.scrollIntoView({
+													behavior: "smooth",
+													block: "start",
+												})
+											}
 										>
-											Load new posts
-										</button>
-										<div className="pt-1 text-xs text-[color:var(--color-muted-fg)]">
-											Load older posts by source (requires cached posts)
-										</div>
-										{sourceBackfills.map((source) => {
-											const stats = sourceStats[source.key];
-											const isDisabled = !stats || stats.total === 0;
-											const buttonClass = isDisabled
-												? "rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] px-4 py-2 font-semibold text-[color:var(--color-muted-fg)] opacity-60"
-												: "rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] px-4 py-2 font-semibold text-[color:var(--color-primary)] hover:bg-[color:var(--color-muted)]";
-											return (
-												<button
-													key={source.key}
-													type="button"
-													onClick={source.onClick}
-													disabled={isDisabled}
-													className={buttonClass}
-												>
-													Load older {source.label} posts
-												</button>
-											);
-										})}
+											Data Loading & History
+										</button>{" "}
+										to backfill more.
 									</div>
-								</div>
-							))}
+								)}
 
-						<div ref={bottomRef} className="mt-2.5" />
+								{visibleTimeline.length === 0 && (
+									<div className="flex min-h-[40vh] flex-col items-center justify-center gap-4">
+										<p className="text-lg">{config.timeline.noTootsMsg}</p>
+										<div className="flex flex-col gap-2 text-sm">
+											<button
+												type="button"
+												onClick={triggerFeedUpdate}
+												className="rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] px-4 py-2 font-semibold text-[color:var(--color-primary)] hover:bg-[color:var(--color-muted)]"
+											>
+												Load new posts
+											</button>
+											<div className="pt-1 text-xs text-[color:var(--color-muted-fg)]">
+												Load older posts by source (requires cached posts)
+											</div>
+											{sourceBackfills.map((source) => {
+												const stats = sourceStats[source.key];
+												const isDisabled = !stats || stats.total === 0;
+												const buttonClass = isDisabled
+													? "rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] px-4 py-2 font-semibold text-[color:var(--color-muted-fg)] opacity-60"
+													: "rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] px-4 py-2 font-semibold text-[color:var(--color-primary)] hover:bg-[color:var(--color-muted)]";
+												return (
+													<button
+														key={source.key}
+														type="button"
+														onClick={source.onClick}
+														disabled={isDisabled}
+														className={buttonClass}
+													>
+														Load older {source.label} posts
+													</button>
+												);
+											})}
+										</div>
+									</div>
+								)}
+
+								<div ref={bottomRef} className="mt-2.5" />
+							</>
+						)}
 					</div>
 
 					{hasPendingTimeline && (
