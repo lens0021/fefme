@@ -42,3 +42,19 @@ if (!window.ResizeObserver) {
 
 	window.ResizeObserver = ResizeObserver;
 }
+
+if (!window.IntersectionObserver) {
+	class IntersectionObserver {
+		root = null;
+		rootMargin = "";
+		thresholds: number[] = [];
+		observe() {}
+		unobserve() {}
+		disconnect() {}
+		takeRecords() {
+			return [];
+		}
+	}
+
+	window.IntersectionObserver = IntersectionObserver;
+}

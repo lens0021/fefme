@@ -80,6 +80,8 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 	const [lastLoadStartedAt, setLastLoadStartedAt] = useState<Date>(new Date());
 	const [serverInfo, setServerInfo] = useState<MastodonServer>(null); // Instance info for the user's server
 	const [timeline, setTimeline] = useState<Toot[]>([]);
+	const hasInitializedRef = React.useRef(false);
+	const lastUserIdRef = React.useRef<string | null>(null);
 
 	// TODO: this doesn't make any API calls yet, right?
 	const api = useMemo(() => {
@@ -251,9 +253,23 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		return () => window.removeEventListener("beforeunload", handleBeforeUnload);
 	}, [algorithm]);
 
+	useEffect(() => {
+		if (!user?.id) {
+			lastUserIdRef.current = null;
+			hasInitializedRef.current = false;
+			return;
+		}
+
+		if (lastUserIdRef.current !== user.id) {
+			lastUserIdRef.current = user.id;
+			hasInitializedRef.current = false;
+		}
+	}, [user?.id]);
+
 	// Initial load of the feed
 	useEffect(() => {
-		if (algorithm || !user || !api) return;
+		if (algorithm || !user || !api || hasInitializedRef.current) return;
+		hasInitializedRef.current = true;
 
 		// Check that we have valid user credentials and load timeline posts, otherwise force a logout.
 		const constructFeed = async (): Promise<void> => {
@@ -318,9 +334,6 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 
 			setAlgorithm(algo);
 
-			// Initialization complete, stop showing loading indicator
-			setIsLoading(false);
-
 			// Only trigger initial feed update if we have no cached posts
 			// Otherwise, user can manually refresh when ready
 			const hasCachedPosts = algo.timeline.length > 0;
@@ -333,6 +346,8 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 				);
 			} else {
 				logger.log(`Showing ${algo.timeline.length} cached posts`);
+				// Initialization complete, stop showing loading indicator
+				setIsLoading(false);
 			}
 
 			algo
