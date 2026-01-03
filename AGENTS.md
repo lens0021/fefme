@@ -97,7 +97,7 @@ Feed.tsx → StatusComponent → Rendered Posts
 - **Data Loaders:** `src/core/algorithm/loaders.ts`, `src/core/api/` (API fetch + conversion)
 - **Cache Manager:** `src/core/algorithm/cache.ts`, `src/core/Storage.ts` (persist timeline/state)
 - **Background Pollers:** `src/core/algorithm/background.ts` (periodic refresh)
-- **Stats/Telemetry:** `src/core/algorithm/stats.ts` (data summaries for logging/UI)
+- **Stats/Telemetry:** `src/core/algorithm/stats.ts`, `src/core/algorithm/feed_stats.ts`, `src/core/algorithm/source_stats.ts` (data summaries for logging/UI)
 - **UI Composition:** `src/pages/Feed.tsx`, `src/components/**` (render + interactions)
 
 ### The Scoring System
