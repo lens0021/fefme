@@ -3,9 +3,9 @@ import type { StringNumberDict, TagWithUsageCounts } from "../types";
 import { sumValues } from "./collection_helpers";
 import type { Logger } from "./logger";
 
-type TagTootUris = Record<string, Set<string>>;
+type TagPostUris = Record<string, Set<string>>;
 type TagLanguageCounts = Record<string, StringNumberDict>;
-type TagLanguagePosts = Record<string, TagTootUris>;
+type TagLanguagePosts = Record<string, TagPostUris>;
 
 /**
  * Helper class to track hashtags that have been suppressed due to non-Latin script language.
@@ -51,7 +51,7 @@ class SuppressedHashtags {
 	/** Set of all {@linkcode Post} URIs that had a suppressed tag. */
 	private allTootURIs(): Set<string> {
 		return Object.values(this.languageTagURIs).reduce(
-			(uris, tagTootURIs: TagTootUris) => {
+			(uris, tagTootURIs: TagPostUris) => {
 				Object.values(tagTootURIs).forEach(
 					(set) => (uris = new Set([...uris, ...set])),
 				);
@@ -75,8 +75,8 @@ class SuppressedHashtags {
 	/** Count of tag {@linkcode Post}s per language / tag. */
 	private tagLanguageCounts(): TagLanguageCounts {
 		return Object.entries(this.languageTagURIs).reduce(
-			(langTagCounts, [language, tootURIs]) => {
-				langTagCounts[language] = this.uriCounts(tootURIs);
+			(langTagCounts, [language, postURIs]) => {
+				langTagCounts[language] = this.uriCounts(postURIs);
 				return langTagCounts;
 			},
 			{} as TagLanguageCounts,
@@ -84,14 +84,14 @@ class SuppressedHashtags {
 	}
 
 	/**
-	 * Convert a {@linkcode TagTootUris} object to a {@linkcode StringNumberDict} w/length
+	 * Convert a {@linkcode TagPostUris} object to a {@linkcode StringNumberDict} w/length
 	 * of each URI string {@linkcode Set}.
 	 * @private
-	 * @param {TagTootUris} tootURIs - Mapping of tag names to sets of Post URIs.
+	 * @param {TagPostUris} postURIs - Mapping of tag names to sets of Post URIs.
 	 * @returns {StringNumberDict} Mapping of tag names to counts of Post URIs.
 	 */
-	private uriCounts(tootURIs: TagTootUris): StringNumberDict {
-		return Object.entries(tootURIs).reduce((acc, [tag, uris]) => {
+	private uriCounts(postURIs: TagPostUris): StringNumberDict {
+		return Object.entries(postURIs).reduce((acc, [tag, uris]) => {
 			acc[tag] = uris.size;
 			return acc;
 		}, {} as StringNumberDict);

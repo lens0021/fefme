@@ -17,14 +17,14 @@ import type { PostSource } from "../types";
 
 export async function fetchAndMergePosts(
 	state: AlgorithmState,
-	tootFetcher: Promise<Post[]>,
+	postFetcher: Promise<Post[]>,
 	logger: Logger,
 ): Promise<Post[]> {
 	const startedAt = new Date();
 	let newPosts: Post[] = [];
 
 	try {
-		newPosts = await tootFetcher;
+		newPosts = await postFetcher;
 		logger.logTelemetry(
 			`Got ${newPosts.length} posts for ${CacheKey.HOME_TIMELINE_POSTS}`,
 			startedAt,

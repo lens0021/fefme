@@ -32,7 +32,7 @@ export default class DiversityFeedScorer extends FeedScorer {
 
 	/**
 	 * Compute a score for each {@linkcode Post} in the feed based on how many times the
-	 * {@linkcode Account} has tooted and which trending tags it contains.
+	 * {@linkcode Account} has posted and which trending tags it contains.
 	 *
 	 * @param {Post[]} feed - The feed of posts to score.
 	 * @returns {StringNumberDict} Dictionary mapping post URIs to their diversity scores.
@@ -76,13 +76,13 @@ export default class DiversityFeedScorer extends FeedScorer {
 
 		// Create a dict with a score for each post, keyed by uri (mutates accountScores in the process)
 		// The biggest penalties are applied to posts encountered first. We want to penalize the oldest posts the most.
-		return sortedPosts.reduce((tootScores, post) => {
+		return sortedPosts.reduce((postScores, post) => {
 			post.withBoost.forEach((t) => {
 				const penalty = this.computePenalty(
 					accountsInFeed,
 					t.account.webfingerURI,
 				);
-				incrementCount(tootScores, post.uri, penalty);
+				incrementCount(postScores, post.uri, penalty);
 			});
 
 			// Additional penalties for trending tags
@@ -91,11 +91,11 @@ export default class DiversityFeedScorer extends FeedScorer {
 
 				// Don't apply trending tag penalty to followed accounts/tags
 				if (!post.isFollowed) {
-					incrementCount(tootScores, post.uri, penalty);
+					incrementCount(postScores, post.uri, penalty);
 				}
 			});
 
-			return tootScores;
+			return postScores;
 		}, {} as StringNumberDict);
 	}
 

@@ -46,7 +46,7 @@ import type {
 	Hashtag,
 	MinMaxID,
 	Optional,
-	TootLike,
+	PostLike,
 	WithCreatedAt,
 } from "../types";
 import { isAccessTokenRevokedError, throwIfAccessTokenRevoked } from "./errors";
@@ -363,7 +363,7 @@ export default class MastoApi {
 				maxRecords: maxRecords,
 				skipCache: true, // Home timeline manages its own cache state via breakIf()
 				skipMutex: true,
-				breakIf: async (newStatuses: TootLike[], allStatuses: TootLike[]) => {
+				breakIf: async (newStatuses: PostLike[], allStatuses: PostLike[]) => {
 					const oldestTootAt = earliestTootedAt(newStatuses);
 
 					if (!oldestTootAt) {
@@ -439,13 +439,13 @@ export default class MastoApi {
 	/**
 	 * Generic data getter for cacheable {@linkcode Post}s with custom fetch logic.
 	 * Used for various hashtag feeds (participated, trending, favourited).
-	 * @param {() => Promise<TootLike[]>} fetchStatuses - Function to fetch statuses.
+	 * @param {() => Promise<PostLike[]>} fetchStatuses - Function to fetch statuses.
 	 * @param {ApiCacheKey} cacheKey - Cache key for storage.
 	 * @param {number} maxRecords - Maximum number of records to fetch.
 	 * @returns {Promise<Post[]>} Array of Post objects.
 	 */
 	async getCacheablePosts(
-		fetchStatuses: () => Promise<TootLike[]>,
+		fetchStatuses: () => Promise<PostLike[]>,
 		cacheKey: ApiCacheKey,
 		maxRecords: number,
 	): Promise<Post[]> {
@@ -688,19 +688,19 @@ export default class MastoApi {
 	 * @param {string} tagName - The tag to search for.
 	 * @param {Logger} logger - Logger instance for logging.
 	 * @param {number} [numPosts] - Number of posts to fetch.
-	 * @returns {Promise<TootLike[]>} Array of TootLike objects.
+	 * @returns {Promise<PostLike[]>} Array of PostLike objects.
 	 */
 	async getStatusesForTag(
 		tagName: string,
 		logger: Logger,
 		numPosts: number,
 		params?: { maxId?: string | number | null },
-	): Promise<TootLike[]> {
+	): Promise<PostLike[]> {
 		const startedAt = new Date();
 		const maxId = params?.maxId ?? null;
 
 		const results = maxId
-			? await getPromiseResults<TootLike[]>([
+			? await getPromiseResults<PostLike[]>([
 					this.hashtagTimelinePosts(
 						tagName,
 						logger.tempLogger("timeline"),
@@ -708,7 +708,7 @@ export default class MastoApi {
 						maxId,
 					),
 				])
-			: await getPromiseResults<TootLike[]>([
+			: await getPromiseResults<PostLike[]>([
 					this.searchForPosts(tagName, logger.tempLogger("search"), numPosts),
 					this.hashtagTimelinePosts(
 						tagName,
@@ -1489,7 +1489,7 @@ export default class MastoApi {
 		}
 
 		if (STORAGE_KEYS_WITH_POSTS.includes(key)) {
-			const posts = objects.map((obj) => Post.build(obj as TootLike));
+			const posts = objects.map((obj) => Post.build(obj as PostLike));
 			return Post.dedupePosts(
 				posts,
 				logger.tempLogger(`buildFromApiObjects`),

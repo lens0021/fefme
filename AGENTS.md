@@ -108,10 +108,10 @@ The app implements a **multi-factor weighted scoring** pipeline:
 Raw Posts → Individual Scorers → Weighted Scores → Time Decay → Diversity Penalty → Final Sorted Feed
 ```
 
-**15+ Scoring Factors** (all in `/src/core/scorer/toot/`):
+**15+ Scoring Factors** (all in `/src/core/scorer/post/`):
 - **Social Graph:** FollowedAccountsScorer, FollowersScorer, InteractionsScorer
-- **Engagement:** NumFavourites, NumReplies, NumRetoots, MentionsFollowedScorer
-- **Trending:** TrendingTootsScorer, TrendingTagsScorer
+- **Engagement:** NumFavourites, NumReplies, NumBoosts, MentionsFollowedScorer
+- **Trending:** TrendingPostsScorer, TrendingTagsScorer
 - **User Preferences:** FavouritedAccountsScorer, FollowedTagsScorer, ParticipatedTags
 - **Content Type:** ImageAttachmentScorer, VideoAttachmentScorer
 - **Novelty:** AlreadyShownScorer (penalizes seen posts)
@@ -121,7 +121,7 @@ Raw Posts → Individual Scorers → Weighted Scores → Time Decay → Diversit
 Each scorer extends the `Scorer` base class:
 ```typescript
 class XyzScorer extends Scorer {
-  async _score(toot: Toot): Promise<number>  // Return 0-1 normalized score
+  async _score(post: Post): Promise<number>  // Return 0-1 normalized score
 }
 ```
 
@@ -194,16 +194,16 @@ Main entry points:
 
 ### Adding a New Scorer
 
-1. Create file in `/src/core/scorer/toot/`
+1. Create file in `/src/core/scorer/post/`
 2. Extend `Scorer` base class
-3. Implement `_score(toot: Toot): Promise<number>`
+3. Implement `_score(post: Post): Promise<number>`
 4. Add scorer name to `ScoreName` enum in `/src/core/enums.ts`
 5. Register in `FeedCoordinator` constructor
 6. Add weight slider config in `/src/config.ts`
 
 ### Adding a New Filter
 
-1. Add to `BooleanFilterName` enum or `TootNumberProp` in `/src/core/enums.ts`
+1. Add to `BooleanFilterName` enum or `PostNumberProp` in `/src/core/enums.ts`
 2. Update filter creation in `/src/core/filters/feed_filters.ts`
 3. Add UI in `/src/components/coordinator/filters/`
 4. Configure display in `/src/config.ts`

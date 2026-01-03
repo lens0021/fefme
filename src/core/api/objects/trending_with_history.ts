@@ -40,7 +40,7 @@ export function decorateLinkHistory(link: mastodon.v1.TrendLink): TrendingLink {
 }
 
 /**
- * Return one of each unique trending object sorted by the number of accounts tooting that object.
+ * Return one of each unique trending object sorted by the number of accounts posting that object.
  * The {@linkcode numPosts} & {@linkcode numAccounts} props for each trending object are set to
  * the max value encountered.
  * @param {T[]} trendingObjs - Array of trending objects to uniquify.

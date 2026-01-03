@@ -5,7 +5,7 @@ import type { StringNumberDict } from "../../types";
 import AccountScorer from "./acccount_scorer";
 
 /**
- * Score how many times the current user has favourited the tooter in the past.
+ * Score how many times the current user has favourited the poster in the past.
  * @memberof module:post_scorers
  * @augments Scorer
  */

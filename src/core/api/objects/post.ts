@@ -69,7 +69,7 @@ import type {
 	KeysOfValueType,
 	ScoreType,
 	TagWithUsageCounts,
-	TootLike,
+	PostLike,
 	PostNumberProp,
 	TootScore,
 	PostSource,
@@ -108,8 +108,8 @@ const HASHTAG_PARAGRAPH_REGEX = new RegExp(
 );
 const PROPS_THAT_CHANGE = FILTERABLE_SCORES.concat("numTimesShown");
 
-const tootLogger = new Logger("Post");
-const repairLogger = tootLogger.tempLogger("repairToot");
+const postLogger = new Logger("Post");
+const repairLogger = postLogger.tempLogger("repairPost");
 
 /**
  * Extension of mastodon.v1.Status data object with additional properties used by fefme
@@ -210,7 +210,7 @@ interface PostObj extends SerializableToot {
  * @property {number} score - Current overall score for this post.
  * @property {TootScore} [scoreInfo] - Scoring info for weighting/sorting this post
  * @property {string[]} [sources] - Source of the post (e.g. trending tag posts, home timeline, etc.)
- * @property {Date} tootedAt - Timestamp of post's createdAt.
+ * @property {Date} postedAt - Timestamp of post's createdAt.
  * @property {TrendingLink[]} [trendingLinks] - Links that are trending in this post
  * @property {number} [trendingRank] - Most trending on a server gets a 10, next is a 9, etc.
  * @property {TagWithUsageCounts[]} [trendingTags] - Tags that are trending in this post
@@ -334,7 +334,7 @@ export default class Post implements PostObj {
 	get score(): number {
 		return this.scoreInfo?.score || 0;
 	}
-	get tootedAt(): Date {
+	get postedAt(): Date {
 		return new Date(this.createdAt);
 	}
 	// TODO: should this consider the values in reblogsBy?
@@ -382,69 +382,69 @@ export default class Post implements PostObj {
 			return post;
 		}
 
-		const tootObj = new Post();
-		tootObj.id = post.id;
-		tootObj.uri = post.uri;
-		tootObj.account = Account.build(post.account);
-		tootObj.application = post.application;
-		tootObj.bookmarked = post.bookmarked;
-		tootObj.card = post.card;
-		tootObj.content = post.content;
-		tootObj.createdAt = post.createdAt;
-		tootObj.editedAt = post.editedAt;
-		tootObj.emojis = post.emojis;
-		tootObj.favourited = post.favourited;
-		tootObj.favouritesCount = post.favouritesCount;
-		tootObj.filtered = post.filtered;
-		tootObj.inReplyToAccountId = post.inReplyToAccountId;
-		tootObj.inReplyToId = post.inReplyToId;
-		tootObj.language = post.language;
-		tootObj.mediaAttachments = post.mediaAttachments || [];
-		tootObj.mentions = post.mentions;
-		tootObj.muted = post.muted;
-		tootObj.pinned = post.pinned;
-		tootObj.poll = post.poll;
-		tootObj.reblogged = post.reblogged;
-		tootObj.reblogsCount = post.reblogsCount;
-		tootObj.repliesCount = post.repliesCount;
-		tootObj.sensitive = post.sensitive;
-		tootObj.spoilerText = post.spoilerText;
-		tootObj.tags = post.tags;
-		tootObj.text = post.text;
-		tootObj.url = post.url;
-		tootObj.visibility = post.visibility;
+		const postObj = new Post();
+		postObj.id = post.id;
+		postObj.uri = post.uri;
+		postObj.account = Account.build(post.account);
+		postObj.application = post.application;
+		postObj.bookmarked = post.bookmarked;
+		postObj.card = post.card;
+		postObj.content = post.content;
+		postObj.createdAt = post.createdAt;
+		postObj.editedAt = post.editedAt;
+		postObj.emojis = post.emojis;
+		postObj.favourited = post.favourited;
+		postObj.favouritesCount = post.favouritesCount;
+		postObj.filtered = post.filtered;
+		postObj.inReplyToAccountId = post.inReplyToAccountId;
+		postObj.inReplyToId = post.inReplyToId;
+		postObj.language = post.language;
+		postObj.mediaAttachments = post.mediaAttachments || [];
+		postObj.mentions = post.mentions;
+		postObj.muted = post.muted;
+		postObj.pinned = post.pinned;
+		postObj.poll = post.poll;
+		postObj.reblogged = post.reblogged;
+		postObj.reblogsCount = post.reblogsCount;
+		postObj.repliesCount = post.repliesCount;
+		postObj.sensitive = post.sensitive;
+		postObj.spoilerText = post.spoilerText;
+		postObj.tags = post.tags;
+		postObj.text = post.text;
+		postObj.url = post.url;
+		postObj.visibility = post.visibility;
 
 		// Unique to fefme
-		tootObj.numTimesShown = post.numTimesShown || 0;
-		tootObj.completedAt = post.completedAt;
-		tootObj.followedTags = post.followedTags;
-		tootObj.reblog = post.reblog ? Post.build(post.reblog) : undefined;
+		postObj.numTimesShown = post.numTimesShown || 0;
+		postObj.completedAt = post.completedAt;
+		postObj.followedTags = post.followedTags;
+		postObj.reblog = post.reblog ? Post.build(post.reblog) : undefined;
 		// TODO: the reblogsBy don't necessarily have the isFollowed flag set correctly
-		tootObj.reblogsBy = (post.reblogsBy ?? []).map((account) =>
+		postObj.reblogsBy = (post.reblogsBy ?? []).map((account) =>
 			Account.build(account),
 		);
-		tootObj.resolvedID = post.resolvedID;
-		tootObj.scoreInfo = post.scoreInfo;
-		tootObj.sources = post.sources;
-		tootObj.trendingLinks = post.trendingLinks;
-		tootObj.trendingRank = post.trendingRank;
-		tootObj.trendingTags = post.trendingTags;
+		postObj.resolvedID = post.resolvedID;
+		postObj.scoreInfo = post.scoreInfo;
+		postObj.sources = post.sources;
+		postObj.trendingLinks = post.trendingLinks;
+		postObj.trendingRank = post.trendingRank;
+		postObj.trendingTags = post.trendingTags;
 
-		tootObj.repair();
+		postObj.repair();
 		// These must be set after repair() has a chance to fix any broken media types
-		tootObj.audioAttachments = tootObj.attachmentsOfType(MediaCategory.AUDIO);
-		tootObj.imageAttachments = tootObj.attachmentsOfType(MediaCategory.IMAGE);
-		tootObj.videoAttachments = VIDEO_TYPES.flatMap((videoType) =>
-			tootObj.attachmentsOfType(videoType),
+		postObj.audioAttachments = postObj.attachmentsOfType(MediaCategory.AUDIO);
+		postObj.imageAttachments = postObj.attachmentsOfType(MediaCategory.IMAGE);
+		postObj.videoAttachments = VIDEO_TYPES.flatMap((videoType) =>
+			postObj.attachmentsOfType(videoType),
 		);
 
-		if (tootObj.account.suspended) {
-			tootLogger.warn(`Post from suspended account:`, tootObj);
-		} else if (tootObj.account.limited) {
-			tootLogger.trace(`Post from limited account:`, tootObj);
+		if (postObj.account.suspended) {
+			postLogger.warn(`Post from suspended account:`, postObj);
+		} else if (postObj.account.limited) {
+			postLogger.trace(`Post from limited account:`, postObj);
 		}
 
-		return tootObj;
+		return postObj;
 	}
 
 	/**
@@ -465,7 +465,7 @@ export default class Post implements PostObj {
 	containsTag(tag: TagWithUsageCounts, fullScan?: boolean): boolean {
 		if (fullScan && isValidForSubstringSearch(tag)) {
 			if (!tag.regex) {
-				tootLogger.warn(`containsTag() called on tag without regex:`, tag);
+				postLogger.warn(`containsTag() called on tag without regex:`, tag);
 				tag.regex = wordRegex(tag.name);
 			}
 
@@ -474,7 +474,7 @@ export default class Post implements PostObj {
 			try {
 				return this.tagNames().has(tag.name);
 			} catch (err) {
-				tootLogger.error(
+				postLogger.error(
 					`Error in containsTag("${tag.name}"), current cache:`,
 					this.contentCache,
 					err,
@@ -573,7 +573,7 @@ export default class Post implements PostObj {
 	 */
 	async getConversation(): Promise<Post[]> {
 		const action = LoadAction.GET_CONVERSATION;
-		const logger = tootLogger.tempLogger(action);
+		const logger = postLogger.tempLogger(action);
 		logger.debug(`Fetching conversation for post:`, this.description);
 		const startTime = new Date();
 		const context = await MastoApi.instance.api.v1.statuses
@@ -600,7 +600,7 @@ export default class Post implements PostObj {
 		if (isFinite(this.scoreInfo?.scores?.[name]?.[scoreType])) {
 			return this.scoreInfo!.scores[name][scoreType];
 		} else {
-			tootLogger.trace(`no score available for ${scoreType}/${name}:`, this);
+			postLogger.trace(`no score available for ${scoreType}/${name}:`, this);
 			return 0;
 		}
 	}
@@ -632,14 +632,14 @@ export default class Post implements PostObj {
 		blockedDomains: Set<string>,
 	): boolean {
 		if (this.reblog?.muted || this.muted) {
-			tootLogger.trace(
+			postLogger.trace(
 				`Removing post from muted account (${this.author.description}):`,
 				this,
 			);
 			return false;
-		} else if (Date.now() < this.tootedAt.getTime()) {
+		} else if (Date.now() < this.postedAt.getTime()) {
 			// Sometimes there are wonky statuses that are like years in the future so we filter them out.
-			tootLogger.warn(`Removing post with future timestamp:`, this);
+			postLogger.warn(`Removing post with future timestamp:`, this);
 			return false;
 		} else if (this.filtered?.length || this.reblog?.filtered?.length) {
 			// The user can configure suppression filters through a Mastodon GUI (webapp or whatever)
@@ -647,21 +647,21 @@ export default class Post implements PostObj {
 				this.reblog?.filtered || [],
 			);
 			const filterMatchStr = filterMatches[0].keywordMatches?.join(" ");
-			tootLogger.trace(
+			postLogger.trace(
 				`Removing post matching server filter (${filterMatchStr}): ${this.description}`,
 			);
 			return false;
-		} else if (this.tootedAt < timelineCutoffAt()) {
-			tootLogger.trace(
+		} else if (this.postedAt < timelineCutoffAt()) {
+			postLogger.trace(
 				`Removing post older than ${timelineCutoffAt()}:`,
-				this.tootedAt,
+				this.postedAt,
 			);
 			return false;
 		} else if (blockedDomains.has(this.author.homeserver)) {
-			tootLogger.trace(`Removing post from blocked domain:`, this);
+			postLogger.trace(`Removing post from blocked domain:`, this);
 			return false;
 		} else if (this.matchesRegex(mutedKeywordRegex)) {
-			tootLogger.trace(`Removing post matching muted keyword regex:`, this);
+			postLogger.trace(`Removing post matching muted keyword regex:`, this);
 			return false;
 		}
 
@@ -676,7 +676,7 @@ export default class Post implements PostObj {
 	 */
 	async localServerUrl(): Promise<string> {
 		const homeURL = `${this.account.localServerUrl}/${await this.resolveID()}`;
-		tootLogger.debug(
+		postLogger.debug(
 			`<homeserverURL()> converted '${this.realURL}' to '${homeURL}'`,
 		);
 		return homeURL;
@@ -698,12 +698,12 @@ export default class Post implements PostObj {
 	 */
 	async resolve(): Promise<Post> {
 		try {
-			tootLogger.trace(`Resolving local post ID for`, this);
+			postLogger.trace(`Resolving local post ID for`, this);
 			const resolvedToot = await MastoApi.instance.resolveToot(this);
 			this.resolvedID = resolvedToot.id; // Cache the resolved ID for future calls
 			return resolvedToot;
 		} catch (error) {
-			tootLogger.error(
+			postLogger.error(
 				`Error resolving a post:`,
 				error,
 				`\nThis was the post:`,
@@ -850,7 +850,7 @@ export default class Post implements PostObj {
 		} else if (tagType == TypeFilterName.TRENDING_TAGS) {
 			tags = this.trendingTags || [];
 		} else {
-			tootLogger.warn(
+			postLogger.warn(
 				`containsTagsOfTypeMsg() called with invalid tagType: ${tagType}`,
 			);
 			return;
@@ -924,7 +924,7 @@ export default class Post implements PostObj {
 			...langDetectInfo,
 			text,
 			post: this,
-			tootLanguage: this.language,
+			postLanguage: this.language,
 		};
 		const logTrace = (msg: string) =>
 			repairLogger.trace(`${msg} for "${text}"`, langLogObj);
@@ -1047,7 +1047,7 @@ export default class Post implements PostObj {
 		return (
 			// Check if post was completed long enough ago that we might want to re-evaluate it
 			AgeIn.minutes(this.completedAt) < config.minTrendingMinutesUntilStale() ||
-			// But not tooted so long ago that there's little chance of new data
+			// But not posted so long ago that there's little chance of new data
 			AgeIn.minutes(this.createdAt) > config.posts.completeAfterMinutes
 		);
 	}
@@ -1150,16 +1150,16 @@ export default class Post implements PostObj {
 	 * Build array of new {@linkcode Post} objects from an array of
 	 * {@linkcode https://docs.joinmastodon.org/entities/Status/ Status} objects (or {@linkcode Post}s).
 	 * {@linkcode Post}s returned are sorted by score and should have most of their properties set correctly.
-	 * @param {TootLike[]} statuses - Array of status objects or Posts.
+	 * @param {PostLike[]} statuses - Array of status objects or Posts.
 	 * @param {PostSource} source - The source label for logging.
 	 * @returns {Promise<Post[]>}
 	 */
 	static async buildPosts(
-		statuses: TootLike[],
+		statuses: PostLike[],
 		source: PostSource,
 	): Promise<Post[]> {
 		if (!statuses.length) return []; // Avoid the data fetching if we don't to build anything
-		const logger = tootLogger.tempLogger(source, `buildPosts`);
+		const logger = postLogger.tempLogger(source, `buildPosts`);
 		const startedAt = new Date();
 
 		let posts = await this.completePosts(statuses, logger, source);
@@ -1180,13 +1180,13 @@ export default class Post implements PostObj {
 	 * Fetch all the data we need to set dependent properties and set them on the posts.
 	 * If {@linkcode source} arg is provided we set it as the {@linkcode Post.source} prop and avoid doing an
 	 * {@linkcode Post.isDeepInspect} completion.
-	 * @param {TootLike[]} posts - Array of posts to complete.
+	 * @param {PostLike[]} posts - Array of posts to complete.
 	 * @param {Logger} logger - Logger for logging.
 	 * @param {string} [source] - Optional source label.
 	 * @returns {Promise<Post[]>}
 	 */
 	static async completePosts(
-		posts: TootLike[],
+		posts: PostLike[],
 		logger: Logger,
 		source?: PostSource,
 	): Promise<Post[]> {
@@ -1197,7 +1197,7 @@ export default class Post implements PostObj {
 		const userData = await MastoApi.instance.getUserData();
 		const trendingTags: TagWithUsageCounts[] = [];
 		const trendingLinks: TrendingLink[] = [];
-		let completedPosts: TootLike[] = [];
+		let completedPosts: PostLike[] = [];
 		let incompletePosts = posts;
 
 		// If isDeepInspect separate posts that need completing bc it's slow to rely on isComplete() + batching
@@ -1210,8 +1210,8 @@ export default class Post implements PostObj {
 
 		const newCompletePosts: Post[] = await batchMap(
 			incompletePosts,
-			async (tootLike: TootLike) => {
-				const post = tootLike instanceof Post ? tootLike : Post.build(tootLike);
+			async (postLike: PostLike) => {
+				const post = postLike instanceof Post ? postLike : Post.build(postLike);
 				post.completeProperties(userData, trendingLinks, trendingTags, source);
 				return post as Post;
 			},
@@ -1238,7 +1238,7 @@ export default class Post implements PostObj {
 	 * @returns {Post[]} Deduped array of posts.
 	 */
 	static dedupePosts(posts: Post[], inLogger?: Logger): Post[] {
-		inLogger ||= tootLogger;
+		inLogger ||= postLogger;
 		const logger = inLogger.tempLogger("dedupePosts()");
 		const postsByURI = groupBy<Post>(posts, (post) => post.realURI);
 
@@ -1456,58 +1456,58 @@ export default class Post implements PostObj {
 /**
  * Get the Date the {@linkcode Post} was created.
  * @private
- * @param {TootLike} post - The post object.
+ * @param {PostLike} post - The post object.
  * @returns {Date}
  */
-export const tootedAt = (post: TootLike): Date => new Date(post.createdAt);
+export const postedAt = (post: PostLike): Date => new Date(post.createdAt);
 
 /**
  * Get the earliest {@linkcode Post} from a list.
  * @private
- * @param {TootLike[]} posts - List of posts.
- * @returns {TootLike | null}
+ * @param {PostLike[]} posts - List of posts.
+ * @returns {PostLike | null}
  */
-export const earliestToot = (posts: TootLike[]): TootLike | null =>
+export const earliestToot = (posts: PostLike[]): PostLike | null =>
 	sortByCreatedAt(posts)[0];
 
 /**
  * Get the most recent {@linkcode Post} from a list.
  * @private
- * @param {TootLike[]} posts - List of posts.
- * @returns {TootLike | null}
+ * @param {PostLike[]} posts - List of posts.
+ * @returns {PostLike | null}
  */
-export const mostRecentToot = (posts: TootLike[]): TootLike | null =>
+export const mostRecentToot = (posts: PostLike[]): PostLike | null =>
 	sortByCreatedAt(posts).slice(-1)[0];
 
 /**
  * Returns array with oldest {@linkcode Post} first.
  * @private
- * @template T extends TootLike
+ * @template T extends PostLike
  * @param {T} posts - List of posts.
  * @returns {T}
  */
-export function sortByCreatedAt<T extends TootLike[]>(posts: T): T {
+export function sortByCreatedAt<T extends PostLike[]>(posts: T): T {
 	return posts.toSorted((a, b) => (a.createdAt < b.createdAt ? -1 : 1)) as T;
 }
 
 /**
  * Get the Date of the earliest {@linkcode Post} in a list.
  * @private
- * @param {TootLike[]} posts - List of posts.
+ * @param {PostLike[]} posts - List of posts.
  * @returns {Date | null}
  */
-export const earliestTootedAt = (posts: TootLike[]): Date | null => {
+export const earliestTootedAt = (posts: PostLike[]): Date | null => {
 	const earliest = earliestToot(posts);
-	return earliest ? tootedAt(earliest) : null;
+	return earliest ? postedAt(earliest) : null;
 };
 
 /**
  * Get the Date of the most recent {@linkcode Post} in a list.
  * @private
- * @param {TootLike[]} posts - List of posts.
+ * @param {PostLike[]} posts - List of posts.
  * @returns {Date | null}
  */
-export const mostRecentTootedAt = (posts: TootLike[]): Date | null => {
+export const mostRecentTootedAt = (posts: PostLike[]): Date | null => {
 	const newest = mostRecentToot(posts);
-	return newest ? tootedAt(newest) : null;
+	return newest ? postedAt(newest) : null;
 };

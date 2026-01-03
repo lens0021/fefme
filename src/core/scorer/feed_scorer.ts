@@ -5,7 +5,7 @@ import Scorer from "./scorer";
 /**
  * Base class for scorers that require processing external data before they can score anything.
  * For example {@linkcode DiversityFeedScorer} has to count how many posts by each user are in
- * your feed before it knows how much to penalize prolific tooters.
+ * your feed before it knows how much to penalize prolific posters.
  */
 export default abstract class FeedScorer extends Scorer {
 	// Take an array of Posts and extract the scoreData needed to score a post

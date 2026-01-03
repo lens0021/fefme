@@ -153,7 +153,7 @@ export default class UserData {
 		userData.serverSideFilters = data.serverSideFilters;
 		userData.languagesPostedIn.populateByCountingProps(
 			data.recentPosts,
-			tootLanguageOption,
+			postLanguageOption,
 		);
 		userData.populateFavouriteAccounts(data);
 
@@ -261,7 +261,7 @@ export default class UserData {
 }
 
 // Extract information for language BoooleanFilterOption.
-function tootLanguageOption(post: Post): BooleanFilterOption {
+function postLanguageOption(post: Post): BooleanFilterOption {
 	if (!post.language) {
 		logger.warn(
 			"Post has no language set, using default language instead",

@@ -46,7 +46,7 @@ export type Optional<T> = T | null | undefined;
 export type OptionalNumber = Optional<number>;
 export type OptionalString = Optional<string>;
 export type StringSet = Set<string | undefined>;
-export type TootLike = mastodon.v1.Status | SerializableToot | Post;
+export type PostLike = mastodon.v1.Status | SerializableToot | Post;
 export type PostNumberProp = KeysOfValueType<Post, number>;
 export type PostSource = (typeof POST_SOURCES)[number];
 
@@ -115,7 +115,7 @@ export type ApiObj = ApiObjWithID | Hashtag | mastodon.v1.TrendLink | string;
 /** Union type for most (but not all) Mastodon API objects with an {@linkcode id} property. */
 export type ApiObjWithID =
 	| Account
-	| TootLike
+	| PostLike
 	| mastodon.v1.Account
 	| mastodon.v1.Notification
 	| mastodon.v1.Status
