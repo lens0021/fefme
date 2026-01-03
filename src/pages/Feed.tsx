@@ -492,7 +492,7 @@ export default function Feed() {
 					</div>
 
 					{hasPendingTimeline && !showInitialLoading && (
-						<div className="pointer-events-none fixed bottom-6 right-6 z-50">
+						<div className="pointer-events-none fixed top-6 left-1/2 z-50 -translate-x-1/2">
 							<button
 								type="button"
 								onClick={() => {
@@ -510,9 +510,9 @@ export default function Feed() {
 								data-testid="refresh-bubble"
 							>
 								{pendingTimelineReason === "filters"
-									? "Apply filter changes"
+									? "Apply filters"
 									: pendingTimelineReason === "weights"
-										? "Apply feed changes"
+										? "Update feed"
 										: "New posts"}
 							</button>
 						</div>
