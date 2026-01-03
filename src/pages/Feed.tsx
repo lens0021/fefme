@@ -17,8 +17,8 @@ import {
 } from "../core/enums";
 
 import ApiErrorsPanel from "../components/ApiErrorsPanel";
-import FeedFiltersAccordionSection from "../components/algorithm/FeedFiltersAccordionSection";
-import WeightSetter from "../components/algorithm/WeightSetter";
+import FeedFiltersAccordionSection from "../components/coordinator/FeedFiltersAccordionSection";
+import WeightSetter from "../components/coordinator/WeightSetter";
 import Accordion from "../components/helpers/Accordion";
 import { persistentCheckbox } from "../components/helpers/Checkbox";
 import StatusComponent from "../components/status/Status";

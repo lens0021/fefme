@@ -78,20 +78,20 @@ import {
 	type WeightName,
 	type Weights,
 } from "./types";
-import { AlgorithmState } from "./algorithm/state";
-import { EMPTY_TRENDING_DATA } from "./algorithm/constants";
-import { loggers, logger } from "./algorithm/loggers";
-import { releaseLoadingMutex, shouldSkip, startAction } from "./algorithm/actions";
-import { updateFilters } from "./algorithm/filters";
-import { loadCachedData, resetSeenState, saveTimelineToCache } from "./algorithm/cache";
-import { recomputeScores, scoreAndFilterFeed } from "./algorithm/scoring";
+import { AlgorithmState } from "./coordinator/state";
+import { EMPTY_TRENDING_DATA } from "./coordinator/constants";
+import { loggers, logger } from "./coordinator/loggers";
+import { releaseLoadingMutex, shouldSkip, startAction } from "./coordinator/actions";
+import { updateFilters } from "./coordinator/filters";
+import { loadCachedData, resetSeenState, saveTimelineToCache } from "./coordinator/cache";
+import { recomputeScores, scoreAndFilterFeed } from "./coordinator/scoring";
 import {
 	fetchAndMergeToots,
 	finishFeedUpdate,
 	lockedMergeToFeed,
 	mergeExternalStatuses,
-} from "./algorithm/feed";
-import { getHomeTimeline, mergeFederatedTimeline } from "./algorithm/loaders";
+} from "./coordinator/feed";
+import { getHomeTimeline, mergeFederatedTimeline } from "./coordinator/loaders";
 import {
 	getDataStats,
 	getSourceBounds,
@@ -99,7 +99,7 @@ import {
 	mostRecentHomeTootAt,
 	statusDict as buildStatusDict,
 	type SourceStats,
-} from "./algorithm/stats";
+} from "./coordinator/stats";
 
 const DEFAULT_SET_TIMELINE_IN_APP = (_feed: Toot[]) =>
 	console.debug(`Default setTimelineInApp() called`);

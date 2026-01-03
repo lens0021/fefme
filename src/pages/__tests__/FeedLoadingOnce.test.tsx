@@ -32,11 +32,11 @@ vi.mock("../../hooks/useAuth", () => ({
 	}),
 }));
 
-vi.mock("../../components/algorithm/FeedFiltersAccordionSection", () => ({
+vi.mock("../../components/coordinator/FeedFiltersAccordionSection", () => ({
 	default: () => <div data-testid="feed-filters" />,
 }));
 
-vi.mock("../../components/algorithm/WeightSetter", () => ({
+vi.mock("../../components/coordinator/WeightSetter", () => ({
 	default: () => <div data-testid="weight-setter" />,
 }));
 

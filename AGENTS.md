@@ -65,7 +65,7 @@ Feed.tsx → StatusComponent → Rendered Posts
 /src
 ├── core/                    # THE HEART OF THE APP
 │   ├── index.ts            # FeedCoordinator class (orchestrator)
-│   ├── algorithm/          # Internal algorithm modules (state, cache, scoring, feed, etc.)
+│   ├── coordinator/        # Internal feed coordinator modules (state, cache, scoring, feed, etc.)
 │   ├── api/                # Mastodon API wrappers, data fetching
 │   ├── scorer/             # 15+ scoring algorithms
 │   ├── filters/            # Boolean & numeric filtering logic
@@ -90,14 +90,14 @@ Feed.tsx → StatusComponent → Rendered Posts
 
 ### Component Roles
 - **Algorithm Orchestrator:** `src/core/index.ts` (FeedCoordinator public API and coordination)
-- **Algorithm State:** `src/core/algorithm/state.ts` (timeline, weights, scorers, loading state)
-- **Scoring Engine:** `src/core/algorithm/scoring.ts`, `src/core/algorithm/scorers.ts`, `src/core/scorer/` (score + sort)
-- **Filter Engine:** `src/core/algorithm/filters.ts`, `src/core/filters/` (boolean/numeric filters)
-- **Timeline IO + Merge:** `src/core/algorithm/feed.ts` (merge, reconcile, finalize timeline)
-- **Data Loaders:** `src/core/algorithm/loaders.ts`, `src/core/api/` (API fetch + conversion)
-- **Cache Manager:** `src/core/algorithm/cache.ts`, `src/core/Storage.ts` (persist timeline/state)
-- **Background Pollers:** `src/core/algorithm/background.ts` (periodic refresh)
-- **Stats/Telemetry:** `src/core/algorithm/stats.ts`, `src/core/algorithm/feed_stats.ts`, `src/core/algorithm/source_stats.ts` (data summaries for logging/UI)
+- **Coordinator State:** `src/core/coordinator/state.ts` (timeline, weights, scorers, loading state)
+- **Scoring Engine:** `src/core/coordinator/scoring.ts`, `src/core/coordinator/scorers.ts`, `src/core/scorer/` (score + sort)
+- **Filter Engine:** `src/core/coordinator/filters.ts`, `src/core/filters/` (boolean/numeric filters)
+- **Timeline IO + Merge:** `src/core/coordinator/feed.ts` (merge, reconcile, finalize timeline)
+- **Data Loaders:** `src/core/coordinator/loaders.ts`, `src/core/api/` (API fetch + conversion)
+- **Cache Manager:** `src/core/coordinator/cache.ts`, `src/core/Storage.ts` (persist timeline/state)
+- **Background Pollers:** `src/core/coordinator/background.ts` (periodic refresh)
+- **Stats/Telemetry:** `src/core/coordinator/stats.ts`, `src/core/coordinator/feed_stats.ts`, `src/core/coordinator/source_stats.ts` (data summaries for logging/UI)
 - **UI Composition:** `src/pages/Feed.tsx`, `src/components/**` (render + interactions)
 
 ### The Scoring System
@@ -205,7 +205,7 @@ Main entry points:
 
 1. Add to `BooleanFilterName` enum or `TootNumberProp` in `/src/core/enums.ts`
 2. Update filter creation in `/src/core/filters/feed_filters.ts`
-3. Add UI in `/src/components/algorithm/filters/`
+3. Add UI in `/src/components/coordinator/filters/`
 4. Configure display in `/src/config.ts`
 
 ## Environment Variables
@@ -261,5 +261,5 @@ Defined in `/src/core/enums.ts`:
 
 ## TODO
 - Decide whether to rename `AlgorithmProvider`/`useAlgorithm` to match `FeedCoordinator` for naming consistency.
-- Further split large algorithm modules (e.g., `src/core/algorithm/feed.ts`, `src/core/algorithm/state.ts`) into smaller role-focused units.
+- Further split large algorithm modules (e.g., `src/core/coordinator/feed.ts`, `src/core/coordinator/state.ts`) into smaller role-focused units.
 - Align code boundaries with the Component Roles list (enforce module responsibilities and remove cross-role coupling).
