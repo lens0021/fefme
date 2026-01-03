@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 
 import { config } from "../../config";
@@ -47,8 +47,60 @@ describe("Feed loading", () => {
 		vi.restoreAllMocks();
 	});
 
-	it("shows the loading screen only once on initial load with no user actions", async () => {
+	it("keeps cached timeline visible while initial load refreshes in the background", async () => {
+		let setTimelineInApp: ((feed: Array<{ uri: string }>) => void) | undefined;
 		let resolveTrigger: (() => void) | undefined;
+		const cachedTimeline = [{ uri: "cached-1" }, { uri: "cached-2" }];
+		const refreshedTimeline = [{ uri: "new-1" }];
+		const mockAlgorithm = {
+			getDataStats: vi.fn().mockReturnValue(null),
+			isGoToSocialUser: vi.fn().mockResolvedValue(false),
+			serverInfo: vi.fn().mockResolvedValue({
+				configuration: {
+					mediaAttachments: {
+						supportedMimeTypes: ["image/jpeg", "image/png", "video/mp4"],
+					},
+				},
+				domain: "example.com",
+			}),
+			timeline: cachedTimeline,
+			triggerFeedUpdate: vi.fn(
+				() =>
+					new Promise<void>((resolve) => {
+						resolveTrigger = resolve;
+						setTimelineInApp?.(refreshedTimeline);
+					}),
+			),
+		};
+
+		vi.spyOn(TheAlgorithm, "create").mockImplementation(async (params) => {
+			setTimelineInApp = params.setTimelineInApp;
+			setTimelineInApp?.(cachedTimeline);
+			return mockAlgorithm as unknown as TheAlgorithm;
+		});
+
+		render(
+			<AlgorithmProvider>
+				<Feed />
+			</AlgorithmProvider>,
+		);
+
+		expect(await screen.findAllByTestId("status-card")).toHaveLength(2);
+		expect(mockAlgorithm.triggerFeedUpdate).toHaveBeenCalledTimes(1);
+
+		await act(async () => {
+			resolveTrigger?.();
+		});
+
+		expect(screen.getAllByTestId("status-card")).toHaveLength(2);
+		expect(mockAlgorithm.triggerFeedUpdate).toHaveBeenCalledTimes(1);
+		expect(screen.getByTestId("refresh-bubble")).toBeInTheDocument();
+	});
+
+	it("shows only the loading screen until the first load completes when there is no cache", async () => {
+		let setTimelineInApp: ((feed: Array<{ uri: string }>) => void) | undefined;
+		let resolveTrigger: (() => void) | undefined;
+		const refreshedTimeline = [{ uri: "new-1" }];
 		const mockAlgorithm = {
 			getDataStats: vi.fn().mockReturnValue(null),
 			isGoToSocialUser: vi.fn().mockResolvedValue(false),
@@ -65,13 +117,15 @@ describe("Feed loading", () => {
 				() =>
 					new Promise<void>((resolve) => {
 						resolveTrigger = resolve;
+						setTimelineInApp?.(refreshedTimeline);
 					}),
 			),
 		};
 
-		vi.spyOn(TheAlgorithm, "create").mockResolvedValue(
-			mockAlgorithm as unknown as TheAlgorithm,
-		);
+		vi.spyOn(TheAlgorithm, "create").mockImplementation(async (params) => {
+			setTimelineInApp = params.setTimelineInApp;
+			return mockAlgorithm as unknown as TheAlgorithm;
+		});
 
 		render(
 			<AlgorithmProvider>
@@ -82,17 +136,15 @@ describe("Feed loading", () => {
 		const loadingTextMatcher = (content: string) =>
 			content.includes(config.timeline.defaultLoadingMsg);
 		expect(await screen.findByText(loadingTextMatcher)).toBeInTheDocument();
-		expect(screen.queryAllByText(loadingTextMatcher)).toHaveLength(1);
-		expect(mockAlgorithm.triggerFeedUpdate).toHaveBeenCalledTimes(1);
+		expect(screen.queryAllByTestId("status-card")).toHaveLength(0);
 
-		resolveTrigger?.();
+		await act(async () => {
+			resolveTrigger?.();
+		});
 
-		await screen.findByText(config.timeline.noTootsMsg);
 		await waitFor(() =>
-			expect(screen.queryByText(loadingTextMatcher)).not.toBeInTheDocument(),
+			expect(screen.getAllByTestId("status-card")).toHaveLength(1),
 		);
-
-		await new Promise((resolve) => setTimeout(resolve, 10));
-		expect(mockAlgorithm.triggerFeedUpdate).toHaveBeenCalledTimes(1);
+		expect(screen.queryByTestId("refresh-bubble")).not.toBeInTheDocument();
 	});
 });

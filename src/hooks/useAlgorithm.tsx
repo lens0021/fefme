@@ -39,9 +39,12 @@ const loadLogger = logger.tempLogger("setLoadState");
 interface AlgoContext {
 	algorithm?: TheAlgorithm;
 	alwaysShowFollowed?: boolean;
+	applyPendingTimeline?: () => void;
 	api?: mastodon.rest.Client;
 	currentUserWebfinger?: string | null;
 	isGoToSocialUser?: boolean; // Whether the user is on a GoToSocial instance
+	hasInitialCache?: boolean;
+	hasPendingTimeline?: boolean;
 	isLoading?: boolean;
 	hideSensitive?: boolean;
 	hideSensitiveCheckbox?: ReactElement;
@@ -74,6 +77,8 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 	const [algorithm, setAlgorithm] = useState<TheAlgorithm>(null);
 	const [isGoToSocialUser, setIsGoToSocialUser] = useState<boolean>(false);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
+	const [hasInitialCache, setHasInitialCache] = useState<boolean>(false);
+	const [hasPendingTimeline, setHasPendingTimeline] = useState<boolean>(false);
 	const [lastLoadDurationSeconds, setLastLoadDurationSeconds] = useState<
 		number | undefined
 	>();
@@ -82,6 +87,8 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 	const [timeline, setTimeline] = useState<Toot[]>([]);
 	const hasInitializedRef = React.useRef(false);
 	const lastUserIdRef = React.useRef<string | null>(null);
+	const allowTimelineUpdatesRef = React.useRef(true);
+	const pendingTimelineRef = React.useRef<Toot[] | null>(null);
 
 	// TODO: this doesn't make any API calls yet, right?
 	const api = useMemo(() => {
@@ -224,6 +231,24 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		[algorithm, trigger],
 	);
 
+	const setTimelineInApp = useCallback((feed: Toot[]) => {
+		if (allowTimelineUpdatesRef.current) {
+			setTimeline(feed);
+			pendingTimelineRef.current = null;
+			setHasPendingTimeline(false);
+		} else {
+			pendingTimelineRef.current = feed;
+		}
+	}, [setTimeline]);
+
+	const applyPendingTimeline = useCallback(() => {
+		const pendingTimeline = pendingTimelineRef.current;
+		if (!pendingTimeline) return;
+		setTimeline(pendingTimeline);
+		pendingTimelineRef.current = null;
+		setHasPendingTimeline(false);
+	}, [setTimeline]);
+
 	// Reset all state except for the user and server
 	const resetAlgorithm = useCallback(async () => {
 		resetErrors();
@@ -257,12 +282,20 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		if (!user?.id) {
 			lastUserIdRef.current = null;
 			hasInitializedRef.current = false;
+			allowTimelineUpdatesRef.current = true;
+			pendingTimelineRef.current = null;
+			setHasInitialCache(false);
+			setHasPendingTimeline(false);
 			return;
 		}
 
 		if (lastUserIdRef.current !== user.id) {
 			lastUserIdRef.current = user.id;
 			hasInitializedRef.current = false;
+			allowTimelineUpdatesRef.current = true;
+			pendingTimelineRef.current = null;
+			setHasInitialCache(false);
+			setHasPendingTimeline(false);
 		}
 	}, [user?.id]);
 
@@ -306,7 +339,7 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 			const algo = await TheAlgorithm.create({
 				api: api,
 				user: currentUser,
-				setTimelineInApp: setTimeline,
+				setTimelineInApp,
 				locale: navigator?.language,
 			});
 
@@ -334,21 +367,38 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 
 			setAlgorithm(algo);
 
-			// Only trigger initial feed update if we have no cached posts
-			// Otherwise, user can manually refresh when ready
 			const hasCachedPosts = algo.timeline.length > 0;
-			if (!hasCachedPosts) {
-				logger.log("No cached posts found, triggering initial feed update...");
-				triggerLoadFxn(
-					() => algo.triggerFeedUpdate(),
-					logAndShowError,
-					setLoadState,
-				);
-			} else {
-				logger.log(`Showing ${algo.timeline.length} cached posts`);
-				// Initialization complete, stop showing loading indicator
-				setIsLoading(false);
-			}
+			setHasInitialCache(hasCachedPosts);
+			const shouldApplyInitialLoadResults = !hasCachedPosts;
+			const finalizeInitialLoad = () => {
+				allowTimelineUpdatesRef.current = true;
+				if (shouldApplyInitialLoadResults) {
+					const pendingTimeline = pendingTimelineRef.current;
+					pendingTimelineRef.current = null;
+					setTimeline(pendingTimeline ?? algo.timeline);
+					setHasPendingTimeline(false);
+				} else {
+					setHasPendingTimeline(!!pendingTimelineRef.current);
+				}
+			};
+
+			allowTimelineUpdatesRef.current = false;
+			logger.log(
+				hasCachedPosts
+					? `Showing ${algo.timeline.length} cached posts while loading fresh data`
+					: "No cached posts found, showing loading screen until first load completes",
+			);
+			triggerLoadFxn(
+				async () => {
+					try {
+						await algo.triggerFeedUpdate();
+					} finally {
+						finalizeInitialLoad();
+					}
+				},
+				logAndShowError,
+				setLoadState,
+			);
 
 			algo
 				.serverInfo()
@@ -376,6 +426,7 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		logAndShowError,
 		logout,
 		setLoadState,
+		setTimelineInApp,
 		timeline.length,
 		triggerLoadFxn,
 		user,
@@ -384,8 +435,11 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 	const algoContext: AlgoContext = {
 		algorithm,
 		alwaysShowFollowed,
+		applyPendingTimeline,
 		api,
 		currentUserWebfinger,
+		hasInitialCache,
+		hasPendingTimeline,
 		hideSensitive,
 		hideSensitiveCheckbox,
 		isGoToSocialUser,

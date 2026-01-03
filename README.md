@@ -23,6 +23,13 @@ Each incoming post in your recent timeline will be scored based on a variety of 
 
 If you try out FediAlgo but don't plan on using it again you may want to revoke its permissions. This can be done by going to `https://{YOUR_MASTODON_SERVER}/oauth/authorized_applications` and clicking the "revoke" button.
 
+## Loading Behavior
+
+Fefme keeps the UI stable during the first load:
+
+* If cached posts exist, the cached (already filtered) timeline stays visible while fresh data loads in the background. The refreshed feed is saved to cache and shown on the next page load. A floating "New posts" bubble appears if fresh data arrives.
+* If no cache exists, the app shows only the loading screen until the first load completes.
+
 ## Setting Weights
 
 Once the initial load is complete you can adjust the way the algorithm weights various aspects of a post when it decides what should be at or near the top of your feed.

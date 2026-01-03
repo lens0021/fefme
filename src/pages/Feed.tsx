@@ -34,7 +34,10 @@ const logger = getLogger("Feed");
 export default function Feed() {
 	const {
 		algorithm,
+		applyPendingTimeline,
 		hideSensitiveCheckbox,
+		hasInitialCache,
+		hasPendingTimeline,
 		isLoading,
 		lastLoadDurationSeconds,
 		currentUserWebfinger,
@@ -69,6 +72,7 @@ export default function Feed() {
 	const bottomRef = useRef<HTMLDivElement>(null);
 	const isBottom = useOnScreen(bottomRef);
 	const numShownToots = Math.max(defaultNumDisplayedToots, numDisplayedToots);
+	const showInitialLoading = isLoading && !hasInitialCache;
 	const visibleTimeline = useMemo(() => {
 		if (selfTypeFilterMode === "none" || !currentUserWebfinger) return timeline;
 		const shouldInvert = selfTypeFilterMode === "exclude";
@@ -162,7 +166,7 @@ export default function Feed() {
 	const sourceStats = dataStats?.sourceStats ?? {};
 	const isEndOfCachedFeed =
 		isBottom &&
-		!isLoading &&
+		!showInitialLoading &&
 		visibleTimeline.length > 0 &&
 		numDisplayedToots >= visibleTimeline.length;
 	const formatSourceOldest = (sourceKey: string, usesId: boolean): string => {
@@ -364,7 +368,7 @@ export default function Feed() {
 							</Accordion>
 						)}
 
-						{isLoading && (
+						{showInitialLoading && (
 							<div className="flex items-center gap-3 mb-2">
 								<div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
 								<p>{`${algorithm?.loadingStatus || READY_TO_LOAD_MSG}...`}</p>
@@ -433,7 +437,7 @@ export default function Feed() {
 						)}
 
 						{visibleTimeline.length === 0 &&
-							(isLoading ? (
+							(showInitialLoading ? (
 								<div className="flex min-h-[40vh] items-center justify-center gap-3">
 									<div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600" />
 									<p>{`${config.timeline.defaultLoadingMsg}...`}</p>
@@ -476,6 +480,23 @@ export default function Feed() {
 
 						<div ref={bottomRef} className="mt-2.5" />
 					</div>
+
+					{hasPendingTimeline && (
+						<div className="pointer-events-none fixed bottom-6 right-6 z-50">
+							<button
+								type="button"
+								onClick={() => {
+									applyPendingTimeline?.();
+									window.scrollTo({ top: 0, behavior: "smooth" });
+								}}
+								aria-label="Show new posts"
+								className="pointer-events-auto rounded-full bg-[color:var(--color-primary)] px-4 py-2 text-sm font-semibold text-white shadow-lg transition hover:scale-[1.02]"
+								data-testid="refresh-bubble"
+							>
+								New posts
+							</button>
+						</div>
+					)}
 				</div>
 			</div>
 		</div>
