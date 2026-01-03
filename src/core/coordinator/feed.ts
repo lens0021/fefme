@@ -13,6 +13,7 @@ import { loggers, logger } from "./loggers";
 import { launchBackgroundPollers } from "./background";
 import { mostRecentHomeTootAt } from "./stats";
 import type { AlgorithmState } from "./state";
+import type { TootSource } from "../types";
 
 export async function fetchAndMergeToots(
 	state: AlgorithmState,
@@ -43,7 +44,7 @@ export async function fetchAndMergeToots(
 export async function mergeExternalStatuses(
 	state: AlgorithmState,
 	statuses: mastodon.v1.Status[],
-	source: string,
+	source: TootSource,
 ): Promise<void> {
 	if (!statuses?.length) return;
 	const toots = await Toot.buildToots(statuses, source);

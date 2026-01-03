@@ -601,9 +601,9 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		timeline,
 		triggerFilterUpdate: async (filters: FeedFilterSettings) => {
 			if (!algorithm) return;
-			await runRebuild("filters", () =>
-				Promise.resolve(algorithm.updateFilters(filters)),
-			);
+			await runRebuild("filters", async () => {
+				algorithm.updateFilters(filters);
+			});
 		},
 		triggerFeedUpdate,
 		triggerHomeTimelineBackFill,
@@ -614,13 +614,15 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		triggerPullAllUserData,
 		triggerWeightUpdate: async (weights: Weights) => {
 			if (!algorithm) return;
-			await runRebuild("weights", () => algorithm.updateUserWeights(weights));
+			await runRebuild("weights", async () => {
+				await algorithm.updateUserWeights(weights);
+			});
 		},
 		triggerWeightPresetUpdate: async (preset: WeightPresetLabel | string) => {
 			if (!algorithm) return;
-			await runRebuild("weights", () =>
-				algorithm.updateUserWeightsToPreset(preset),
-			);
+			await runRebuild("weights", async () => {
+				await algorithm.updateUserWeightsToPreset(preset);
+			});
 		},
 	};
 
