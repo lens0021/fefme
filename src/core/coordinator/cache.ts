@@ -42,7 +42,8 @@ export async function loadCachedData(
 
 	if (state.feed.length === config.posts.maxTimelineLength) {
 		const numToClear =
-			config.posts.maxTimelineLength - config.posts.truncateFullTimelineToLength;
+			config.posts.maxTimelineLength -
+			config.posts.truncateFullTimelineToLength;
 		loadCacheLogger.info(
 			`Timeline cache is full (${state.feed.length}), discarding ${numToClear} old posts`,
 		);
@@ -105,7 +106,9 @@ export async function saveTimelineToCache(
 		return;
 
 	try {
-		const numShownPosts = state.feed.filter((post) => post.numTimesShown).length;
+		const numShownPosts = state.feed.filter(
+			(post) => post.numTimesShown,
+		).length;
 		const msg =
 			`Saving ${state.feed.length} posts with ${newTotalNumTimesShown} times shown` +
 			` on ${numShownPosts} posts (previous totalNumTimesShown: ${state.totalNumTimesShown})`;

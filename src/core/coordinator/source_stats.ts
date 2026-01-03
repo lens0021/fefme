@@ -1,5 +1,9 @@
 import type Post from "../api/objects/post";
-import { CacheKey, FEDERATED_TIMELINE_SOURCE, TagPostsCategory } from "../enums";
+import {
+	CacheKey,
+	FEDERATED_TIMELINE_SOURCE,
+	TagPostsCategory,
+} from "../enums";
 import { findMinMaxId } from "../helpers/collection_helpers";
 import type { AlgorithmState } from "./state";
 import type { PostSource } from "../types";
@@ -49,7 +53,10 @@ function getPostsForSource(state: AlgorithmState, source: PostSource): Post[] {
 	return state.feed.filter((post) => post.sources?.includes(source));
 }
 
-function buildSourceStats(state: AlgorithmState, source: PostSource): SourceStats {
+function buildSourceStats(
+	state: AlgorithmState,
+	source: PostSource,
+): SourceStats {
 	const sourcePosts = getPostsForSource(state, source);
 	const total = sourcePosts.length;
 	let oldestCreatedAt: Date | null = null;

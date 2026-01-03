@@ -44,7 +44,9 @@ vi.mock("../../../../hooks/useAlgorithm", () => ({
 }));
 
 function buildLanguageFilter() {
-	const filter = new BooleanFilter({ propertyName: BooleanFilterName.LANGUAGE });
+	const filter = new BooleanFilter({
+		propertyName: BooleanFilterName.LANGUAGE,
+	});
 	const options: BooleanFilterOption[] = [
 		{ name: "en", displayName: "English", numPosts: 5 },
 		{ name: "fr", displayName: "French", numPosts: 3 },
@@ -86,8 +88,6 @@ describe("FilterCheckboxGrid", () => {
 		await user.click(includeButton);
 
 		expect(filter.selectedOptions).toContain("en");
-		expect(mockTriggerFilterUpdate).toHaveBeenCalledWith(
-			mockAlgorithm.filters,
-		);
+		expect(mockTriggerFilterUpdate).toHaveBeenCalledWith(mockAlgorithm.filters);
 	});
 });

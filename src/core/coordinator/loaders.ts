@@ -21,10 +21,7 @@ export async function mergeFederatedTimeline(
 	direction: "newer" | "older",
 	limit = 40,
 ): Promise<void> {
-	const { minId, maxId } = getSourceBounds(
-		state,
-		FEDERATED_TIMELINE_SOURCE,
-	);
+	const { minId, maxId } = getSourceBounds(state, FEDERATED_TIMELINE_SOURCE);
 	const statuses = await MastoApi.instance.getFederatedTimelineStatuses({
 		limit,
 		minId: direction === "newer" ? maxId : null,

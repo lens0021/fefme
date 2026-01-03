@@ -73,10 +73,6 @@ interface ApiConfig {
 }
 
 type FediverseConfig = {
-	defaultServers: string[];
-	foreignLanguageServers: Readonly<Record<string, string[]>>;
-	minServerMAU: number;
-	noMauServers: string[];
 	numServersToCheck: number;
 };
 
@@ -292,110 +288,7 @@ class Config implements ConfigType {
 	};
 
 	fediverse = {
-		minServerMAU: 100, // Minimum MAU for a server to be considered for trending posts/tags
 		numServersToCheck: 30, // NUM_SERVERS_TO_CHECK
-		// Popular servers that are used as fallbacks if the user isn't following accounts on enough
-		// servers to make for a good set of trending posts and hashtags.
-		// Culled from https://mastodonservers.net and https://joinmastodon.org/ and
-		// https://fedidb.com/software/mastodon?registration=open
-		defaultServers: [
-			"mastodon.social",
-			"mastodon.cloud",
-			"mastodon.online",
-			"mas.to",
-			"mastodon.world",
-			"loforo.com",
-			"c.im",
-			"hachyderm.io",
-			"infosec.exchange",
-			"mastodon.art",
-			"kolektiva.social",
-			"mastodonapp.uk",
-			"ioc.exchange",
-			"tech.lgbt",
-			"techhub.social",
-			"indieweb.social",
-			"mastodon.green",
-			"defcon.social",
-			"mstdn.party",
-			"sfba.social",
-			"post.community",
-			"ravenation.club",
-			"metalhead.club",
-			"sciences.social",
-			"post.io",
-			"mastodon.ie",
-			"mastodon.nz",
-			// Servers that are no bueno for various reasons
-			// "baraag.net",                 // very NSFW (anime porn)
-			// "mstdn.social",               // Slow, blocked by CORS
-			// "mastodon.lol",               // Doesn't return MAU data
-			// "fosstodon.org",              // Doesn't support trending posts
-			// "mastodon.technology",        // Doesn't return MAU data
-			// "mathstodon.xyz",             // Doesn't return MAU data
-		],
-		// Servers chosen first for non english users
-		foreignLanguageServers: {
-			de: [
-				"troet.cafe",
-				"nrw.social",
-				"hessen.social",
-				"ruhr.social",
-				"muenchen.social",
-				"social.cologne",
-				"social.tchncs.de",
-				"sueden.social",
-				"mastodontech.de",
-				"nerdculture.de",
-			],
-			es: ["tkz.one", "mast.lat", "mastorol.es"],
-			eu: [
-				// Basque language
-				"mastodon.eus",
-			],
-			fr: [
-				"piaille.fr",
-				"pouet.chapril.org",
-				"mastoot.fr",
-				"mamot.fr",
-				"qlub.social", // Montreal
-			],
-			ja: [
-				"mstdn.jp",
-				"m.cmx.im",
-				"mastodon-japan.net",
-				"famichiki.jp",
-				// "pawoo.net",                  // (Maybe NSFW?)
-			],
-			pt: ["masto.pt"],
-			it: ["mastodon.uno", "mastodon.bida.im", "sociale.network"],
-			ru: ["pravda.me"],
-			tr: ["mastoturk.org"],
-			"zh-cn": [
-				"m.cmx.im",
-				"m.otter.homes",
-				"mast.dragon-fly.club",
-				"alive.bar",
-				"g0v.social",
-				"link.baai.ac.cn",
-			],
-		} as Record<string, string[]>,
-		// Non-mastodon servers and/or servers that don't make the MAU data available publicly
-		noMauServers: [
-			"agora.echelon.pl",
-			"amf.didiermary.fr",
-			"bsd.network",
-			"bsky.brid.gy",
-			"fedibird.com",
-			"fediverse.one",
-			"flipboard.com",
-			"mastodon.art",
-			"mastodon.gamedev.place",
-			"mastodon.sdf.org",
-			"mathstodon.xyz",
-			"mstdn.social", // blocked by CORS
-			"threads.net",
-		],
 	};
 
 	locale = {
@@ -3577,16 +3470,7 @@ class Config implements ConfigType {
 		this.locale.country = country || DEFAULT_COUNTRY;
 
 		if (language) {
-			if (
-				language == DEFAULT_LANGUAGE ||
-				language in this.fediverse.foreignLanguageServers
-			) {
-				this.locale.language = language;
-			} else {
-				console.warn(
-					`${LOG_PREFIX} Language "${language}" unsupported, defaulting to "${this.locale.defaultLanguage}"`,
-				);
-			}
+			this.locale.language = language;
 		}
 	}
 

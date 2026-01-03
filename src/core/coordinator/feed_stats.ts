@@ -1,6 +1,10 @@
 import { earliestTootedAt, mostRecentTootedAt } from "../api/objects/post";
 import { computeMinMax } from "../helpers/collection_helpers";
-import { AgeIn, timeString, toISOFormatIfExists } from "../helpers/time_helpers";
+import {
+	AgeIn,
+	timeString,
+	toISOFormatIfExists,
+} from "../helpers/time_helpers";
 import { logger } from "./loggers";
 import type { AlgorithmState } from "./state";
 import type { PostSource } from "../types";

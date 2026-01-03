@@ -188,9 +188,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 							<bdi>
 								<strong>
 									{parse(
-										account.displayNameWithEmojis(
-											config.theme.boosterFontSize,
-										),
+										account.displayNameWithEmojis(config.theme.boosterFontSize),
 									)}
 								</strong>
 							</bdi>

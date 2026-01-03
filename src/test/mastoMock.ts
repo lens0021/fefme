@@ -19,7 +19,8 @@ function resolveResponse(path: string, args: unknown[]) {
 }
 
 function createNode(path: string) {
-	const fn = (...args: unknown[]) => Promise.resolve(resolveResponse(path, args));
+	const fn = (...args: unknown[]) =>
+		Promise.resolve(resolveResponse(path, args));
 
 	return new Proxy(fn, {
 		get: (_target, prop) => {

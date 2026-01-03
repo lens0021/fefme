@@ -3,10 +3,7 @@ import "reflect-metadata";
 import { cleanup } from "@testing-library/react";
 import { afterEach, vi } from "vitest";
 
-import {
-	createMastoMockClient,
-	resetMastoMockResponses,
-} from "./mastoMock";
+import { createMastoMockClient, resetMastoMockResponses } from "./mastoMock";
 
 vi.mock("masto", () => ({
 	createRestAPIClient: () => createMastoMockClient(),

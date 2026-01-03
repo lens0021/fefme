@@ -8,7 +8,10 @@ import type { mastodon } from "masto";
 import Storage from "./Storage";
 import MastoApi, { FULL_HISTORY_PARAMS } from "./api/api";
 import type { ObjList } from "./api/counted_list";
-import { isAccessTokenRevokedError, throwSanitizedRateLimitError } from "./api/errors";
+import {
+	isAccessTokenRevokedError,
+	throwSanitizedRateLimitError,
+} from "./api/errors";
 import Account from "./api/objects/account";
 import Post from "./api/objects/post";
 import TagList from "./api/tag_list";
@@ -81,9 +84,17 @@ import {
 import { AlgorithmState } from "./coordinator/state";
 import { EMPTY_TRENDING_DATA } from "./coordinator/constants";
 import { loggers, logger } from "./coordinator/loggers";
-import { releaseLoadingMutex, shouldSkip, startAction } from "./coordinator/actions";
+import {
+	releaseLoadingMutex,
+	shouldSkip,
+	startAction,
+} from "./coordinator/actions";
 import { updateFilters } from "./coordinator/filters";
-import { loadCachedData, resetSeenState, saveTimelineToCache } from "./coordinator/cache";
+import {
+	loadCachedData,
+	resetSeenState,
+	saveTimelineToCache,
+} from "./coordinator/cache";
 import { recomputeScores, scoreAndFilterFeed } from "./coordinator/scoring";
 import {
 	fetchAndMergePosts,
@@ -236,8 +247,8 @@ export default class FeedCoordinator {
 
 			const dataLoads: Promise<unknown>[] = [
 				// Post fetchers
-				getHomeTimeline(
-					(posts, logger) => lockedMergeToFeed(this.state, posts, logger),
+				getHomeTimeline((posts, logger) =>
+					lockedMergeToFeed(this.state, posts, logger),
 				).then((posts) => {
 					this.state.homeFeed = posts;
 				}),

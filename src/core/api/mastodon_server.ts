@@ -11,7 +11,6 @@ import { config } from "../config";
 import { FediverseCacheKey, TrendingType, simpleCacheKeyDict } from "../enums";
 import {
 	countValues,
-	shuffle,
 	sortKeysByValue,
 	transformKeys,
 	zipPromiseCalls,
@@ -27,8 +26,6 @@ import type {
 	TrendingObj,
 } from "../types";
 import MastoApi from "./api";
-
-type InstanceDict = Record<string, MastodonInstance>;
 
 const API_URI = "api";
 const API_V1 = `${API_URI}/v1`;
@@ -202,8 +199,8 @@ export default class MastodonServer {
 	///////////////////////////////////////
 
 	/**
-	 * Returns a dict of servers with MAU over the {@linkcode minServerMAU} threshold
-	 * and the ratio of the number of users followed on a server to the MAU of that server.
+	 * Returns a dict of servers followed by the user and the ratio of the number of users
+	 * followed on a server to the MAU of that server (when available).
 	 * @private
 	 * @static
 	 * @returns {Promise<MastodonInstances>} Dictionary of MastodonInstances keyed by domain.
@@ -224,58 +221,17 @@ export default class MastodonServer {
 		);
 		logger.logSortedDict("followedUserDomainCounts", followedUserDomainCounts);
 		let mostFollowedDomains = sortKeysByValue(followedUserDomainCounts);
-		mostFollowedDomains = mostFollowedDomains.filter(
-			(domain) => !MastodonServer.isNoMauServer(domain),
-		);
 		mostFollowedDomains = mostFollowedDomains.slice(
 			0,
 			config.fediverse.numServersToCheck,
 		);
 
-		// Fetch Instance objects for the the Mastodon servers that have a lot of accounts followed by the
-		// current Fedialgo. Filter out those below the userminServerMAU threshold
-		let serverDict = await this.callForServers<InstanceResponse>(
+		// Fetch Instance objects for the Mastodon servers that have a lot of accounts followed by the
+		// current fefme user.
+		const serverDict = await this.callForServers<InstanceResponse>(
 			mostFollowedDomains,
 			(s) => s.fetchServerInfo(),
 		);
-		serverDict = filterMinMAU(serverDict, config.fediverse.minServerMAU);
-		const numActiveServers = Object.keys(serverDict).length;
-		const numServersToAdd =
-			config.fediverse.numServersToCheck - numActiveServers; // Number of default servers to add
-
-		// If we have haven't found enough servers yet add some known popular servers from the preconfigured list.
-		// TODO: if some of the default servers barf we won't top up the list again
-		if (numServersToAdd > 0) {
-			logger.log(
-				`Only ${numActiveServers} servers w/min ${config.fediverse.minServerMAU} MAU, adding some`,
-			);
-			let extraDomains: string[] = [];
-
-			if (config.locale.language != config.locale.defaultLanguage) {
-				extraDomains = extraDomains.concat(
-					config.fediverse.foreignLanguageServers[config.locale.language] || [],
-				);
-				logger.log(
-					`Using ${extraDomains.length} custom "${config.locale.language}" servers`,
-				);
-			}
-
-			extraDomains = extraDomains.concat(
-				shuffle(config.fediverse.defaultServers),
-			);
-			extraDomains = extraDomains
-				.filter((s) => !(s in serverDict))
-				.slice(0, numServersToAdd);
-			logger.log(
-				`Adding ${extraDomains.length} default servers:`,
-				extraDomains,
-			);
-			const extraServerInfos = await this.callForServers<InstanceResponse>(
-				extraDomains,
-				(s) => s.fetchServerInfo(),
-			);
-			serverDict = { ...serverDict, ...extraServerInfos };
-		}
 
 		// Create a dict of the ratio of the number of users followed on a server to the MAU of that server.
 		// Filter out any null responses.
@@ -403,46 +359,10 @@ export default class MastodonServer {
 		return `https://${this.domain}/${endpoint}${optionalSuffix(limit, `?limit=${limit}`, true)}`;
 	}
 
-	/**
-	 * Returns true if the domain is known to not provide MAU and trending data via public API
-	 * @private
-	 * @static
-	 * @param {string} domain - The domain to check.
-	 * @returns {boolean} True if the domain is in the `noMauServers` list, false otherwise.
-	 */
-	private static isNoMauServer(domain: string): boolean {
-		return config.fediverse.noMauServers.includes(domain);
-	}
-
 	/** Build a URL for a trending type (tags, links, posts). */
 	private static trendUrl = (path: string) => this.v1Url(`trends/${path}`);
 	/** Build a v1 API URL. */
 	private static v1Url = (path: string) => `${API_V1}/${path}`;
 	/** Build a v2 API URL. */
 	private static v2Url = (path: string) => `${API_V2}/${path}`;
-}
-
-// Return a dict of servers with MAU over the minServerMAU threshold
-function filterMinMAU(
-	serverInfos: Record<string, InstanceResponse>,
-	minMAU: number,
-): InstanceDict {
-	const logger = getLogger(FediverseCacheKey.POPULAR_SERVERS, "filterMinMAU");
-
-	const servers = Object.entries(serverInfos).reduce(
-		(filtered, [domain, instanceObj]) => {
-			if ((instanceObj?.usage?.users?.activeMonth || 0) >= minMAU) {
-				filtered[domain] = instanceObj as MastodonInstance;
-			}
-
-			return filtered;
-		},
-		{} as InstanceDict,
-	);
-
-	logger.trace(
-		`${Object.keys(servers).length} servers with MAU >= ${minMAU}:`,
-		servers,
-	);
-	return servers;
 }

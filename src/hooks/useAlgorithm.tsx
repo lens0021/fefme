@@ -70,7 +70,9 @@ interface AlgoContext {
 	triggerMoarData?: () => void;
 	triggerPullAllUserData?: () => void;
 	triggerWeightUpdate?: (weights: Weights) => Promise<void>;
-	triggerWeightPresetUpdate?: (preset: WeightPresetLabel | string) => Promise<void>;
+	triggerWeightPresetUpdate?: (
+		preset: WeightPresetLabel | string,
+	) => Promise<void>;
 }
 
 const AlgorithmContext = createContext<AlgoContext>({ timeline: [] });
@@ -286,23 +288,28 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		[algorithm, trigger],
 	);
 
-	const setTimelineInApp = useCallback((feed: Post[]) => {
-		if (allowTimelineUpdatesRef.current) {
-			setTimeline(feed);
-			pendingTimelineRef.current = null;
-			setHasPendingTimeline(false);
-			Storage.set(AlgorithmStorageKey.VISIBLE_TIMELINE_POSTS, feed).catch(
-				(err) =>
-					logger.error("Failed to persist visible timeline cache:", err),
-			);
-		} else {
-			pendingTimelineRef.current = feed;
-			Storage.set(AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_POSTS, feed).catch(
-				(err) =>
+	const setTimelineInApp = useCallback(
+		(feed: Post[]) => {
+			if (allowTimelineUpdatesRef.current) {
+				setTimeline(feed);
+				pendingTimelineRef.current = null;
+				setHasPendingTimeline(false);
+				Storage.set(AlgorithmStorageKey.VISIBLE_TIMELINE_POSTS, feed).catch(
+					(err) =>
+						logger.error("Failed to persist visible timeline cache:", err),
+				);
+			} else {
+				pendingTimelineRef.current = feed;
+				Storage.set(
+					AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_POSTS,
+					feed,
+				).catch((err) =>
 					logger.error("Failed to persist next visible timeline cache:", err),
-			);
-		}
-	}, [setTimeline]);
+				);
+			}
+		},
+		[setTimeline],
+	);
 
 	const applyPendingTimeline = useCallback(() => {
 		const pendingTimeline = pendingTimelineRef.current;
@@ -457,8 +464,8 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 				return;
 			}
 
-		// Set gating BEFORE creating FeedCoordinator to prevent cache from being displayed prematurely
-		allowTimelineUpdatesRef.current = false;
+			// Set gating BEFORE creating FeedCoordinator to prevent cache from being displayed prematurely
+			allowTimelineUpdatesRef.current = false;
 
 			const algo = await FeedCoordinator.create({
 				api: api,
@@ -502,10 +509,12 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 					`Displaying ${algo.timeline.length} cached posts while loading fresh data`,
 				);
 				setTimeline(algo.timeline);
-			Storage.set(AlgorithmStorageKey.VISIBLE_TIMELINE_POSTS, algo.timeline).catch(
-				(err) =>
+				Storage.set(
+					AlgorithmStorageKey.VISIBLE_TIMELINE_POSTS,
+					algo.timeline,
+				).catch((err) =>
 					logger.error("Failed to persist visible timeline cache:", err),
-			);
+				);
 			} else {
 				logger.log(
 					"No cached posts found, showing loading screen until first load completes",
