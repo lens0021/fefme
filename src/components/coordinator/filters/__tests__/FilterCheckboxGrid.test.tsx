@@ -26,10 +26,10 @@ vi.mock("/usr/local/git/lens/fefme/src/core/api/tag_list.ts", () => ({
 }));
 
 let mockAlgorithm: {
-	updateFilters: ReturnType<typeof vi.fn>;
 	filters: Record<string, unknown>;
 	timeline: unknown[];
 };
+let mockTriggerFilterUpdate: ReturnType<typeof vi.fn>;
 
 vi.mock("../../../../hooks/useAlgorithm", () => ({
 	useAlgorithm: () => ({
@@ -39,6 +39,7 @@ vi.mock("../../../../hooks/useAlgorithm", () => ({
 		selfTypeFilterMode: "none",
 		setSelfTypeFilterMode: vi.fn(),
 		showFilterHighlights: true,
+		triggerFilterUpdate: mockTriggerFilterUpdate,
 	}),
 }));
 
@@ -58,13 +59,13 @@ describe("FilterCheckboxGrid", () => {
 	beforeEach(() => {
 		vi.resetModules();
 		mockAlgorithm = {
-			updateFilters: vi.fn(),
 			filters: {},
 			timeline: [],
 		};
+		mockTriggerFilterUpdate = vi.fn();
 	});
 
-	it("updates filter state and calls updateFilters when Include is clicked", async () => {
+	it("updates filter state and calls triggerFilterUpdate when Include is clicked", async () => {
 		FilterCheckboxGrid = (await import("../FilterCheckboxGrid")).default;
 		const filter = buildLanguageFilter();
 		const user = userEvent.setup();
@@ -85,7 +86,7 @@ describe("FilterCheckboxGrid", () => {
 		await user.click(includeButton);
 
 		expect(filter.selectedOptions).toContain("en");
-		expect(mockAlgorithm.updateFilters).toHaveBeenCalledWith(
+		expect(mockTriggerFilterUpdate).toHaveBeenCalledWith(
 			mockAlgorithm.filters,
 		);
 	});

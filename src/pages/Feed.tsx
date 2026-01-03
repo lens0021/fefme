@@ -38,9 +38,11 @@ export default function Feed() {
 		hideSensitiveCheckbox,
 		hasInitialCache,
 		hasPendingTimeline,
+		isRebuildLoading,
 		isLoading,
 		lastLoadDurationSeconds,
 		currentUserWebfinger,
+		pendingTimelineReason,
 		selfTypeFilterMode,
 		timeline,
 		triggerFeedUpdate,
@@ -73,6 +75,7 @@ export default function Feed() {
 	const isBottom = useOnScreen(bottomRef);
 	const numShownToots = Math.max(defaultNumDisplayedToots, numDisplayedToots);
 	const showInitialLoading = isLoading && !hasInitialCache;
+	const showRebuildLoading = isRebuildLoading && hasInitialCache;
 	const visibleTimeline = useMemo(() => {
 		if (selfTypeFilterMode === "none" || !currentUserWebfinger) return timeline;
 		const shouldInvert = selfTypeFilterMode === "exclude";
@@ -374,6 +377,12 @@ export default function Feed() {
 								<p>{`${algorithm?.loadingStatus || READY_TO_LOAD_MSG}...`}</p>
 							</div>
 						)}
+						{showRebuildLoading && (
+							<div className="flex items-center gap-3 mb-2">
+								<div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
+								<p>Rebuilding feed...</p>
+							</div>
+						)}
 
 						<ApiErrorsPanel />
 
@@ -484,7 +493,7 @@ export default function Feed() {
 						)}
 					</div>
 
-					{hasPendingTimeline && (
+					{hasPendingTimeline && !showInitialLoading && (
 						<div className="pointer-events-none fixed bottom-6 right-6 z-50">
 							<button
 								type="button"
@@ -492,11 +501,21 @@ export default function Feed() {
 									applyPendingTimeline?.();
 									window.scrollTo({ top: 0, behavior: "smooth" });
 								}}
-								aria-label="Show new posts"
+								aria-label={
+									pendingTimelineReason === "filters"
+										? "Apply filter changes"
+										: pendingTimelineReason === "weights"
+											? "Apply feed changes"
+											: "Show new posts"
+								}
 								className="pointer-events-auto rounded-full bg-[color:var(--color-primary)] px-4 py-2 text-sm font-semibold text-white shadow-lg transition hover:scale-[1.02]"
 								data-testid="refresh-bubble"
 							>
-								New posts
+								{pendingTimelineReason === "filters"
+									? "Apply filter changes"
+									: pendingTimelineReason === "weights"
+										? "Apply feed changes"
+										: "New posts"}
 							</button>
 						</div>
 					)}

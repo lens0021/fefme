@@ -130,6 +130,7 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 		selfTypeFilterMode,
 		setSelfTypeFilterMode,
 		showFilterHighlights,
+		triggerFilterUpdate,
 	} = useAlgorithm();
 	const logger = useMemo(
 		() => getLogger("FilterCheckboxGrid", filter.propertyName),
@@ -324,7 +325,7 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 
 			const setState = (state: "include" | "exclude" | "neutral") => {
 				filter.updateOption(option.name, state);
-				algorithm.updateFilters(algorithm.filters);
+				triggerFilterUpdate?.(algorithm.filters);
 			};
 
 			const optionLabel = isTagFilter ? (

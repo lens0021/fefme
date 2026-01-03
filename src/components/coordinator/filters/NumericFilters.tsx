@@ -12,7 +12,7 @@ import Slider from "./../Slider";
 
 export default function NumericFilters(props: { isActive: boolean }) {
 	const { isActive } = props;
-	const { algorithm } = useAlgorithm();
+	const { algorithm, triggerFilterUpdate } = useAlgorithm();
 	const numericFilters = Object.values(algorithm.filters.numericFilters);
 
 	return (
@@ -32,7 +32,7 @@ export default function NumericFilters(props: { isActive: boolean }) {
 						// TODO: useCallback() could save a lot of re-renders here maybe...
 						onChange={async (e) => {
 							numericFilter.value = Number(e.target.value);
-							algorithm.updateFilters(algorithm.filters);
+							await triggerFilterUpdate?.(algorithm.filters);
 						}}
 						stepSize={1}
 						value={numericFilter.value}

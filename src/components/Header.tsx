@@ -15,8 +15,14 @@ import { useAuthContext } from "../hooks/useAuth";
 /** Header component on the feed page. */
 export default function Header(): JSX.Element {
 	const { user, logout, setApp } = useAuthContext();
-	const { algorithm, resetAlgorithm, resetSeenState, setSelfTypeFilterMode } =
-		useAlgorithm();
+	const {
+		algorithm,
+		resetAlgorithm,
+		resetSeenState,
+		setSelfTypeFilterMode,
+		triggerFilterUpdate,
+		triggerWeightPresetUpdate,
+	} = useAlgorithm();
 
 	const reset = async () => {
 		if (
@@ -35,7 +41,7 @@ export default function Header(): JSX.Element {
 			))
 		)
 			return;
-		await algorithm?.updateUserWeightsToPreset(WeightPresetLabel.DEFAULT);
+		await triggerWeightPresetUpdate?.(WeightPresetLabel.DEFAULT);
 		localStorage.setItem("fefme_user_weights", JSON.stringify(DEFAULT_WEIGHTS));
 		Object.keys(DEFAULT_WEIGHTS).forEach((weightName) => {
 			localStorage.removeItem(`fefme_weight_disabled_${weightName}`);
@@ -52,7 +58,7 @@ export default function Header(): JSX.Element {
 		)
 			return;
 		localStorage.removeItem("type-filter-self");
-		algorithm?.updateFilters(buildNewFilterSettings());
+		await triggerFilterUpdate?.(buildNewFilterSettings());
 		setSelfTypeFilterMode?.("none");
 	};
 

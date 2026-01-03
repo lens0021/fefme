@@ -21,7 +21,7 @@ import WeightSlider from "./WeightSlider";
 const logger = getLogger("WeightSetter");
 const WEIGHTS_STORAGE_KEY = "fefme_user_weights";
 export default function WeightSetter() {
-	const { algorithm } = useAlgorithm();
+	const { algorithm, triggerWeightUpdate } = useAlgorithm();
 	const { logAndSetError } = useError();
 	const [userWeights, setUserWeights] = useState<Weights>({} as Weights);
 
@@ -71,20 +71,20 @@ export default function WeightSetter() {
 	// Update the user weightings and save to localStorage
 	const updateWeights = useCallback(
 		async (newWeights: Weights): Promise<void> => {
-			if (!algorithm) {
+			if (!algorithm || !triggerWeightUpdate) {
 				return;
 			}
 			try {
 				logger.log("updateWeights() called with:", newWeights);
 				setUserWeights(newWeights);
-				await algorithm.updateUserWeights(newWeights);
+				await triggerWeightUpdate(newWeights);
 				// Save to localStorage
 				localStorage.setItem(WEIGHTS_STORAGE_KEY, JSON.stringify(newWeights));
 			} catch (error) {
 				logAndSetError(logger, error);
 			}
 		},
-		[algorithm, logAndSetError],
+		[algorithm, logAndSetError, triggerWeightUpdate],
 	);
 
 	const makeWeightSlider = (weightName: WeightName) => (

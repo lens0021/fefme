@@ -5,22 +5,22 @@ import { config } from "../../../../config";
 import NumericFilters from "../NumericFilters";
 
 let mockAlgorithm: {
-	updateFilters: ReturnType<typeof vi.fn>;
 	filters: {
 		numericFilters: Record<string, { description: string; propertyName: string; value: number }>;
 	};
 };
+let mockTriggerFilterUpdate: ReturnType<typeof vi.fn>;
 
 vi.mock("../../../../hooks/useAlgorithm", () => ({
 	useAlgorithm: () => ({
 		algorithm: mockAlgorithm,
+		triggerFilterUpdate: mockTriggerFilterUpdate,
 	}),
 }));
 
 describe("NumericFilters", () => {
 	beforeEach(() => {
 		mockAlgorithm = {
-			updateFilters: vi.fn(),
 			filters: {
 				numericFilters: {
 					repliesCount: {
@@ -31,9 +31,10 @@ describe("NumericFilters", () => {
 				},
 			},
 		};
+		mockTriggerFilterUpdate = vi.fn();
 	});
 
-	it("writes the value and calls updateFilters on slider change", () => {
+	it("writes the value and calls triggerFilterUpdate on slider change", () => {
 		render(<NumericFilters isActive={true} />);
 
 		fireEvent.click(
@@ -44,7 +45,7 @@ describe("NumericFilters", () => {
 		fireEvent.change(slider, { target: { value: "5" } });
 
 		expect(mockAlgorithm.filters.numericFilters.repliesCount.value).toBe(5);
-		expect(mockAlgorithm.updateFilters).toHaveBeenCalledWith(
+		expect(mockTriggerFilterUpdate).toHaveBeenCalledWith(
 			mockAlgorithm.filters,
 		);
 	});

@@ -55,7 +55,7 @@ export default function Checkbox(props: CheckboxProps) {
 		updateFilters,
 		url,
 	} = props;
-	const { algorithm } = useAlgorithm();
+	const { algorithm, triggerFilterUpdate } = useAlgorithm();
 
 	let labelClasses = "font-semibold max-w-full";
 	let checkboxClasses = "text-[color:var(--color-fg)]";
@@ -113,7 +113,7 @@ export default function Checkbox(props: CheckboxProps) {
 				onChange={(e) => {
 					onChange(e);
 					if (updateFilters) {
-						algorithm?.updateFilters(algorithm.filters);
+						triggerFilterUpdate?.(algorithm.filters);
 					}
 				}}
 				className="cursor-pointer"

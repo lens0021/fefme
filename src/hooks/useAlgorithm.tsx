@@ -30,6 +30,8 @@ import {
 } from "../helpers/mastodon_helpers";
 import type { ErrorHandler } from "../types";
 import { AlgorithmStorageKey, TagTootsCategory } from "../core/enums";
+import type { FeedFilterSettings, Weights } from "../core/types";
+import type { WeightPresetLabel } from "../core/scorer/weight_presets";
 import { useAuthContext } from "./useAuth";
 import { useLocalStorage } from "./useLocalStorage";
 import Storage from "../core/Storage";
@@ -46,6 +48,7 @@ interface AlgoContext {
 	isGoToSocialUser?: boolean; // Whether the user is on a GoToSocial instance
 	hasInitialCache?: boolean;
 	hasPendingTimeline?: boolean;
+	isRebuildLoading?: boolean;
 	isLoading?: boolean;
 	hideSensitive?: boolean;
 	hideSensitiveCheckbox?: ReactElement;
@@ -56,7 +59,9 @@ interface AlgoContext {
 	selfTypeFilterMode?: "include" | "exclude" | "none";
 	setSelfTypeFilterMode?: (value: "include" | "exclude" | "none") => void;
 	showFilterHighlights?: boolean;
+	pendingTimelineReason?: PendingTimelineReason | null;
 	timeline: Toot[];
+	triggerFilterUpdate?: (filters: FeedFilterSettings) => Promise<void>;
 	triggerFeedUpdate?: () => void;
 	triggerHomeTimelineBackFill?: () => void;
 	triggerFederatedTimelineBackFill?: () => void;
@@ -64,10 +69,14 @@ interface AlgoContext {
 	triggerParticipatedTagBackFill?: () => void;
 	triggerMoarData?: () => void;
 	triggerPullAllUserData?: () => void;
+	triggerWeightUpdate?: (weights: Weights) => Promise<void>;
+	triggerWeightPresetUpdate?: (preset: WeightPresetLabel | string) => Promise<void>;
 }
 
 const AlgorithmContext = createContext<AlgoContext>({ timeline: [] });
 export const useAlgorithm = () => useContext(AlgorithmContext);
+
+type PendingTimelineReason = "new-posts" | "filters" | "weights";
 
 /** Manage Fefme algorithm state. */
 export default function AlgorithmProvider(props: PropsWithChildren) {
@@ -80,6 +89,7 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const [hasInitialCache, setHasInitialCache] = useState<boolean>(false);
 	const [hasPendingTimeline, setHasPendingTimeline] = useState<boolean>(false);
+	const [isRebuildLoading, setIsRebuildLoading] = useState<boolean>(false);
 	const [lastLoadDurationSeconds, setLastLoadDurationSeconds] = useState<
 		number | undefined
 	>();
@@ -90,6 +100,15 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 	const lastUserIdRef = React.useRef<string | null>(null);
 	const allowTimelineUpdatesRef = React.useRef(true);
 	const pendingTimelineRef = React.useRef<Toot[] | null>(null);
+	const pendingTimelineReasonRef =
+		React.useRef<PendingTimelineReason | null>(null);
+	const queuedRebuildRef = React.useRef<{
+		reason: PendingTimelineReason;
+		run: () => Promise<void>;
+	} | null>(null);
+	const rebuildInFlightRef = React.useRef(false);
+	const [pendingTimelineReason, setPendingTimelineReason] =
+		useState<PendingTimelineReason | null>(null);
 
 	// TODO: this doesn't make any API calls yet, right?
 	const api = useMemo(() => {
@@ -256,6 +275,7 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		setTimeline(pendingTimeline);
 		pendingTimelineRef.current = null;
 		setHasPendingTimeline(false);
+		setPendingTimelineReason(null);
 		Storage.set(AlgorithmStorageKey.VISIBLE_TIMELINE_TOOTS, pendingTimeline)
 			.then(() =>
 				Storage.remove(AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_TOOTS),
@@ -300,8 +320,10 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 			hasInitializedRef.current = false;
 			allowTimelineUpdatesRef.current = true;
 			pendingTimelineRef.current = null;
+			pendingTimelineReasonRef.current = null;
 			setHasInitialCache(false);
 			setHasPendingTimeline(false);
+			setPendingTimelineReason(null);
 			return;
 		}
 
@@ -310,10 +332,56 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 			hasInitializedRef.current = false;
 			allowTimelineUpdatesRef.current = true;
 			pendingTimelineRef.current = null;
+			pendingTimelineReasonRef.current = null;
 			setHasInitialCache(false);
 			setHasPendingTimeline(false);
+			setPendingTimelineReason(null);
 		}
 	}, [user?.id]);
+
+	const runRebuild = useCallback(
+		async (reason: PendingTimelineReason, run: () => Promise<void>) => {
+			if (!algorithm) return;
+			if (rebuildInFlightRef.current) {
+				queuedRebuildRef.current = { reason, run };
+				return;
+			}
+
+			rebuildInFlightRef.current = true;
+			pendingTimelineReasonRef.current = reason;
+			setHasPendingTimeline(false);
+			setPendingTimelineReason(null);
+			setIsRebuildLoading(true);
+
+			const previousAllowTimelineUpdates = allowTimelineUpdatesRef.current;
+			allowTimelineUpdatesRef.current = false;
+
+			try {
+				await run();
+			} catch (err) {
+				logAndShowError("Failure while rebuilding the feed!", err as Error);
+			} finally {
+				allowTimelineUpdatesRef.current = previousAllowTimelineUpdates;
+				setIsRebuildLoading(false);
+				rebuildInFlightRef.current = false;
+
+				if (pendingTimelineRef.current) {
+					setHasPendingTimeline(true);
+					setPendingTimelineReason(
+						pendingTimelineReasonRef.current ?? reason,
+					);
+				}
+
+				pendingTimelineReasonRef.current = null;
+				const queued = queuedRebuildRef.current;
+				queuedRebuildRef.current = null;
+				if (queued) {
+					runRebuild(queued.reason, queued.run);
+				}
+			}
+		},
+		[algorithm, logAndShowError],
+	);
 
 	// Initial load of the feed
 	useEffect(() => {
@@ -393,8 +461,12 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 					pendingTimelineRef.current = null;
 					setTimeline(pendingTimeline ?? algo.timeline);
 					setHasPendingTimeline(false);
+					setPendingTimelineReason(null);
 				} else {
 					setHasPendingTimeline(!!pendingTimelineRef.current);
+					setPendingTimelineReason(
+						pendingTimelineRef.current ? "new-posts" : null,
+					);
 				}
 			};
 
@@ -458,9 +530,11 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		hasPendingTimeline,
 		hideSensitive,
 		hideSensitiveCheckbox,
+		isRebuildLoading,
 		isGoToSocialUser,
 		isLoading,
 		lastLoadDurationSeconds,
+		pendingTimelineReason,
 		resetAlgorithm,
 		resetSeenState,
 		serverInfo,
@@ -468,6 +542,12 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		setSelfTypeFilterMode,
 		showFilterHighlights,
 		timeline,
+		triggerFilterUpdate: async (filters: FeedFilterSettings) => {
+			if (!algorithm) return;
+			await runRebuild("filters", () =>
+				Promise.resolve(algorithm.updateFilters(filters)),
+			);
+		},
 		triggerFeedUpdate,
 		triggerHomeTimelineBackFill,
 		triggerFederatedTimelineBackFill,
@@ -475,6 +555,16 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		triggerParticipatedTagBackFill,
 		triggerMoarData,
 		triggerPullAllUserData,
+		triggerWeightUpdate: async (weights: Weights) => {
+			if (!algorithm) return;
+			await runRebuild("weights", () => algorithm.updateUserWeights(weights));
+		},
+		triggerWeightPresetUpdate: async (preset: WeightPresetLabel | string) => {
+			if (!algorithm) return;
+			await runRebuild("weights", () =>
+				algorithm.updateUserWeightsToPreset(preset),
+			);
+		},
 	};
 
 	return (
