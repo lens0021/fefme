@@ -114,7 +114,11 @@ export default function MultimediaNode(
 						...filterStyle,
 						cursor: removeMediaAttachment ? "default" : "pointer",
 					}}
-					className="h-full w-full rounded-[15px] bg-black object-contain object-top"
+					className={
+						images.length === 1
+							? "h-full w-full rounded-[15px] bg-[color:var(--color-card-bg)] object-contain object-center"
+							: "h-full w-full rounded-[15px] bg-black object-contain object-top"
+					}
 					title={showContent ? image.description : spoilerText}
 					wrapperProps={{ style: { position: "static" } }} // Required to center properly with blur
 				/>
