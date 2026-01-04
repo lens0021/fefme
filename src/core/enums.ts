@@ -39,6 +39,7 @@ export enum AlgorithmStorageKey {
 	TIMELINE_POSTS = "TimelinePosts", // The entire timeline (home timeline + trending posts etc.)
 	VISIBLE_TIMELINE_POSTS = "VisibleTimelinePosts", // Filtered timeline used for initial render
 	NEXT_VISIBLE_TIMELINE_POSTS = "NextVisibleTimelinePosts", // Next filtered timeline cache for refresh
+	VISIBLE_TIMELINE_STALE = "VisibleTimelineStale", // Marks visible timeline as stale (pending refresh)
 	USER = "FedialgoUser",
 	WEIGHTS = "Weights",
 }

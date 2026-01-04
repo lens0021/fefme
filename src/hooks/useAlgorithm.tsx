@@ -238,6 +238,9 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		}
 		setHasPendingTimeline(true);
 		setPendingTimelineReasons(Array.from(pendingTimelineReasonsRef.current));
+		Storage.set(AlgorithmStorageKey.VISIBLE_TIMELINE_STALE, 1).catch((err) =>
+			logger.error("Failed to persist visible timeline stale flag:", err),
+		);
 	}, []);
 
 	const triggerWithPending = useCallback(
@@ -449,17 +452,6 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 				locale: navigator?.language,
 			});
 
-			const pendingVisibleTimeline = await Storage.getCoerced<Post>(
-				AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_POSTS,
-			);
-			if (pendingVisibleTimeline.length > 0) {
-				await Storage.set(
-					AlgorithmStorageKey.VISIBLE_TIMELINE_POSTS,
-					pendingVisibleTimeline,
-				);
-				await Storage.remove(AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_POSTS);
-			}
-
 			if (await algo.isGoToSocialUser()) {
 				logger.warn(
 					"User is on a GoToSocial instance, skipping call to api.v1.apps.verifyCredentials()...",
@@ -484,10 +476,7 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 
 			setAlgorithm(algo);
 
-			const cachedTimeline =
-				pendingVisibleTimeline.length > 0
-					? pendingVisibleTimeline
-					: algo.timeline;
+			const cachedTimeline = algo.timeline;
 			const hasCachedPosts = cachedTimeline.length > 0;
 			setHasInitialCache(hasCachedPosts);
 

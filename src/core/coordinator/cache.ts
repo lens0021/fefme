@@ -27,13 +27,23 @@ export async function loadCachedData(
 	const nextVisibleTimeline = await Storage.getCoerced<Post>(
 		AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_POSTS,
 	);
-	if (nextVisibleTimeline.length > 0) {
+	const visibleTimelineStaleValue = await Storage.get(
+		AlgorithmStorageKey.VISIBLE_TIMELINE_STALE,
+	);
+	const visibleTimelineStale = visibleTimelineStaleValue === 1;
+	const shouldPromotePending =
+		nextVisibleTimeline.length > 0 &&
+		(visibleTimelineStale || visibleTimelineStaleValue === null);
+	if (shouldPromotePending) {
 		visibleTimeline = nextVisibleTimeline;
 		await Storage.set(
 			AlgorithmStorageKey.VISIBLE_TIMELINE_POSTS,
 			nextVisibleTimeline,
 		);
 		await Storage.remove(AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_POSTS);
+		await Storage.remove(AlgorithmStorageKey.VISIBLE_TIMELINE_STALE);
+	} else if (visibleTimelineStale && nextVisibleTimeline.length === 0) {
+		await Storage.remove(AlgorithmStorageKey.VISIBLE_TIMELINE_STALE);
 	}
 
 	state.homeFeed = await Storage.getCoerced<Post>(CacheKey.HOME_TIMELINE_POSTS);
