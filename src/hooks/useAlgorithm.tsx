@@ -100,6 +100,7 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 	const hasInitializedRef = React.useRef(false);
 	const lastUserIdRef = React.useRef<string | null>(null);
 	const pendingTimelineRef = React.useRef<Post[] | null>(null);
+	const visibleTimelineRef = React.useRef<Post[]>([]);
 	const pendingTimelineReasonsRef = React.useRef<Set<PendingTimelineReason>>(
 		new Set(),
 	);
@@ -215,8 +216,20 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		[logAndShowError, setLoadState, triggerLoadFxn],
 	);
 
+	useEffect(() => {
+		visibleTimelineRef.current = timeline;
+	}, [timeline]);
+
 	const queuePendingTimeline = useCallback((reason?: PendingTimelineReason) => {
 		if (!pendingTimelineRef.current) return;
+		if (reason === "new-posts") {
+			const currentTimeline = visibleTimelineRef.current;
+			const currentUris = new Set(currentTimeline.map((post) => post.uri));
+			const hasNewPosts = pendingTimelineRef.current.some(
+				(post) => !currentUris.has(post.uri),
+			);
+			if (!hasNewPosts) return;
+		}
 		if (reason) {
 			pendingTimelineReasonsRef.current.add(reason);
 		}
