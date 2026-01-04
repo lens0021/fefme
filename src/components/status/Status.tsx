@@ -116,7 +116,8 @@ export default function StatusComponent(props: StatusComponentProps) {
 		showLinkPreviews,
 		status,
 	} = props;
-	const { algorithm, isGoToSocialUser, isLoading } = useAlgorithm();
+	const { algorithm, isGoToSocialUser, isLoading, scheduleSeenRefresh } =
+		useAlgorithm();
 	const { logAndSetFormattedError } = useError();
 	const contentClass =
 		"text-[15px] leading-relaxed text-[color:var(--color-fg)] break-words [&_a]:text-[color:var(--color-primary)] [&_a]:break-all [&_a:hover]:underline [&_p]:mb-2 [&_p:last-child]:mb-0";
@@ -171,7 +172,8 @@ export default function StatusComponent(props: StatusComponentProps) {
 		}
 
 		algorithm?.saveTimelineToCache?.();
-	}, [algorithm, isLoading, isOnScreen, status, post]);
+		scheduleSeenRefresh?.();
+	}, [algorithm, isLoading, isOnScreen, status, post, scheduleSeenRefresh]);
 
 	// Build the account link(s) for the reblogger(s) that appears at top of a boost
 	const rebloggersLinks = useMemo(

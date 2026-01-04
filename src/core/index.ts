@@ -89,7 +89,7 @@ import {
 	shouldSkip,
 	startAction,
 } from "./coordinator/actions";
-import { updateFilters } from "./coordinator/filters";
+import { filterFeedAndSetInApp, updateFilters } from "./coordinator/filters";
 import {
 	loadCachedData,
 	resetSeenState,
@@ -573,6 +573,15 @@ export default class FeedCoordinator {
 	 */
 	updateFilters(newFilters: FeedFilterSettings): Post[] {
 		return updateFilters(this.state, newFilters);
+	}
+
+	/**
+	 * Reapply the current filters to the feed and update the filtered timeline.
+	 * Useful for keeping seen-state filters in sync without refetching posts.
+	 * @returns {Promise<Post[]>} The newly filtered feed.
+	 */
+	async refreshFilteredTimeline(): Promise<Post[]> {
+		return filterFeedAndSetInApp(this.state);
 	}
 
 	/**

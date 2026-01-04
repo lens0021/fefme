@@ -58,6 +58,7 @@ interface AlgoContext {
 	selfTypeFilterMode?: "include" | "exclude" | "none";
 	setSelfTypeFilterMode?: (value: "include" | "exclude" | "none") => void;
 	showFilterHighlights?: boolean;
+	scheduleSeenRefresh?: () => void;
 	pendingTimelineReasons?: PendingTimelineReason[];
 	timeline: Post[];
 	triggerFilterUpdate?: (filters: FeedFilterSettings) => Promise<void>;
@@ -78,6 +79,7 @@ const AlgorithmContext = createContext<AlgoContext>({ timeline: [] });
 export const useAlgorithm = () => useContext(AlgorithmContext);
 
 type PendingTimelineReason = "new-posts" | "filters" | "weights";
+const SEEN_REFRESH_DEBOUNCE_MS = 1000;
 
 /** Manage Fefme algorithm state. */
 export default function AlgorithmProvider(props: PropsWithChildren) {
@@ -103,6 +105,9 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 	const visibleTimelineRef = React.useRef<Post[]>([]);
 	const pendingTimelineReasonsRef = React.useRef<Set<PendingTimelineReason>>(
 		new Set(),
+	);
+	const seenRefreshTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(
+		null,
 	);
 	const queuedRebuildRef = React.useRef<{
 		reason: PendingTimelineReason;
@@ -215,6 +220,22 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 			triggerLoadFxn(loadFxn, logAndShowError, setLoadState),
 		[logAndShowError, setLoadState, triggerLoadFxn],
 	);
+
+	const scheduleSeenRefresh = useCallback(() => {
+		if (!algorithm) return;
+		if (seenRefreshTimeoutRef.current) {
+			clearTimeout(seenRefreshTimeoutRef.current);
+		}
+		seenRefreshTimeoutRef.current = setTimeout(() => {
+			setTimeline((prev) => [...prev]);
+			algorithm.refreshFilteredTimeline().catch((err) => {
+				logger.error("Failed to refresh filtered timeline after seen update:", err);
+			});
+			Storage.set(AlgorithmStorageKey.VISIBLE_TIMELINE_STALE, 1).catch((err) =>
+				logger.error("Failed to persist visible timeline stale flag:", err),
+			);
+		}, SEEN_REFRESH_DEBOUNCE_MS);
+	}, [algorithm]);
 
 	useEffect(() => {
 		visibleTimelineRef.current = timeline;
@@ -356,6 +377,10 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 			hasInitializedRef.current = false;
 			pendingTimelineRef.current = null;
 			pendingTimelineReasonsRef.current = new Set();
+			if (seenRefreshTimeoutRef.current) {
+				clearTimeout(seenRefreshTimeoutRef.current);
+				seenRefreshTimeoutRef.current = null;
+			}
 			setHasInitialCache(false);
 			setHasPendingTimeline(false);
 			setPendingTimelineReasons([]);
@@ -367,6 +392,10 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 			hasInitializedRef.current = false;
 			pendingTimelineRef.current = null;
 			pendingTimelineReasonsRef.current = new Set();
+			if (seenRefreshTimeoutRef.current) {
+				clearTimeout(seenRefreshTimeoutRef.current);
+				seenRefreshTimeoutRef.current = null;
+			}
 			setHasInitialCache(false);
 			setHasPendingTimeline(false);
 			setPendingTimelineReasons([]);
@@ -586,6 +615,7 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		selfTypeFilterMode,
 		setSelfTypeFilterMode,
 		showFilterHighlights,
+		scheduleSeenRefresh,
 		timeline,
 		triggerFilterUpdate: async (filters: FeedFilterSettings) => {
 			if (!algorithm) return;
