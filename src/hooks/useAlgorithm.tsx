@@ -106,9 +106,9 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 	const pendingTimelineReasonsRef = React.useRef<Set<PendingTimelineReason>>(
 		new Set(),
 	);
-	const seenRefreshTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(
-		null,
-	);
+	const seenRefreshTimeoutRef = React.useRef<ReturnType<
+		typeof setTimeout
+	> | null>(null);
 	const queuedRebuildRef = React.useRef<{
 		reason: PendingTimelineReason;
 		run: () => Promise<void>;
@@ -229,7 +229,10 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		seenRefreshTimeoutRef.current = setTimeout(() => {
 			setTimeline((prev) => [...prev]);
 			algorithm.refreshFilteredTimeline().catch((err) => {
-				logger.error("Failed to refresh filtered timeline after seen update:", err);
+				logger.error(
+					"Failed to refresh filtered timeline after seen update:",
+					err,
+				);
 			});
 			Storage.set(AlgorithmStorageKey.VISIBLE_TIMELINE_STALE, 1).catch((err) =>
 				logger.error("Failed to persist visible timeline stale flag:", err),
