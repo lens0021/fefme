@@ -351,6 +351,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 			<div
 				aria-label={ariaLabel}
 				className="mb-4 rounded-2xl border p-4 shadow-sm focus-within:ring-2 focus-within:ring-[color:var(--color-primary)]"
+				data-testid="status-card"
 				style={style}
 				tabIndex={0}
 			>

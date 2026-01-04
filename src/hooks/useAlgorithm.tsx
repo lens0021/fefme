@@ -227,13 +227,17 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 			clearTimeout(seenRefreshTimeoutRef.current);
 		}
 		seenRefreshTimeoutRef.current = setTimeout(() => {
-			setTimeline((prev) => [...prev]);
-			algorithm.refreshFilteredTimeline().catch((err) => {
-				logger.error(
-					"Failed to refresh filtered timeline after seen update:",
-					err,
-				);
-			});
+			algorithm
+				.refreshFilteredTimeline()
+				.then((filtered) => {
+					setTimeline(filtered);
+				})
+				.catch((err) => {
+					logger.error(
+						"Failed to refresh filtered timeline after seen update:",
+						err,
+					);
+				});
 			Storage.set(AlgorithmStorageKey.VISIBLE_TIMELINE_STALE, 1).catch((err) =>
 				logger.error("Failed to persist visible timeline stale flag:", err),
 			);
