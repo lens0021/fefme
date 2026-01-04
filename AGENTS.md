@@ -59,6 +59,11 @@ React Context (useAlgorithm hook)
 Feed.tsx → StatusComponent → Rendered Posts
 ```
 
+### Loading Behavior (Blue/Green)
+- The visible timeline cache (blue) is intentionally stable for a session; seen markers update per post without reshuffling the list.
+- Background refreshes populate a next cache (green). The UI switches to it only on an explicit refresh (bubble click or page reload).
+- Cache promotion is handled in `src/core/coordinator/cache.ts` using `VISIBLE_TIMELINE_POSTS`, `NEXT_VISIBLE_TIMELINE_POSTS`, and `VISIBLE_TIMELINE_STALE`.
+
 ### Core Directory Structure
 
 ```

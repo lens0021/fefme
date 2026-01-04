@@ -28,6 +28,7 @@ If you try out FediAlgo but don't plan on using it again you may want to revoke 
 Fefme keeps the UI stable during the first load:
 
 * The app maintains two timeline caches: the current cache that is shown immediately (blue) and a next cache that is built in the background (green).
+* The visible cache is intentionally stable; seen markers update per post, but the list itself does not reshuffle until a refresh is triggered.
 * When fresh data finishes loading, the next cache is saved and shown on the next page load. A floating "New posts" bubble appears if fresh data arrives.
 * On the next refresh, the next cache becomes the current cache and the previous one is discarded. If a refresh happens before the next cache is ready, the current cache is reused.
 * If no cache exists, the app shows only the loading screen until the first load completes.
