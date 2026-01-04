@@ -59,9 +59,9 @@ export async function loadCachedData(
 
 	state.filters = (await Storage.getFilters()) ?? state.filters;
 	const hasSeenExclude =
-		state.filters.booleanFilters?.[BooleanFilterName.TYPE]?.excludedOptions?.includes(
-			TypeFilterName.SEEN,
-		) ?? false;
+		state.filters.booleanFilters?.[
+			BooleanFilterName.TYPE
+		]?.excludedOptions?.includes(TypeFilterName.SEEN) ?? false;
 
 	if (state.feed.length > 0) {
 		await updateBooleanFilterOptions(state.filters, state.feed);
