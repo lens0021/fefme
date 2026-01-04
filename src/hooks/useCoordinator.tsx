@@ -335,12 +335,16 @@ export default function CoordinatorProvider(props: PropsWithChildren) {
 		[algorithm, triggerWithPending],
 	);
 	const triggerMoarData = useCallback(
-		() => algorithm && trigger(() => algorithm.triggerMoarData()),
-		[algorithm, trigger],
+		() =>
+			algorithm &&
+			triggerWithPending(() => algorithm.triggerMoarData(), "weights"),
+		[algorithm, triggerWithPending],
 	);
 	const triggerPullAllUserData = useCallback(
-		() => algorithm && trigger(() => algorithm.triggerPullAllUserData()),
-		[algorithm, trigger],
+		() =>
+			algorithm &&
+			triggerWithPending(() => algorithm.triggerPullAllUserData(), "weights"),
+		[algorithm, triggerWithPending],
 	);
 
 	const setTimelineInApp = useCallback((feed: Post[]) => {

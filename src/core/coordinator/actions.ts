@@ -26,7 +26,9 @@ export async function startAction(
 	}
 
 	state.currentAction = logPrefix;
-	state.deferTimelineUpdates = logPrefix === LoadAction.FEED_UPDATE;
+	state.deferTimelineUpdates =
+		logPrefix === LoadAction.FEED_UPDATE ||
+		logPrefix === LoadAction.TIMELINE_BACKFILL;
 	state.deferredTimeline = null;
 	state.loadStartedAt = new Date();
 	state.releaseLoadingMutex = await lockExecution(state.loadingMutex, logger);
