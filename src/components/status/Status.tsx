@@ -158,7 +158,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 
 	// useEffect to handle things we want to do when the post makes its first appearnace on screen
 	useEffect(() => {
-		if (isLoading || !isOnScreen) return;
+		if (!isOnScreen) return;
 
 		// Pre-emptively resolve the post ID as it appears on screen to speed up future interactions
 		// TODO: disabled this for now as it increases storage demands for small instances
@@ -173,7 +173,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 
 		algorithm?.saveTimelineToCache?.();
 		scheduleSeenRefresh?.();
-	}, [algorithm, isLoading, isOnScreen, status, post, scheduleSeenRefresh]);
+	}, [algorithm, isOnScreen, status, post, scheduleSeenRefresh]);
 
 	// Build the account link(s) for the reblogger(s) that appears at top of a boost
 	const rebloggersLinks = useMemo(
