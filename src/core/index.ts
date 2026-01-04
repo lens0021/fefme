@@ -498,7 +498,6 @@ export default class FeedCoordinator {
 			this.state.trendingData = EMPTY_TRENDING_DATA;
 			this.state.feed = [];
 			this.state.filteredTimeline = [];
-			this.state.setTimelineInApp([]);
 
 			// Call other classes' reset methods
 			MastoApi.instance.reset();

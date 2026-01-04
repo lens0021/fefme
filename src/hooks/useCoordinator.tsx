@@ -360,12 +360,6 @@ export default function CoordinatorProvider(props: PropsWithChildren) {
 		triggerFeedUpdate();
 	}, [algorithm, resetErrors, triggerFeedUpdate]);
 
-	const resetSeenState = useCallback(async () => {
-		resetErrors();
-		if (!algorithm) return;
-		await algorithm.resetSeenState();
-	}, [algorithm, resetErrors]);
-
 	// Save timeline on page unload to preserve read status
 	useEffect(() => {
 		if (!algorithm) return;
@@ -445,6 +439,14 @@ export default function CoordinatorProvider(props: PropsWithChildren) {
 		},
 		[algorithm, logAndShowError, queuePendingTimeline],
 	);
+
+	const resetSeenState = useCallback(async () => {
+		resetErrors();
+		if (!algorithm) return;
+		await runRebuild("filters", async () => {
+			await algorithm.resetSeenState();
+		});
+	}, [algorithm, resetErrors, runRebuild]);
 
 	// Initial load of the feed
 	useEffect(() => {
