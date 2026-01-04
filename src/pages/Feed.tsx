@@ -507,9 +507,22 @@ export default function Feed() {
 									reloadPage();
 								}}
 								aria-label={bubbleLabel}
-								className="pointer-events-auto rounded-full bg-[color:var(--color-primary)] px-4 py-2 text-sm font-semibold text-white shadow-lg transition hover:scale-[1.02]"
+								className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-[color:var(--color-primary)] px-4 py-2 text-sm font-semibold text-white shadow-lg transition hover:scale-[1.02]"
 								data-testid="refresh-bubble"
 							>
+								<svg
+									aria-hidden="true"
+									viewBox="0 0 24 24"
+									className="h-4 w-4"
+									fill="none"
+									stroke="currentColor"
+									strokeWidth="2"
+									strokeLinecap="round"
+									strokeLinejoin="round"
+								>
+									<path d="M3 12a9 9 0 1 0 3-6.7" />
+									<path d="M3 4v6h6" />
+								</svg>
 								{bubbleLabel}
 							</button>
 						</div>
