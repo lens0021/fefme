@@ -79,7 +79,7 @@ const instanceInfo = {
 	},
 };
 
-test("seen-only filter, background refresh, and bubble reload show new posts only", async ({
+test("seen-only filter keeps visible list stable until bubble reload", async ({
 	page,
 }) => {
 	const user = {
@@ -186,7 +186,7 @@ test("seen-only filter, background refresh, and bubble reload show new posts onl
 	}
 
 	await page.waitForTimeout(1500);
-	await expect(statusCards).toHaveCount(0, { timeout: 20_000 });
+	await expect(statusCards).toHaveCount(20, { timeout: 20_000 });
 
 	await page.getByRole("button", { name: "Data Loading & History" }).click();
 	await page.getByRole("button", { name: "Load new posts" }).first().click();

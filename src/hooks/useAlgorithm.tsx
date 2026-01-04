@@ -99,6 +99,7 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 	const [lastLoadStartedAt, setLastLoadStartedAt] = useState<Date>(new Date());
 	const [serverInfo, setServerInfo] = useState<MastodonServer>(null); // Instance info for the user's server
 	const [timeline, setTimeline] = useState<Post[]>([]);
+	const [, setSeenRefreshTick] = useState(0);
 	const hasInitializedRef = React.useRef(false);
 	const lastUserIdRef = React.useRef<string | null>(null);
 	const pendingTimelineRef = React.useRef<Post[] | null>(null);
@@ -229,14 +230,14 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		seenRefreshTimeoutRef.current = setTimeout(() => {
 			algorithm
 				.refreshFilteredTimeline()
-				.then((filtered) => {
-					setTimeline(filtered);
-				})
 				.catch((err) => {
 					logger.error(
 						"Failed to refresh filtered timeline after seen update:",
 						err,
 					);
+				})
+				.finally(() => {
+					setSeenRefreshTick((value) => value + 1);
 				});
 			Storage.set(AlgorithmStorageKey.VISIBLE_TIMELINE_STALE, 1).catch((err) =>
 				logger.error("Failed to persist visible timeline stale flag:", err),
