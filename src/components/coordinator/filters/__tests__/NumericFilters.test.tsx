@@ -1,8 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 
-import { config } from "../../../../config";
-import NumericFilters from "../NumericFilters";
+import { config } from "@/config";
+import NumericFilters from "@/components/coordinator/filters/NumericFilters";
 
 let mockAlgorithm: {
 	filters: {
@@ -14,7 +14,7 @@ let mockAlgorithm: {
 };
 let mockTriggerFilterUpdate: ReturnType<typeof vi.fn>;
 
-vi.mock("../../../../hooks/useAlgorithm", () => ({
+vi.mock("@/hooks/useAlgorithm", () => ({
 	useAlgorithm: () => ({
 		algorithm: mockAlgorithm,
 		triggerFilterUpdate: mockTriggerFilterUpdate,

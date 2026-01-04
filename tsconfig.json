@@ -1,6 +1,9 @@
 {
 	"compilerOptions": {
 		"baseUrl": ".",
+		"paths": {
+			"@/*": ["src/*"]
+		},
 		"experimentalDecorators": true,
 		"emitDecoratorMetadata": true,
 		"allowJs": true,

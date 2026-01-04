@@ -1,8 +1,8 @@
 import { render, screen } from "@testing-library/react";
-import { config } from "../../config";
-import Feed from "../Feed";
+import { config } from "@/config";
+import Feed from "@/pages/Feed";
 
-vi.mock("../../hooks/useAlgorithm", () => ({
+vi.mock("@/hooks/useAlgorithm", () => ({
 	useAlgorithm: () => ({
 		algorithm: undefined,
 		hasInitialCache: false,
@@ -23,15 +23,15 @@ vi.mock("../../hooks/useAlgorithm", () => ({
 	}),
 }));
 
-vi.mock("../../components/coordinator/FeedFiltersAccordionSection", () => ({
+vi.mock("@/components/coordinator/FeedFiltersAccordionSection", () => ({
 	default: () => <div data-testid="feed-filters" />,
 }));
 
-vi.mock("../../components/coordinator/WeightSetter", () => ({
+vi.mock("@/components/coordinator/WeightSetter", () => ({
 	default: () => <div data-testid="weight-setter" />,
 }));
 
-vi.mock("../../components/status/Status", () => ({
+vi.mock("@/components/status/Status", () => ({
 	default: () => <div data-testid="status-card" />,
 }));
 

@@ -7,15 +7,15 @@ import {
 } from "@testing-library/react";
 import { vi } from "vitest";
 
-import { config } from "../../config";
-import { AlgorithmStorageKey } from "../../core/enums";
-import FeedCoordinator from "../../core/index";
-import Storage from "../../core/Storage";
-import { reloadPage } from "../../helpers/navigation";
-import AlgorithmProvider from "../../hooks/useAlgorithm";
-import Feed from "../Feed";
+import { config } from "@/config";
+import { AlgorithmStorageKey } from "@/core/enums";
+import FeedCoordinator from "@/core/index";
+import Storage from "@/core/Storage";
+import { reloadPage } from "@/helpers/navigation";
+import AlgorithmProvider from "@/hooks/useAlgorithm";
+import Feed from "@/pages/Feed";
 
-vi.mock("../../core/Storage", () => ({
+vi.mock("@/core/Storage", () => ({
 	default: {
 		getCoerced: vi.fn(() => []),
 		set: vi.fn(() => Promise.resolve()),
@@ -23,7 +23,7 @@ vi.mock("../../core/Storage", () => ({
 	},
 }));
 
-vi.mock("../../helpers/navigation", () => ({
+vi.mock("@/helpers/navigation", () => ({
 	reloadPage: vi.fn(),
 }));
 
@@ -37,26 +37,26 @@ const mockLogout = vi.fn();
 const mockLogAndSetFormattedError = vi.fn();
 const mockResetErrors = vi.fn();
 
-vi.mock("../../hooks/useAuth", () => ({
+vi.mock("@/hooks/useAuth", () => ({
 	useAuthContext: () => ({
 		user: mockUser,
 		logout: mockLogout,
 	}),
 }));
 
-vi.mock("../../components/coordinator/FeedFiltersAccordionSection", () => ({
+vi.mock("@/components/coordinator/FeedFiltersAccordionSection", () => ({
 	default: () => <div data-testid="feed-filters" />,
 }));
 
-vi.mock("../../components/coordinator/WeightSetter", () => ({
+vi.mock("@/components/coordinator/WeightSetter", () => ({
 	default: () => <div data-testid="weight-setter" />,
 }));
 
-vi.mock("../../components/status/Status", () => ({
+vi.mock("@/components/status/Status", () => ({
 	default: () => <div data-testid="status-card" />,
 }));
 
-vi.mock("../../components/helpers/ErrorHandler", () => ({
+vi.mock("@/components/helpers/ErrorHandler", () => ({
 	useError: () => ({
 		logAndSetFormattedError: mockLogAndSetFormattedError,
 		resetErrors: mockResetErrors,

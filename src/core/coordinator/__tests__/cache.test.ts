@@ -5,11 +5,11 @@ import {
 	BooleanFilterName,
 	CacheKey,
 	TypeFilterName,
-} from "../../enums";
-import { buildNewFilterSettings } from "../../filters/feed_filters";
-import Storage from "../../Storage";
-import { loadCachedData } from "../cache";
-import { AlgorithmState } from "../state";
+} from "@/core/enums";
+import { buildNewFilterSettings } from "@/core/filters/feed_filters";
+import Storage from "@/core/Storage";
+import { loadCachedData } from "@/core/coordinator/cache";
+import { AlgorithmState } from "@/core/coordinator/state";
 
 vi.mock("../../Storage", () => ({
 	default: {

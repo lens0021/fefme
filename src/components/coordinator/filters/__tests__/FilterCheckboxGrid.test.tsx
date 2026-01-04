@@ -2,12 +2,12 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { vi } from "vitest";
 
-import { BooleanFilterOptionList } from "../../../../core/api/counted_list";
-import BooleanFilter from "../../../../core/filters/boolean_filter";
-import { BooleanFilterName } from "../../../../core/enums";
-import type { BooleanFilterOption } from "../../../../core/types";
+import { BooleanFilterOptionList } from "@/core/api/counted_list";
+import { BooleanFilterName } from "@/core/enums";
+import BooleanFilter from "@/core/filters/boolean_filter";
+import type { BooleanFilterOption } from "@/core/types";
 
-vi.mock("../../../../core/api/tag_list", () => ({
+vi.mock("@/core/api/tag_list", () => ({
 	default: class TagListMock {
 		length = 0;
 		static async buildFavouritedTags() {
@@ -31,7 +31,7 @@ let mockAlgorithm: {
 };
 let mockTriggerFilterUpdate: ReturnType<typeof vi.fn>;
 
-vi.mock("../../../../hooks/useAlgorithm", () => ({
+vi.mock("@/hooks/useAlgorithm", () => ({
 	useAlgorithm: () => ({
 		algorithm: mockAlgorithm,
 		alwaysShowFollowed: false,
@@ -68,7 +68,9 @@ describe("FilterCheckboxGrid", () => {
 	});
 
 	it("updates filter state and calls triggerFilterUpdate when Include is clicked", async () => {
-		FilterCheckboxGrid = (await import("../FilterCheckboxGrid")).default;
+		FilterCheckboxGrid = (
+			await import("@/components/coordinator/filters/FilterCheckboxGrid")
+		).default;
 		const filter = buildLanguageFilter();
 		const user = userEvent.setup();
 
