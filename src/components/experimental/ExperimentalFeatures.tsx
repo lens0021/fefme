@@ -3,7 +3,7 @@
  */
 import { FEDIALGO } from "../../core/index";
 
-import { useAlgorithm } from "../../hooks/useAlgorithm";
+import { useCoordinator } from "../../hooks/useCoordinator";
 import { useAuthContext } from "../../hooks/useAuth";
 import Accordion from "../helpers/Accordion";
 import { confirm } from "../helpers/Confirmation";
@@ -23,7 +23,7 @@ const BUTTON_TEXT = {
 export const OAUTH_ERROR_MSG = `If you were trying to bookmark, mute, or reply with an image you may have used ${FEDIALGO} before it requested the appropriate permissions to perform those actions. This can be fixed with the "${DELETE_ALL}" button in the Experimental Features section or by manually clearing your browser's local storage (cookies and everything else) for this site. and then logging back in.`;
 
 export default function ExperimentalFeatures() {
-	const { algorithm, isLoading, triggerPullAllUserData } = useAlgorithm();
+	const { algorithm, isLoading, triggerPullAllUserData } = useCoordinator();
 	const { logout, setApp } = useAuthContext();
 
 	// Reset all state except for the user and server

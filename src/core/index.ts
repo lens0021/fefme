@@ -19,7 +19,7 @@ import TagsForFetchingPosts from "./api/tags_for_fetching_posts";
 import UserData from "./api/user_data";
 import { MAX_ENDPOINT_RECORDS_TO_PULL, config } from "./config";
 import {
-	AlgorithmStorageKey,
+	CoordinatorStorageKey,
 	BooleanFilterName,
 	CacheKey,
 	FEDERATED_TIMELINE_SOURCE,
@@ -81,7 +81,7 @@ import {
 	type WeightName,
 	type Weights,
 } from "./types";
-import { AlgorithmState } from "./coordinator/state";
+import { CoordinatorState } from "./coordinator/state";
 import { EMPTY_TRENDING_DATA } from "./coordinator/constants";
 import { loggers, logger } from "./coordinator/loggers";
 import {
@@ -115,7 +115,7 @@ import {
 const DEFAULT_SET_TIMELINE_IN_APP = (_feed: Post[]) =>
 	console.debug(`Default setTimelineInApp() called`);
 
-interface AlgorithmArgs {
+interface CoordinatorArgs {
 	api: mastodon.rest.Client;
 	user: mastodon.v1.Account;
 	locale?: string; // Optional locale to use for date formatting
@@ -147,7 +147,7 @@ interface AlgorithmArgs {
  * @property {WeightInfoDict} weightsInfo - Info about all scoring weights
  */
 export default class FeedCoordinator {
-	private state: AlgorithmState;
+	private state: CoordinatorState;
 
 	get filters(): FeedFilterSettings {
 		return this.state.filters;
@@ -192,14 +192,14 @@ export default class FeedCoordinator {
 
 	/**
 	 * Publicly callable constructor that instantiates the class and loads the feed from storage.
-	 * @param {AlgorithmArgs} params - The parameters for algorithm creation.
+	 * @param {CoordinatorArgs} params - The parameters for coordinator creation.
 	 * @param {mastodon.rest.Client} params.api - The Mastodon REST API client instance.
 	 * @param {mastodon.v1.Account} params.user - The Mastodon user account for which to build the feed.
 	 * @param {string} [params.locale] - Optional locale string for date formatting.
 	 * @param {(feed: Post[]) => void} [params.setTimelineInApp] - Optional callback to set the feed in the consuming app.
 	 * @returns {Promise<FeedCoordinator>} FeedCoordinator instance.
 	 */
-	static async create(params: AlgorithmArgs): Promise<FeedCoordinator> {
+	static async create(params: CoordinatorArgs): Promise<FeedCoordinator> {
 		config.setLocale(params.locale);
 		const user = Account.build(params.user);
 		await MastoApi.init(params.api, user);
@@ -214,12 +214,12 @@ export default class FeedCoordinator {
 
 	/**
 	 * Private constructor. Use {@linkcode FeedCoordinator.create} to instantiate.
-	 * @param {AlgorithmArgs} params - Constructor params (API client, user, and optional timeline callback/locale).
+	 * @param {CoordinatorArgs} params - Constructor params (API client, user, and optional timeline callback/locale).
 	 */
-	private constructor(params: AlgorithmArgs) {
+	private constructor(params: CoordinatorArgs) {
 		const setTimelineInApp =
 			params.setTimelineInApp ?? DEFAULT_SET_TIMELINE_IN_APP;
-		this.state = new AlgorithmState(setTimelineInApp);
+		this.state = new CoordinatorState(setTimelineInApp);
 	}
 
 	/**
@@ -506,7 +506,7 @@ export default class FeedCoordinator {
 			await Storage.clearAll();
 
 			if (complete) {
-				await Storage.remove(AlgorithmStorageKey.USER); // Remove user data so it gets reloaded
+				await Storage.remove(CoordinatorStorageKey.USER); // Remove user data so it gets reloaded
 			} else {
 				await loadCachedData(this.state);
 			}

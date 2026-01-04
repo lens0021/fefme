@@ -2,9 +2,9 @@ import Storage from "../Storage";
 import type Post from "../api/objects/post";
 import type { FeedFilterSettings } from "../types";
 import { logger } from "./loggers";
-import type { AlgorithmState } from "./state";
+import type { CoordinatorState } from "./state";
 
-export function filterFeedAndSetInApp(state: AlgorithmState): Post[] {
+export function filterFeedAndSetInApp(state: CoordinatorState): Post[] {
 	state.filteredTimeline = state.feed.filter((post) =>
 		post.isInTimeline(state.filters),
 	);
@@ -30,14 +30,14 @@ export function filterFeedAndSetInApp(state: AlgorithmState): Post[] {
 	return state.filteredTimeline;
 }
 
-export function flushDeferredTimeline(state: AlgorithmState): void {
+export function flushDeferredTimeline(state: CoordinatorState): void {
 	if (!state.deferredTimeline) return;
 	state.setTimelineInApp(state.deferredTimeline);
 	state.deferredTimeline = null;
 }
 
 export function updateFilters(
-	state: AlgorithmState,
+	state: CoordinatorState,
 	newFilters: FeedFilterSettings,
 ): Post[] {
 	logger.info(`updateFilters() called with newFilters:`, newFilters);

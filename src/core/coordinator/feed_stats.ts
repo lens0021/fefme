@@ -6,11 +6,11 @@ import {
 	toISOFormatIfExists,
 } from "../helpers/time_helpers";
 import { logger } from "./loggers";
-import type { AlgorithmState } from "./state";
+import type { CoordinatorState } from "./state";
 import type { PostSource } from "../types";
 import { getSourceStats, type SourceStats } from "./source_stats";
 
-export function mostRecentHomeTootAt(state: AlgorithmState): Date | null {
+export function mostRecentHomeTootAt(state: CoordinatorState): Date | null {
 	if (state.homeFeed.length === 0 && state.numTriggers > 1) {
 		logger.warn(
 			`mostRecentHomeTootAt() homeFeed is empty, falling back to full feed`,
@@ -22,7 +22,7 @@ export function mostRecentHomeTootAt(state: AlgorithmState): Date | null {
 }
 
 export function mostRecentHomeTootAgeInSeconds(
-	state: AlgorithmState,
+	state: CoordinatorState,
 ): number | null {
 	const mostRecentAt = mostRecentHomeTootAt(state);
 	if (!mostRecentAt) return null;
@@ -32,7 +32,7 @@ export function mostRecentHomeTootAgeInSeconds(
 	return AgeIn.seconds(mostRecentAt);
 }
 
-export function getDataStats(state: AlgorithmState): {
+export function getDataStats(state: CoordinatorState): {
 	feedTotal: number;
 	homeFeedTotal: number;
 	unseenTotal: number;
@@ -68,7 +68,7 @@ export function getDataStats(state: AlgorithmState): {
 	};
 }
 
-export function statusDict(state: AlgorithmState): Record<string, unknown> {
+export function statusDict(state: CoordinatorState): Record<string, unknown> {
 	const mostRecentTootAt = mostRecentHomeTootAt(state);
 	const oldestTootAt = earliestTootedAt(state.homeFeed);
 	let numHoursInHomeFeed: number | null = null;

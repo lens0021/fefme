@@ -33,7 +33,7 @@ export type Action = LoadAction | LogAction;
  * @private
  * @enum {string}
  */
-export enum AlgorithmStorageKey {
+export enum CoordinatorStorageKey {
 	APP_OPENS = "AppOpens",
 	FILTERS = "Filters",
 	TIMELINE_POSTS = "TimelinePosts", // The entire timeline (home timeline + trending posts etc.)
@@ -196,7 +196,7 @@ export enum TypeFilterName {
 /** API data is written to browser storage with these cache keys. */
 export type ApiCacheKey = CacheKey | FediverseCacheKey | TagPostsCategory;
 /** All browser storage indexedDB keys. */
-export type StorageKey = AlgorithmStorageKey | ApiCacheKey;
+export type StorageKey = CoordinatorStorageKey | ApiCacheKey;
 /** Utility type. */
 export type IsNullOrUndefined<T> = null extends T
 	? undefined extends T
@@ -233,9 +233,9 @@ export const STORAGE_KEYS_WITH_ACCOUNTS: StorageKey[] = Object.entries(
 // Objects fetched with these keys need to be built into proper Post objects.
 export const STORAGE_KEYS_WITH_POSTS = Object.entries(CacheKey)
 	.reduce((keys, [k, v]) => (k.endsWith("_POSTS") ? keys.concat(v) : keys), [
-		AlgorithmStorageKey.TIMELINE_POSTS,
-		AlgorithmStorageKey.VISIBLE_TIMELINE_POSTS,
-		AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_POSTS,
+		CoordinatorStorageKey.TIMELINE_POSTS,
+		CoordinatorStorageKey.VISIBLE_TIMELINE_POSTS,
+		CoordinatorStorageKey.NEXT_VISIBLE_TIMELINE_POSTS,
 		FediverseCacheKey.TRENDING_POSTS,
 	] as StorageKey[])
 	.concat(Object.values(TagPostsCategory));

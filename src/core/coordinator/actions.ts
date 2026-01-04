@@ -4,7 +4,7 @@ import { lockExecution } from "../helpers/mutex_helpers";
 import { isQuickMode } from "../helpers/environment_helpers";
 import ScorerCache from "../scorer/scorer_cache";
 import { loggers, logger } from "./loggers";
-import type { AlgorithmState } from "./state";
+import type { CoordinatorState } from "./state";
 import {
 	mostRecentHomeTootAt,
 	mostRecentHomeTootAgeInSeconds,
@@ -13,7 +13,7 @@ import {
 import { filterFeedAndSetInApp } from "./filters";
 
 export async function startAction(
-	state: AlgorithmState,
+	state: CoordinatorState,
 	logPrefix: LoadAction,
 ): Promise<void> {
 	const hereLogger = loggers[logPrefix];
@@ -37,7 +37,7 @@ export async function startAction(
 }
 
 export function releaseLoadingMutex(
-	state: AlgorithmState,
+	state: CoordinatorState,
 	logPrefix: LoadAction,
 ): void {
 	state.loadingStatus = null;
@@ -55,7 +55,7 @@ export function releaseLoadingMutex(
 	}
 }
 
-export function shouldSkip(state: AlgorithmState): boolean {
+export function shouldSkip(state: CoordinatorState): boolean {
 	const hereLogger = loggers[LoadAction.FEED_UPDATE];
 	hereLogger.debugWithTraceObjs(
 		`${++state.numTriggers} triggers so far, state:`,

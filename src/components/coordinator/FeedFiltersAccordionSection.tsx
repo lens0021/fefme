@@ -1,7 +1,7 @@
 import React from "react";
 
 import { config } from "../../config";
-import { useAlgorithm } from "../../hooks/useAlgorithm";
+import { useCoordinator } from "../../hooks/useCoordinator";
 import Accordion from "../helpers/Accordion";
 import { HIGHLIGHTED_TOOLTIP } from "../helpers/Checkbox";
 import BooleanFilterAccordionSection from "./BooleanFilterAccordionSection";
@@ -14,7 +14,7 @@ import NumericFilters from "./filters/NumericFilters";
  * are trending in the Fediverse.
  */
 export default function FeedFiltersAccordionSection() {
-	const { algorithm, selfTypeFilterMode } = useAlgorithm();
+	const { algorithm, selfTypeFilterMode } = useCoordinator();
 
 	if (!algorithm) {
 		return (

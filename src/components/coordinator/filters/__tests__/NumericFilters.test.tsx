@@ -4,7 +4,7 @@ import { vi } from "vitest";
 import { config } from "@/config";
 import NumericFilters from "@/components/coordinator/filters/NumericFilters";
 
-let mockAlgorithm: {
+let mockCoordinator: {
 	filters: {
 		numericFilters: Record<
 			string,
@@ -14,16 +14,16 @@ let mockAlgorithm: {
 };
 let mockTriggerFilterUpdate: ReturnType<typeof vi.fn>;
 
-vi.mock("@/hooks/useAlgorithm", () => ({
-	useAlgorithm: () => ({
-		algorithm: mockAlgorithm,
+vi.mock("@/hooks/useCoordinator", () => ({
+	useCoordinator: () => ({
+		algorithm: mockCoordinator,
 		triggerFilterUpdate: mockTriggerFilterUpdate,
 	}),
 }));
 
 describe("NumericFilters", () => {
 	beforeEach(() => {
-		mockAlgorithm = {
+		mockCoordinator = {
 			filters: {
 				numericFilters: {
 					repliesCount: {
@@ -49,7 +49,7 @@ describe("NumericFilters", () => {
 		const slider = screen.getAllByRole("slider")[0];
 		fireEvent.change(slider, { target: { value: "5" } });
 
-		expect(mockAlgorithm.filters.numericFilters.repliesCount.value).toBe(5);
-		expect(mockTriggerFilterUpdate).toHaveBeenCalledWith(mockAlgorithm.filters);
+		expect(mockCoordinator.filters.numericFilters.repliesCount.value).toBe(5);
+		expect(mockTriggerFilterUpdate).toHaveBeenCalledWith(mockCoordinator.filters);
 	});
 });

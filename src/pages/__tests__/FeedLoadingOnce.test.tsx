@@ -8,11 +8,11 @@ import {
 import { vi } from "vitest";
 
 import { config } from "@/config";
-import { AlgorithmStorageKey } from "@/core/enums";
+import { CoordinatorStorageKey } from "@/core/enums";
 import FeedCoordinator from "@/core/index";
 import Storage from "@/core/Storage";
 import { reloadPage } from "@/helpers/navigation";
-import AlgorithmProvider from "@/hooks/useAlgorithm";
+import CoordinatorProvider from "@/hooks/useCoordinator";
 import Feed from "@/pages/Feed";
 
 vi.mock("@/core/Storage", () => ({
@@ -74,7 +74,7 @@ describe("Feed loading", () => {
 			resolveCreate = resolve;
 		});
 		const cachedTimeline = [{ uri: "cached-1" }];
-		const mockAlgorithm = {
+		const mockCoordinator = {
 			getDataStats: vi.fn().mockReturnValue(null),
 			isGoToSocialUser: vi.fn().mockResolvedValue(false),
 			serverInfo: vi.fn().mockResolvedValue({
@@ -94,9 +94,9 @@ describe("Feed loading", () => {
 		);
 
 		render(
-			<AlgorithmProvider>
+			<CoordinatorProvider>
 				<Feed />
-			</AlgorithmProvider>,
+			</CoordinatorProvider>,
 		);
 
 		const loadingTextMatcher = (content: string) =>
@@ -107,7 +107,7 @@ describe("Feed loading", () => {
 		).not.toBeInTheDocument();
 
 		await act(async () => {
-			resolveCreate?.(mockAlgorithm as unknown as FeedCoordinator);
+			resolveCreate?.(mockCoordinator as unknown as FeedCoordinator);
 		});
 
 		await waitFor(() =>
@@ -120,7 +120,7 @@ describe("Feed loading", () => {
 		let resolveTrigger: (() => void) | undefined;
 		const cachedTimeline = [{ uri: "cached-1" }, { uri: "cached-2" }];
 		const refreshedTimeline = [{ uri: "new-1" }];
-		const mockAlgorithm = {
+		const mockCoordinator = {
 			getDataStats: vi.fn().mockReturnValue(null),
 			isGoToSocialUser: vi.fn().mockResolvedValue(false),
 			serverInfo: vi.fn().mockResolvedValue({
@@ -144,19 +144,19 @@ describe("Feed loading", () => {
 		vi.spyOn(FeedCoordinator, "create").mockImplementation(async (params) => {
 			setTimelineInApp = params.setTimelineInApp;
 			setTimelineInApp?.(cachedTimeline);
-			return mockAlgorithm as unknown as FeedCoordinator;
+			return mockCoordinator as unknown as FeedCoordinator;
 		});
 
 		render(
-			<AlgorithmProvider>
+			<CoordinatorProvider>
 				<Feed />
-			</AlgorithmProvider>,
+			</CoordinatorProvider>,
 		);
 
 		expect(await screen.findAllByTestId("status-card")).toHaveLength(2);
-		expect(mockAlgorithm.triggerFeedUpdate).toHaveBeenCalledTimes(1);
+		expect(mockCoordinator.triggerFeedUpdate).toHaveBeenCalledTimes(1);
 		expect(Storage.set).toHaveBeenCalledWith(
-			AlgorithmStorageKey.VISIBLE_TIMELINE_POSTS,
+			CoordinatorStorageKey.VISIBLE_TIMELINE_POSTS,
 			cachedTimeline,
 		);
 
@@ -165,9 +165,9 @@ describe("Feed loading", () => {
 		});
 
 		expect(screen.getAllByTestId("status-card")).toHaveLength(2);
-		expect(mockAlgorithm.triggerFeedUpdate).toHaveBeenCalledTimes(1);
+		expect(mockCoordinator.triggerFeedUpdate).toHaveBeenCalledTimes(1);
 		expect(Storage.set).toHaveBeenCalledWith(
-			AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_POSTS,
+			CoordinatorStorageKey.NEXT_VISIBLE_TIMELINE_POSTS,
 			refreshedTimeline,
 		);
 		const refreshBubble = screen.getByTestId("refresh-bubble");
@@ -180,7 +180,7 @@ describe("Feed loading", () => {
 		let setTimelineInApp: ((feed: Array<{ uri: string }>) => void) | undefined;
 		let resolveTrigger: (() => void) | undefined;
 		const refreshedTimeline = [{ uri: "new-1" }];
-		const mockAlgorithm = {
+		const mockCoordinator = {
 			getDataStats: vi.fn().mockReturnValue(null),
 			isGoToSocialUser: vi.fn().mockResolvedValue(false),
 			serverInfo: vi.fn().mockResolvedValue({
@@ -203,13 +203,13 @@ describe("Feed loading", () => {
 
 		vi.spyOn(FeedCoordinator, "create").mockImplementation(async (params) => {
 			setTimelineInApp = params.setTimelineInApp;
-			return mockAlgorithm as unknown as FeedCoordinator;
+			return mockCoordinator as unknown as FeedCoordinator;
 		});
 
 		render(
-			<AlgorithmProvider>
+			<CoordinatorProvider>
 				<Feed />
-			</AlgorithmProvider>,
+			</CoordinatorProvider>,
 		);
 
 		const loadingTextMatcher = (content: string) =>

@@ -6,13 +6,13 @@
 import { capitalCase } from "change-case";
 
 import { config } from "../../../config";
-import { useAlgorithm } from "../../../hooks/useAlgorithm";
+import { useCoordinator } from "../../../hooks/useCoordinator";
 import Accordion from "../../helpers/Accordion";
 import Slider from "./../Slider";
 
 export default function NumericFilters(props: { isActive: boolean }) {
 	const { isActive } = props;
-	const { algorithm, triggerFilterUpdate } = useAlgorithm();
+	const { algorithm, triggerFilterUpdate } = useCoordinator();
 	const numericFilters = Object.values(algorithm.filters.numericFilters);
 
 	return (

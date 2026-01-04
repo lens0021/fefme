@@ -9,7 +9,7 @@ import { GIFV, MediaCategory, type Post } from "../../core/index";
 import { config } from "../../config";
 import { getLogger } from "../../helpers/log_helpers";
 import { isEmptyStr } from "../../helpers/string_helpers";
-import { useAlgorithm } from "../../hooks/useAlgorithm";
+import { useCoordinator } from "../../hooks/useCoordinator";
 import AttachmentsModal from "./AttachmentsModal";
 
 // TODO: what is this <canvas> element for? It came from pkreissel's original implementation
@@ -36,7 +36,7 @@ export default function MultimediaNode(
 	props: MultimediaNodeProps,
 ): React.ReactElement {
 	const { mediaAttachments, removeMediaAttachment, post } = props;
-	const { hideSensitive } = useAlgorithm();
+	const { hideSensitive } = useCoordinator();
 	const hasSpoilerText = !isEmptyStr(post?.spoilerText);
 	const [mediaInspectionIdx, setMediaInspectionIdx] = useState<number>(-1);
 

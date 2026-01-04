@@ -34,7 +34,7 @@ import { getLogger } from "../../helpers/log_helpers";
 import { formatScore } from "../../helpers/number_helpers";
 import { formatSourceLabel } from "../../helpers/source_labels";
 import { openToot } from "../../helpers/ui";
-import { useAlgorithm } from "../../hooks/useAlgorithm";
+import { useCoordinator } from "../../hooks/useCoordinator";
 import useOnScreen from "../../hooks/useOnScreen";
 import { useError } from "../helpers/ErrorHandler";
 import NewTabLink from "../helpers/NewTabLink";
@@ -117,7 +117,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 		status,
 	} = props;
 	const { algorithm, isGoToSocialUser, isLoading, scheduleSeenRefresh } =
-		useAlgorithm();
+		useCoordinator();
 	const { logAndSetFormattedError } = useError();
 	const contentClass =
 		"text-[15px] leading-relaxed text-[color:var(--color-fg)] break-words [&_a]:text-[color:var(--color-primary)] [&_a]:break-all [&_a:hover]:underline [&_p]:mb-2 [&_p:last-child]:mb-0";

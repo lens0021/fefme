@@ -1,9 +1,9 @@
 import { config } from "../config";
-import type { AlgorithmState } from "./state";
+import type { CoordinatorState } from "./state";
 import { logger } from "./loggers";
 import { saveTimelineToCache } from "./cache";
 
-export function launchBackgroundPollers(state: AlgorithmState): void {
+export function launchBackgroundPollers(state: CoordinatorState): void {
 	state.userDataPoller.start();
 
 	if (state.cacheUpdater) {

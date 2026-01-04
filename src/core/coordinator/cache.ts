@@ -2,7 +2,7 @@ import Storage from "../Storage";
 import type Post from "../api/objects/post";
 import { config } from "../config";
 import {
-	AlgorithmStorageKey,
+	CoordinatorStorageKey,
 	BooleanFilterName,
 	CacheKey,
 	FediverseCacheKey,
@@ -15,20 +15,20 @@ import { EMPTY_TRENDING_DATA } from "./constants";
 import { filterFeedAndSetInApp } from "./filters";
 import { loadCacheLogger, saveTimelineToCacheLogger } from "./loggers";
 import { scoreAndFilterFeed } from "./scoring";
-import type { AlgorithmState } from "./state";
+import type { CoordinatorState } from "./state";
 
 export async function loadCachedData(
-	state: AlgorithmState,
+	state: CoordinatorState,
 	shouldSetInApp = true,
 ): Promise<void> {
 	let visibleTimeline = await Storage.getCoerced<Post>(
-		AlgorithmStorageKey.VISIBLE_TIMELINE_POSTS,
+		CoordinatorStorageKey.VISIBLE_TIMELINE_POSTS,
 	);
 	const nextVisibleTimeline = await Storage.getCoerced<Post>(
-		AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_POSTS,
+		CoordinatorStorageKey.NEXT_VISIBLE_TIMELINE_POSTS,
 	);
 	const visibleTimelineStaleValue = await Storage.get(
-		AlgorithmStorageKey.VISIBLE_TIMELINE_STALE,
+		CoordinatorStorageKey.VISIBLE_TIMELINE_STALE,
 	);
 	const visibleTimelineStale = visibleTimelineStaleValue === 1;
 	const shouldPromotePending =
@@ -37,18 +37,18 @@ export async function loadCachedData(
 	if (shouldPromotePending) {
 		visibleTimeline = nextVisibleTimeline;
 		await Storage.set(
-			AlgorithmStorageKey.VISIBLE_TIMELINE_POSTS,
+			CoordinatorStorageKey.VISIBLE_TIMELINE_POSTS,
 			nextVisibleTimeline,
 		);
-		await Storage.remove(AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_POSTS);
-		await Storage.remove(AlgorithmStorageKey.VISIBLE_TIMELINE_STALE);
+		await Storage.remove(CoordinatorStorageKey.NEXT_VISIBLE_TIMELINE_POSTS);
+		await Storage.remove(CoordinatorStorageKey.VISIBLE_TIMELINE_STALE);
 	} else if (visibleTimelineStale && nextVisibleTimeline.length === 0) {
-		await Storage.remove(AlgorithmStorageKey.VISIBLE_TIMELINE_STALE);
+		await Storage.remove(CoordinatorStorageKey.VISIBLE_TIMELINE_STALE);
 	}
 
 	state.homeFeed = await Storage.getCoerced<Post>(CacheKey.HOME_TIMELINE_POSTS);
 	state.feed = await Storage.getCoerced<Post>(
-		AlgorithmStorageKey.TIMELINE_POSTS,
+		CoordinatorStorageKey.TIMELINE_POSTS,
 	);
 	state.trendingData = EMPTY_TRENDING_DATA;
 
@@ -64,7 +64,7 @@ export async function loadCachedData(
 			config.posts.truncateFullTimelineToLength,
 			loadCacheLogger,
 		);
-		await Storage.set(AlgorithmStorageKey.TIMELINE_POSTS, state.feed);
+		await Storage.set(CoordinatorStorageKey.TIMELINE_POSTS, state.feed);
 	}
 
 	state.filters = (await Storage.getFilters()) ?? state.filters;
@@ -109,16 +109,13 @@ export async function loadCachedData(
 }
 
 export async function saveTimelineToCache(
-	state: AlgorithmState,
+	state: CoordinatorState,
 ): Promise<void> {
 	const newTotalNumTimesShown = state.feed.reduce(
 		(sum, post) => sum + (post.numTimesShown ?? 0),
 		0,
 	);
-	if (
-		state.totalNumTimesShown === newTotalNumTimesShown
-	)
-		return;
+	if (state.totalNumTimesShown === newTotalNumTimesShown) return;
 
 	try {
 		const numShownPosts = state.feed.filter(
@@ -128,14 +125,14 @@ export async function saveTimelineToCache(
 			`Saving ${state.feed.length} posts with ${newTotalNumTimesShown} times shown` +
 			` on ${numShownPosts} posts (previous totalNumTimesShown: ${state.totalNumTimesShown})`;
 		saveTimelineToCacheLogger.debug(msg);
-		await Storage.set(AlgorithmStorageKey.TIMELINE_POSTS, state.feed);
+		await Storage.set(CoordinatorStorageKey.TIMELINE_POSTS, state.feed);
 		state.totalNumTimesShown = newTotalNumTimesShown;
 	} catch (error) {
 		saveTimelineToCacheLogger.error(`Error saving posts:`, error);
 	}
 }
 
-export async function resetSeenState(state: AlgorithmState): Promise<void> {
+export async function resetSeenState(state: CoordinatorState): Promise<void> {
 	const resetPost = (post: Post) => {
 		post.withBoost.forEach((item) => {
 			item.numTimesShown = 0;
@@ -148,7 +145,7 @@ export async function resetSeenState(state: AlgorithmState): Promise<void> {
 
 	state.totalNumTimesShown = 0;
 
-	await Storage.set(AlgorithmStorageKey.TIMELINE_POSTS, state.feed);
+	await Storage.set(CoordinatorStorageKey.TIMELINE_POSTS, state.feed);
 	if (state.homeFeed.length) {
 		await Storage.set(CacheKey.HOME_TIMELINE_POSTS, state.homeFeed);
 	}
@@ -160,7 +157,7 @@ export async function resetSeenState(state: AlgorithmState): Promise<void> {
 	}
 	for (const key of STORAGE_KEYS_WITH_POSTS) {
 		if (
-			key === AlgorithmStorageKey.TIMELINE_POSTS ||
+			key === CoordinatorStorageKey.TIMELINE_POSTS ||
 			key === CacheKey.HOME_TIMELINE_POSTS ||
 			key === FediverseCacheKey.TRENDING_POSTS
 		)

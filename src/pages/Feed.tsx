@@ -26,7 +26,7 @@ import { GuiCheckboxName, config } from "../config";
 import { getLogger } from "../helpers/log_helpers";
 import { booleanIcon } from "../helpers/ui";
 import { reloadPage } from "../helpers/navigation";
-import { useAlgorithm } from "../hooks/useAlgorithm";
+import { useCoordinator } from "../hooks/useCoordinator";
 import useOnScreen from "../hooks/useOnScreen";
 
 const logger = getLogger("Feed");
@@ -52,7 +52,7 @@ export default function Feed() {
 		triggerParticipatedTagBackFill,
 		triggerMoarData,
 		triggerPullAllUserData,
-	} = useAlgorithm();
+	} = useCoordinator();
 	const { defaultNumDisplayedPosts, numPostsToLoadOnScroll } = config.timeline;
 
 	// State variables
@@ -66,7 +66,7 @@ export default function Feed() {
 
 	// Checkboxes for persistent user settings state variables
 	// TODO: the returned checkboxTooltip is shared by all tooltips which kind of sucks
-	// TODO: kind of sucks that these checkboxes are instantiated here and the others are in useAlgorithm
+	// TODO: kind of sucks that these checkboxes are instantiated here and the others are in useCoordinator
 	const [showLinkPreviews, showLinkPreviewsCheckbox, checkboxTooltip] =
 		persistentCheckbox(GuiCheckboxName.showLinkPreviews);
 

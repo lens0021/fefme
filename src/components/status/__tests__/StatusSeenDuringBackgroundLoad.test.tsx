@@ -13,8 +13,8 @@ vi.mock("@/hooks/useOnScreen", () => ({
 const mockScheduleSeenRefresh = vi.fn();
 const mockSaveTimelineToCache = vi.fn();
 
-vi.mock("@/hooks/useAlgorithm", () => ({
-	useAlgorithm: () => ({
+vi.mock("@/hooks/useCoordinator", () => ({
+	useCoordinator: () => ({
 		algorithm: { saveTimelineToCache: mockSaveTimelineToCache },
 		isGoToSocialUser: false,
 		isLoading: true,

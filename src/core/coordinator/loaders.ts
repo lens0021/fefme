@@ -1,7 +1,7 @@
 import MastoApi from "../api/api";
 import { FEDERATED_TIMELINE_SOURCE } from "../enums";
 import type Post from "../api/objects/post";
-import type { AlgorithmState } from "./state";
+import type { CoordinatorState } from "./state";
 import { getSourceBounds } from "./stats";
 import { mergeExternalStatuses } from "./feed";
 import type { Logger } from "../helpers/logger";
@@ -17,7 +17,7 @@ export async function getHomeTimeline(
 }
 
 export async function mergeFederatedTimeline(
-	state: AlgorithmState,
+	state: CoordinatorState,
 	direction: "newer" | "older",
 	limit = 40,
 ): Promise<void> {

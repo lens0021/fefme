@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
-	AlgorithmStorageKey,
+	CoordinatorStorageKey,
 	BooleanFilterName,
 	CacheKey,
 	TypeFilterName,
@@ -9,7 +9,7 @@ import {
 import { buildNewFilterSettings } from "@/core/filters/feed_filters";
 import Storage from "@/core/Storage";
 import { loadCachedData } from "@/core/coordinator/cache";
-import { AlgorithmState } from "@/core/coordinator/state";
+import { CoordinatorState } from "@/core/coordinator/state";
 
 vi.mock("../../Storage", () => ({
 	default: {
@@ -51,13 +51,13 @@ describe("loadCachedData", () => {
 		vi.mocked(Storage.get).mockResolvedValue(null);
 		vi.mocked(Storage.getCoerced).mockImplementation(async (key) => {
 			switch (key) {
-				case AlgorithmStorageKey.VISIBLE_TIMELINE_POSTS:
+				case CoordinatorStorageKey.VISIBLE_TIMELINE_POSTS:
 					return visibleTimeline;
-				case AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_POSTS:
+				case CoordinatorStorageKey.NEXT_VISIBLE_TIMELINE_POSTS:
 					return [];
 				case CacheKey.HOME_TIMELINE_POSTS:
 					return [];
-				case AlgorithmStorageKey.TIMELINE_POSTS:
+				case CoordinatorStorageKey.TIMELINE_POSTS:
 					return feedTimeline;
 				default:
 					return [];
@@ -66,7 +66,7 @@ describe("loadCachedData", () => {
 		vi.mocked(Storage.getFilters).mockResolvedValue(filters);
 
 		const setTimelineInApp = vi.fn();
-		const state = new AlgorithmState(setTimelineInApp);
+		const state = new CoordinatorState(setTimelineInApp);
 
 		await loadCachedData(state, true);
 
@@ -82,13 +82,13 @@ describe("loadCachedData", () => {
 		vi.mocked(Storage.get).mockResolvedValue(1);
 		vi.mocked(Storage.getCoerced).mockImplementation(async (key) => {
 			switch (key) {
-				case AlgorithmStorageKey.VISIBLE_TIMELINE_POSTS:
+				case CoordinatorStorageKey.VISIBLE_TIMELINE_POSTS:
 					return visibleTimeline;
-				case AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_POSTS:
+				case CoordinatorStorageKey.NEXT_VISIBLE_TIMELINE_POSTS:
 					return pendingTimeline;
 				case CacheKey.HOME_TIMELINE_POSTS:
 					return [];
-				case AlgorithmStorageKey.TIMELINE_POSTS:
+				case CoordinatorStorageKey.TIMELINE_POSTS:
 					return feedTimeline;
 				default:
 					return [];
@@ -97,20 +97,20 @@ describe("loadCachedData", () => {
 		vi.mocked(Storage.getFilters).mockResolvedValue(buildNewFilterSettings());
 
 		const setTimelineInApp = vi.fn();
-		const state = new AlgorithmState(setTimelineInApp);
+		const state = new CoordinatorState(setTimelineInApp);
 
 		await loadCachedData(state, true);
 
 		expect(setTimelineInApp).toHaveBeenCalledWith(pendingTimeline);
 		expect(Storage.set).toHaveBeenCalledWith(
-			AlgorithmStorageKey.VISIBLE_TIMELINE_POSTS,
+			CoordinatorStorageKey.VISIBLE_TIMELINE_POSTS,
 			pendingTimeline,
 		);
 		expect(Storage.remove).toHaveBeenCalledWith(
-			AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_POSTS,
+			CoordinatorStorageKey.NEXT_VISIBLE_TIMELINE_POSTS,
 		);
 		expect(Storage.remove).toHaveBeenCalledWith(
-			AlgorithmStorageKey.VISIBLE_TIMELINE_STALE,
+			CoordinatorStorageKey.VISIBLE_TIMELINE_STALE,
 		);
 	});
 });

@@ -5,7 +5,7 @@ import {
 	TagPostsCategory,
 } from "../enums";
 import { findMinMaxId } from "../helpers/collection_helpers";
-import type { AlgorithmState } from "./state";
+import type { CoordinatorState } from "./state";
 import type { PostSource } from "../types";
 
 export type SourceStats = {
@@ -18,7 +18,7 @@ export type SourceStats = {
 };
 
 export function getSourceBounds(
-	state: AlgorithmState,
+	state: CoordinatorState,
 	source: PostSource,
 ): { minId?: string; maxId?: string } {
 	const sourcePosts = getPostsForSource(state, source);
@@ -28,7 +28,7 @@ export function getSourceBounds(
 }
 
 export function getSourceStats(
-	state: AlgorithmState,
+	state: CoordinatorState,
 ): Record<PostSource, SourceStats> {
 	const sourcesToTrack: PostSource[] = [
 		CacheKey.HOME_TIMELINE_POSTS,
@@ -46,7 +46,7 @@ export function getSourceStats(
 	);
 }
 
-function getPostsForSource(state: AlgorithmState, source: PostSource): Post[] {
+function getPostsForSource(state: CoordinatorState, source: PostSource): Post[] {
 	if (source === CacheKey.HOME_TIMELINE_POSTS) {
 		return state.homeFeed;
 	}
@@ -54,7 +54,7 @@ function getPostsForSource(state: AlgorithmState, source: PostSource): Post[] {
 }
 
 function buildSourceStats(
-	state: AlgorithmState,
+	state: CoordinatorState,
 	source: PostSource,
 ): SourceStats {
 	const sourcePosts = getPostsForSource(state, source);

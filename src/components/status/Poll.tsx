@@ -15,7 +15,7 @@ import { isAccessTokenRevokedError, timeString } from "../../core/index";
 
 import { useError } from "../../components/helpers/ErrorHandler";
 import { getLogger } from "../../helpers/log_helpers";
-import { useAlgorithm } from "../../hooks/useAlgorithm";
+import { useCoordinator } from "../../hooks/useCoordinator";
 
 const ALREADY_VOTED_MSG = "You have already voted";
 
@@ -27,7 +27,7 @@ interface PollProps {
 
 export default function Poll(props: PollProps) {
 	const { poll } = props;
-	const { api } = useAlgorithm();
+	const { api } = useCoordinator();
 	const { logAndSetFormattedError } = useError();
 
 	const [hasVoted, setHasVoted] = useState(poll.ownVotes?.length > 0);

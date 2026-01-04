@@ -18,7 +18,7 @@ import type { Post } from "../../core/index";
 
 import { getLogger } from "../../helpers/log_helpers";
 import { NETWORK_ERROR, scoreString } from "../../helpers/string_helpers";
-import { useAlgorithm } from "../../hooks/useAlgorithm";
+import { useCoordinator } from "../../hooks/useCoordinator";
 import { OAUTH_ERROR_MSG } from "../experimental/ExperimentalFeatures";
 import { useError } from "../helpers/ErrorHandler";
 
@@ -76,7 +76,7 @@ interface ActionButtonProps {
 
 export default function ActionButton(props: ActionButtonProps) {
 	const { action, onClick, post } = props;
-	const { api } = useAlgorithm();
+	const { api } = useCoordinator();
 	const { logAndSetFormattedError } = useError();
 
 	const actionInfo = ACTION_INFO[action];

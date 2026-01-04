@@ -25,15 +25,15 @@ vi.mock("@/core/api/tag_list", () => ({
 	},
 }));
 
-let mockAlgorithm: {
+let mockCoordinator: {
 	filters: Record<string, unknown>;
 	timeline: unknown[];
 };
 let mockTriggerFilterUpdate: ReturnType<typeof vi.fn>;
 
-vi.mock("@/hooks/useAlgorithm", () => ({
-	useAlgorithm: () => ({
-		algorithm: mockAlgorithm,
+vi.mock("@/hooks/useCoordinator", () => ({
+	useCoordinator: () => ({
+		algorithm: mockCoordinator,
 		alwaysShowFollowed: false,
 		currentUserWebfinger: null,
 		selfTypeFilterMode: "none",
@@ -60,7 +60,7 @@ describe("FilterCheckboxGrid", () => {
 
 	beforeEach(() => {
 		vi.resetModules();
-		mockAlgorithm = {
+		mockCoordinator = {
 			filters: {},
 			timeline: [],
 		};
@@ -90,6 +90,6 @@ describe("FilterCheckboxGrid", () => {
 		await user.click(includeButton);
 
 		expect(filter.selectedOptions).toContain("en");
-		expect(mockTriggerFilterUpdate).toHaveBeenCalledWith(mockAlgorithm.filters);
+		expect(mockTriggerFilterUpdate).toHaveBeenCalledWith(mockCoordinator.filters);
 	});
 });

@@ -25,7 +25,7 @@ import type {
 	CheckboxGradientTooltipConfig,
 	CheckboxTooltipConfig,
 } from "../../../helpers/ui";
-import { useAlgorithm } from "../../../hooks/useAlgorithm";
+import { useCoordinator } from "../../../hooks/useCoordinator";
 import {
 	FILTER_TOOLTIP_ANCHOR,
 	HIGHLIGHTED_TOOLTIP_ANCHOR,
@@ -131,7 +131,7 @@ export default function FilterCheckboxGrid(props: FilterCheckboxGridProps) {
 		setSelfTypeFilterMode,
 		showFilterHighlights,
 		triggerFilterUpdate,
-	} = useAlgorithm();
+	} = useCoordinator();
 	const logger = useMemo(
 		() => getLogger("FilterCheckboxGrid", filter.propertyName),
 		[filter.propertyName],

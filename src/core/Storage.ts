@@ -12,7 +12,7 @@ import Post, { mostRecentTootedAt } from "./api/objects/post";
 import UserData from "./api/user_data";
 import { config } from "./config";
 import {
-	AlgorithmStorageKey,
+	CoordinatorStorageKey,
 	type ApiCacheKey,
 	CacheKey,
 	FediverseCacheKey,
@@ -111,9 +111,9 @@ export default class Storage {
 		key:
 			| CacheKey
 			| FediverseCacheKey
-			| AlgorithmStorageKey.TIMELINE_POSTS
-			| AlgorithmStorageKey.VISIBLE_TIMELINE_POSTS
-			| AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_POSTS,
+			| CoordinatorStorageKey.TIMELINE_POSTS
+			| CoordinatorStorageKey.VISIBLE_TIMELINE_POSTS
+			| CoordinatorStorageKey.NEXT_VISIBLE_TIMELINE_POSTS,
 	): Promise<T[]> {
 		let value = await this.get(key);
 
@@ -129,18 +129,18 @@ export default class Storage {
 	/** Get the user's saved timeline filter settings. */
 	static async getFilters(): Promise<FeedFilterSettings | null> {
 		const filters = (await this.get(
-			AlgorithmStorageKey.FILTERS,
+			CoordinatorStorageKey.FILTERS,
 		)) as FeedFilterSettings;
 		if (!filters) return null;
 
 		try {
 			if (repairFilterSettings(filters)) {
 				logger.warn(`Repaired old filter settings, updating...`);
-				await this.set(AlgorithmStorageKey.FILTERS, filters);
+				await this.set(CoordinatorStorageKey.FILTERS, filters);
 			}
 		} catch (e) {
 			logger.error(`Error repairing filter settings, returning null:`, e);
-			await this.remove(AlgorithmStorageKey.FILTERS);
+			await this.remove(CoordinatorStorageKey.FILTERS);
 			return null;
 		}
 
@@ -164,7 +164,7 @@ export default class Storage {
 
 	/** Return the user's stored timeline weightings or the default weightings if none are found. */
 	static async getWeights(): Promise<Weights> {
-		const weights = (await this.get(AlgorithmStorageKey.WEIGHTS)) as Weights;
+		const weights = (await this.get(CoordinatorStorageKey.WEIGHTS)) as Weights;
 		if (!weights) return JSON.parse(JSON.stringify(DEFAULT_WEIGHTS)) as Weights;
 		let shouldSave = false;
 
@@ -280,13 +280,13 @@ export default class Storage {
 	static async logAppOpen(user: Account): Promise<void> {
 		await Storage.setIdentity(user);
 		const numAppOpens = (await this.getNumAppOpens()) + 1;
-		await this.set(AlgorithmStorageKey.APP_OPENS, numAppOpens);
+		await this.set(CoordinatorStorageKey.APP_OPENS, numAppOpens);
 	}
 
 	/** Delete the value at the given key (with the user ID as a prefix). */
 	static async remove(key: StorageKey): Promise<void> {
 		const storageKey =
-			key == AlgorithmStorageKey.USER ? key : await this.buildKey(key);
+			key == CoordinatorStorageKey.USER ? key : await this.buildKey(key);
 		logger.log(`Removing value at key: ${storageKey}`);
 		await localForage.removeItem(storageKey);
 	}
@@ -328,12 +328,12 @@ export default class Storage {
 			),
 		};
 
-		await this.set(AlgorithmStorageKey.FILTERS, filterSettings);
+		await this.set(CoordinatorStorageKey.FILTERS, filterSettings);
 	}
 
 	/** Save user's weights. */
 	static async setWeightings(userWeightings: Weights): Promise<void> {
-		await this.set(AlgorithmStorageKey.WEIGHTS, userWeightings);
+		await this.set(CoordinatorStorageKey.WEIGHTS, userWeightings);
 	}
 
 	/** Returns metadata about whatever is stored in {@linkcode localForage}. */
@@ -345,14 +345,14 @@ export default class Storage {
 		const storedData = await zipPromiseCalls(keys, async (k) =>
 			localForage.getItem(k),
 		);
-		storedData[AlgorithmStorageKey.USER] = await this.getIdentity(); // Stored differently
+		storedData[CoordinatorStorageKey.USER] = await this.getIdentity(); // Stored differently
 		let totalBytes = 0;
 
 		const detailedInfo = Object.entries(storedData).reduce(
 			(info, [key, obj]) => {
 				if (obj) {
 					const value =
-						key == AlgorithmStorageKey.USER
+						key == CoordinatorStorageKey.USER
 							? obj
 							: (obj as StorableWithTimestamp).value;
 					const sizes = new BytesDict();
@@ -441,13 +441,13 @@ export default class Storage {
 
 	/** Get the user identity from storage. */
 	private static async getIdentity(): Promise<Account | null> {
-		const user = await localForage.getItem(AlgorithmStorageKey.USER);
+		const user = await localForage.getItem(CoordinatorStorageKey.USER);
 		return user ? plainToInstance(Account, user) : null;
 	}
 
 	/** Get the number of times the app has been opened by this user. */
 	private static async getNumAppOpens(): Promise<number> {
-		return ((await this.get(AlgorithmStorageKey.APP_OPENS)) as number) ?? 0;
+		return ((await this.get(CoordinatorStorageKey.APP_OPENS)) as number) ?? 0;
 	}
 
 	/** Get the the raw StorableWithTimestamp object at {@linkcode key}. */
@@ -481,7 +481,7 @@ export default class Storage {
 	// TODO: the storage key is not prepended with the user ID (maybe that's OK?)
 	private static async setIdentity(user: Account) {
 		logger.trace(`Setting fefme user identity to:`, user);
-		await localForage.setItem(AlgorithmStorageKey.USER, instanceToPlain(user));
+		await localForage.setItem(CoordinatorStorageKey.USER, instanceToPlain(user));
 	}
 
 	private static async updatedAt(key: StorageKey): Promise<Date | null> {

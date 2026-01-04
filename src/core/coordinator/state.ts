@@ -17,7 +17,7 @@ import type Post from "../api/objects/post";
 import { EMPTY_TRENDING_DATA } from "./constants";
 import { buildScorerBundle } from "./scorers";
 
-export class AlgorithmState {
+export class CoordinatorState {
 	filters: FeedFilterSettings = buildNewFilterSettings();
 	lastLoadTimeInSeconds?: number;
 	loadingStatus: string | null =

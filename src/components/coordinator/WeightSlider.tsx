@@ -7,7 +7,7 @@ import type { StringNumberDict, WeightName } from "../../core/index";
 import { NonScoreWeightName, isNonScoreWeightName } from "../../core/enums";
 
 import { config } from "../../config";
-import { useAlgorithm } from "../../hooks/useAlgorithm";
+import { useCoordinator } from "../../hooks/useCoordinator";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
 import Slider from "./Slider";
 
@@ -32,7 +32,7 @@ const NEUTRAL_VALUES: Record<NonScoreWeightName, number> = {
 
 export default function WeightSlider(props: WeightSliderProps) {
 	const { updateWeights, userWeights, weightName } = props;
-	const { algorithm } = useAlgorithm();
+	const { algorithm } = useCoordinator();
 
 	// Calculate values needed for hooks
 	const info = algorithm?.weightsInfo[weightName];

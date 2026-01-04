@@ -13,7 +13,7 @@ import {
 } from "../../core/index";
 import { isWeightName } from "../../core/enums";
 import { getLogger } from "../../helpers/log_helpers";
-import { useAlgorithm } from "../../hooks/useAlgorithm";
+import { useCoordinator } from "../../hooks/useCoordinator";
 import Accordion from "../helpers/Accordion";
 import { useError } from "../helpers/ErrorHandler";
 import WeightSlider from "./WeightSlider";
@@ -21,7 +21,7 @@ import WeightSlider from "./WeightSlider";
 const logger = getLogger("WeightSetter");
 const WEIGHTS_STORAGE_KEY = "fefme_user_weights";
 export default function WeightSetter() {
-	const { algorithm, triggerWeightUpdate } = useAlgorithm();
+	const { algorithm, triggerWeightUpdate } = useCoordinator();
 	const { logAndSetError } = useError();
 	const [userWeights, setUserWeights] = useState<Weights>({} as Weights);
 

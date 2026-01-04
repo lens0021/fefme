@@ -1,5 +1,5 @@
 import {
-	AlgorithmStorageKey,
+	CoordinatorStorageKey,
 	CacheKey,
 	FediverseCacheKey,
 	FEDERATED_TIMELINE_SOURCE,
@@ -9,7 +9,7 @@ import {
 } from "../core/enums";
 
 const SOURCE_LABELS: Record<string, string> = {
-	[AlgorithmStorageKey.TIMELINE_POSTS]: "Cached timeline",
+	[CoordinatorStorageKey.TIMELINE_POSTS]: "Cached timeline",
 	[CacheKey.FAVOURITED_POSTS]: "Favourited posts",
 	[CacheKey.HASHTAG_POSTS]: "Hashtag timeline",
 	[CacheKey.HOME_TIMELINE_POSTS]: "Home timeline",

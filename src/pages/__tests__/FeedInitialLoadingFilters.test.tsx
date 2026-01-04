@@ -2,8 +2,8 @@ import { render, screen } from "@testing-library/react";
 import { config } from "@/config";
 import Feed from "@/pages/Feed";
 
-vi.mock("@/hooks/useAlgorithm", () => ({
-	useAlgorithm: () => ({
+vi.mock("@/hooks/useCoordinator", () => ({
+	useCoordinator: () => ({
 		algorithm: undefined,
 		hasInitialCache: false,
 		hasPendingTimeline: false,

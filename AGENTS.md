@@ -54,7 +54,7 @@ FeedCoordinator class (src/core/index.ts)
   ├── Filters (Boolean + Numeric)
   └── Feed Sorting
   ↓
-React Context (useAlgorithm hook)
+React Context (useCoordinator hook)
   ↓
 Feed.tsx → StatusComponent → Rendered Posts
 ```
@@ -87,7 +87,7 @@ Feed.tsx → StatusComponent → Rendered Posts
 │   ├── LoginPage.tsx       # OAuth login flow
 │   └── CallbackPage.tsx    # OAuth callback handler
 ├── hooks/                  # React Context + custom hooks
-│   ├── useAlgorithm.tsx    # Algorithm state management
+│   ├── useCoordinator.tsx    # Algorithm state management
 │   ├── useAuth.tsx         # OAuth authentication
 │   └── useLocalStorage.tsx # Browser storage hooks
 └── config.ts               # User-facing configuration
@@ -134,7 +134,7 @@ class XyzScorer extends Scorer {
 
 Uses **React Context + Custom Hooks** (no Redux):
 - **AuthProvider** (`useAuth`) - OAuth state, credentials, logout
-- **AlgorithmProvider** (`useAlgorithm`) - Algorithm instance, timeline, filters, loading
+- **CoordinatorProvider** (`useCoordinator`) - Algorithm instance, timeline, filters, loading
 - **ErrorHandler** (`useError`) - Centralized error boundary
 - **LocalStorage hooks** - Persistent settings
 
@@ -239,7 +239,7 @@ LOAD_TEST=false              # Load testing mode
 1. `src/App.tsx` - Entry point, routing, providers
 2. `src/pages/Feed.tsx` - Main feed UI
 3. `src/core/index.ts` - FeedCoordinator class
-4. `src/hooks/useAlgorithm.tsx` - Algorithm state management
+4. `src/hooks/useCoordinator.tsx` - Algorithm state management
 5. `src/core/api/api.ts` - API wrapper
 6. `src/core/Storage.ts` - Persistence layer
 
@@ -261,7 +261,7 @@ LOAD_TEST=false              # Load testing mode
 
 Defined in `/src/core/enums.ts`:
 - `CacheKey` - API data (home timeline, favorites, followers)
-- `AlgorithmStorageKey` - App state (weights, filters, timeline)
+- `CoordinatorStorageKey` - App state (weights, filters, timeline)
 - `FediverseCacheKey` - Fediverse-wide trending data
 
 ### Timeline Cache Behavior
@@ -271,6 +271,6 @@ Defined in `/src/core/enums.ts`:
 - On page load, `loadCachedData()` promotes `NextVisibleTimelinePosts` to `VisibleTimelinePosts` only if `VisibleTimelineStale` is set (or missing) and then clears the stale flag.
 
 ## TODO
-- Decide whether to rename `AlgorithmProvider`/`useAlgorithm` to match `FeedCoordinator` for naming consistency.
+- Decide whether to rename `CoordinatorProvider`/`useCoordinator` to match `FeedCoordinator` for naming consistency.
 - Further split large algorithm modules (e.g., `src/core/coordinator/feed.ts`, `src/core/coordinator/state.ts`) into smaller role-focused units.
 - Align code boundaries with the Component Roles list (enforce module responsibilities and remove cross-role coupling).

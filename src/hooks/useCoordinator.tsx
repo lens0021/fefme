@@ -29,17 +29,17 @@ import {
 	addMimeExtensionsToServer,
 } from "../helpers/mastodon_helpers";
 import type { ErrorHandler } from "../types";
-import { AlgorithmStorageKey, TagPostsCategory } from "../core/enums";
+import { CoordinatorStorageKey, TagPostsCategory } from "../core/enums";
 import type { FeedFilterSettings, Weights } from "../core/types";
 import type { WeightPresetLabel } from "../core/scorer/weight_presets";
 import { useAuthContext } from "./useAuth";
 import { useLocalStorage } from "./useLocalStorage";
 import Storage from "../core/Storage";
 
-const logger = getLogger("AlgorithmProvider");
+const logger = getLogger("CoordinatorProvider");
 const loadLogger = logger.tempLogger("setLoadState");
 
-interface AlgoContext {
+interface CoordinatorContext {
 	algorithm?: FeedCoordinator;
 	alwaysShowFollowed?: boolean;
 	api?: mastodon.rest.Client;
@@ -75,14 +75,14 @@ interface AlgoContext {
 	) => Promise<void>;
 }
 
-const AlgorithmContext = createContext<AlgoContext>({ timeline: [] });
-export const useAlgorithm = () => useContext(AlgorithmContext);
+const CoordinatorContext = createContext<CoordinatorContext>({ timeline: [] });
+export const useCoordinator = () => useContext(CoordinatorContext);
 
 type PendingTimelineReason = "new-posts" | "filters" | "weights";
 const SEEN_REFRESH_DEBOUNCE_MS = 1000;
 
-/** Manage Fefme algorithm state. */
-export default function AlgorithmProvider(props: PropsWithChildren) {
+/** Manage Fefme coordinator state. */
+export default function CoordinatorProvider(props: PropsWithChildren) {
 	const { logout, user } = useAuthContext();
 	const { logAndSetFormattedError, resetErrors } = useError();
 
@@ -239,7 +239,7 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 				.finally(() => {
 					setSeenRefreshTick((value) => value + 1);
 				});
-			Storage.set(AlgorithmStorageKey.VISIBLE_TIMELINE_STALE, 1).catch((err) =>
+			Storage.set(CoordinatorStorageKey.VISIBLE_TIMELINE_STALE, 1).catch((err) =>
 				logger.error("Failed to persist visible timeline stale flag:", err),
 			);
 		}, SEEN_REFRESH_DEBOUNCE_MS);
@@ -267,7 +267,7 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		}
 		setHasPendingTimeline(true);
 		setPendingTimelineReasons(Array.from(pendingTimelineReasonsRef.current));
-		Storage.set(AlgorithmStorageKey.VISIBLE_TIMELINE_STALE, 1).catch((err) =>
+		Storage.set(CoordinatorStorageKey.VISIBLE_TIMELINE_STALE, 1).catch((err) =>
 			logger.error("Failed to persist visible timeline stale flag:", err),
 		);
 	}, []);
@@ -344,7 +344,7 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 
 	const setTimelineInApp = useCallback((feed: Post[]) => {
 		pendingTimelineRef.current = feed;
-		Storage.set(AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_POSTS, feed).catch(
+		Storage.set(CoordinatorStorageKey.NEXT_VISIBLE_TIMELINE_POSTS, feed).catch(
 			(err) =>
 				logger.error("Failed to persist next visible timeline cache:", err),
 		);
@@ -524,7 +524,7 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 				);
 				setTimeline(cachedTimeline);
 				Storage.set(
-					AlgorithmStorageKey.VISIBLE_TIMELINE_POSTS,
+					CoordinatorStorageKey.VISIBLE_TIMELINE_POSTS,
 					cachedTimeline,
 				).catch((err) =>
 					logger.error("Failed to persist visible timeline cache:", err),
@@ -544,11 +544,11 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 					pendingTimelineReasonsRef.current = new Set();
 					setPendingTimelineReasons([]);
 					Storage.set(
-						AlgorithmStorageKey.VISIBLE_TIMELINE_POSTS,
+						CoordinatorStorageKey.VISIBLE_TIMELINE_POSTS,
 						pendingTimeline,
 					)
 						.then(() =>
-							Storage.remove(AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_POSTS),
+							Storage.remove(CoordinatorStorageKey.NEXT_VISIBLE_TIMELINE_POSTS),
 						)
 						.catch((err) =>
 							logger.error("Failed to promote pending timeline cache:", err),
@@ -603,7 +603,7 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 		user,
 	]);
 
-	const algoContext: AlgoContext = {
+	const algoContext: CoordinatorContext = {
 		algorithm,
 		alwaysShowFollowed,
 		api,
@@ -653,8 +653,8 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 	};
 
 	return (
-		<AlgorithmContext.Provider value={algoContext}>
+		<CoordinatorContext.Provider value={algoContext}>
 			{props.children}
-		</AlgorithmContext.Provider>
+		</CoordinatorContext.Provider>
 	);
 }

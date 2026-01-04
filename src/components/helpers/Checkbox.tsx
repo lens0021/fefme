@@ -10,7 +10,7 @@ import { Tooltip } from "react-tooltip";
 import { type GuiCheckboxName, config } from "../../config";
 import { followUri } from "../../helpers/ui";
 import type { CheckboxTooltipConfig } from "../../helpers/ui";
-import { useAlgorithm } from "../../hooks/useAlgorithm";
+import { useCoordinator } from "../../hooks/useCoordinator";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
 
 export const DEFAULT_TOOLTIP_ANCHOR = "checkbox-tooltip-anchor";
@@ -55,7 +55,7 @@ export default function Checkbox(props: CheckboxProps) {
 		updateFilters,
 		url,
 	} = props;
-	const { algorithm, triggerFilterUpdate } = useAlgorithm();
+	const { algorithm, triggerFilterUpdate } = useCoordinator();
 
 	let labelClasses = "font-semibold max-w-full";
 	let checkboxClasses = "text-[color:var(--color-fg)]";

@@ -14,7 +14,7 @@ import Header from "./components/Header";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ErrorHandler from "./components/helpers/ErrorHandler";
 import { getLogger, logLocaleInfo } from "./helpers/log_helpers";
-import AlgorithmProvider from "./hooks/useAlgorithm";
+import CoordinatorProvider from "./hooks/useCoordinator";
 import AuthProvider from "./hooks/useAuth";
 import { useTheme } from "./hooks/useTheme";
 import CallbackPage from "./pages/CallbackPage";
@@ -66,7 +66,7 @@ export default function App(): React.ReactElement {
 				<div className="w-full max-w-2xl flex flex-col gap-4">
 					<ErrorHandler>
 						<AuthProvider>
-							<AlgorithmProvider>
+							<CoordinatorProvider>
 								<Header />
 
 								<Routes>
@@ -83,7 +83,7 @@ export default function App(): React.ReactElement {
 									<Route path="/login" element={<LoginPage />} />
 									<Route path="*" element={<NotFoundPage />} />
 								</Routes>
-							</AlgorithmProvider>
+							</CoordinatorProvider>
 
 							<Footer />
 						</AuthProvider>

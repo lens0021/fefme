@@ -13,11 +13,11 @@ import { flushDeferredTimeline } from "./filters";
 import { loggers, logger } from "./loggers";
 import { launchBackgroundPollers } from "./background";
 import { mostRecentHomeTootAt } from "./stats";
-import type { AlgorithmState } from "./state";
+import type { CoordinatorState } from "./state";
 import type { PostSource } from "../types";
 
 export async function fetchAndMergePosts(
-	state: AlgorithmState,
+	state: CoordinatorState,
 	postFetcher: Promise<Post[]>,
 	logger: Logger,
 ): Promise<Post[]> {
@@ -43,7 +43,7 @@ export async function fetchAndMergePosts(
 }
 
 export async function mergeExternalStatuses(
-	state: AlgorithmState,
+	state: CoordinatorState,
 	statuses: mastodon.v1.Status[],
 	source: PostSource,
 ): Promise<void> {
@@ -53,7 +53,7 @@ export async function mergeExternalStatuses(
 }
 
 export async function lockedMergeToFeed(
-	state: AlgorithmState,
+	state: CoordinatorState,
 	newPosts: Post[],
 	logger: Logger,
 ): Promise<void> {
@@ -69,7 +69,7 @@ export async function lockedMergeToFeed(
 }
 
 export async function mergePostsToFeed(
-	state: AlgorithmState,
+	state: CoordinatorState,
 	newPosts: Post[],
 	inLogger: Logger,
 ): Promise<void> {
@@ -103,7 +103,7 @@ export async function mergePostsToFeed(
 	);
 }
 
-export async function finishFeedUpdate(state: AlgorithmState): Promise<void> {
+export async function finishFeedUpdate(state: CoordinatorState): Promise<void> {
 	const action = LogAction.FINISH_FEED_UPDATE;
 	const hereLogger = loggers[action];
 	state.loadingStatus = config.locale.messages[action];

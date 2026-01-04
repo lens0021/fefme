@@ -9,7 +9,7 @@ import {
 import { VERSION } from "../version";
 
 import { confirm } from "./helpers/Confirmation";
-import { useAlgorithm } from "../hooks/useAlgorithm";
+import { useCoordinator } from "../hooks/useCoordinator";
 import { useAuthContext } from "../hooks/useAuth";
 
 /** Header component on the feed page. */
@@ -22,7 +22,7 @@ export default function Header(): JSX.Element {
 		setSelfTypeFilterMode,
 		triggerFilterUpdate,
 		triggerWeightPresetUpdate,
-	} = useAlgorithm();
+	} = useCoordinator();
 
 	const reset = async () => {
 		if (
