@@ -50,6 +50,8 @@ describe("NumericFilters", () => {
 		fireEvent.change(slider, { target: { value: "5" } });
 
 		expect(mockCoordinator.filters.numericFilters.repliesCount.value).toBe(5);
-		expect(mockTriggerFilterUpdate).toHaveBeenCalledWith(mockCoordinator.filters);
+		expect(mockTriggerFilterUpdate).toHaveBeenCalledWith(
+			mockCoordinator.filters,
+		);
 	});
 });

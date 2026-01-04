@@ -46,7 +46,10 @@ export function getSourceStats(
 	);
 }
 
-function getPostsForSource(state: CoordinatorState, source: PostSource): Post[] {
+function getPostsForSource(
+	state: CoordinatorState,
+	source: PostSource,
+): Post[] {
 	if (source === CacheKey.HOME_TIMELINE_POSTS) {
 		return state.homeFeed;
 	}

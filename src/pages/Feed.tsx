@@ -57,6 +57,7 @@ export default function Feed() {
 
 	// State variables
 	const [isLoadingThread, setIsLoadingThread] = useState(false);
+	const [isLoadingMorePosts, setIsLoadingMorePosts] = useState(false);
 	const [numDisplayedPosts, setNumDisplayedPosts] = useState<number>(
 		defaultNumDisplayedPosts,
 	);
@@ -107,7 +108,12 @@ export default function Feed() {
 				logger.log(
 					`Showing ${numDisplayedPosts} posts, adding ${numPostsToLoadOnScroll} more (${visibleTimeline.length} available in feed)`,
 				);
-				setNumDisplayedPosts((prev) => prev + numPostsToLoadOnScroll);
+				setIsLoadingMorePosts(true);
+				// Use requestAnimationFrame to ensure UI updates before adding posts
+				requestAnimationFrame(() => {
+					setNumDisplayedPosts((prev) => prev + numPostsToLoadOnScroll);
+					setIsLoadingMorePosts(false);
+				});
 			}
 		};
 
@@ -498,6 +504,15 @@ export default function Feed() {
 												);
 											})}
 										</div>
+									</div>
+								)}
+
+								{isLoadingMorePosts && (
+									<div className="flex items-center justify-center gap-3 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] p-4">
+										<div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
+										<p className="text-sm text-[color:var(--color-muted-fg)]">
+											Loading more posts...
+										</p>
 									</div>
 								)}
 

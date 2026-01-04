@@ -90,6 +90,8 @@ describe("FilterCheckboxGrid", () => {
 		await user.click(includeButton);
 
 		expect(filter.selectedOptions).toContain("en");
-		expect(mockTriggerFilterUpdate).toHaveBeenCalledWith(mockCoordinator.filters);
+		expect(mockTriggerFilterUpdate).toHaveBeenCalledWith(
+			mockCoordinator.filters,
+		);
 	});
 });

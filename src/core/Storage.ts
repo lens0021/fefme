@@ -481,7 +481,10 @@ export default class Storage {
 	// TODO: the storage key is not prepended with the user ID (maybe that's OK?)
 	private static async setIdentity(user: Account) {
 		logger.trace(`Setting fefme user identity to:`, user);
-		await localForage.setItem(CoordinatorStorageKey.USER, instanceToPlain(user));
+		await localForage.setItem(
+			CoordinatorStorageKey.USER,
+			instanceToPlain(user),
+		);
 	}
 
 	private static async updatedAt(key: StorageKey): Promise<Date | null> {

@@ -239,8 +239,9 @@ export default function CoordinatorProvider(props: PropsWithChildren) {
 				.finally(() => {
 					setSeenRefreshTick((value) => value + 1);
 				});
-			Storage.set(CoordinatorStorageKey.VISIBLE_TIMELINE_STALE, 1).catch((err) =>
-				logger.error("Failed to persist visible timeline stale flag:", err),
+			Storage.set(CoordinatorStorageKey.VISIBLE_TIMELINE_STALE, 1).catch(
+				(err) =>
+					logger.error("Failed to persist visible timeline stale flag:", err),
 			);
 		}, SEEN_REFRESH_DEBOUNCE_MS);
 	}, [algorithm]);
