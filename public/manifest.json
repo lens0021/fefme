@@ -8,7 +8,8 @@
 			"type": "image/svg+xml"
 		}
 	],
-	"start_url": "/",
+	"start_url": "/fefme/",
+	"scope": "/fefme/",
 	"display": "standalone",
 	"theme_color": "#000000",
 	"background_color": "#ffffff"
