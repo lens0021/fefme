@@ -64,6 +64,7 @@ export default function Feed() {
 	const [scrollPercentage, setScrollPercentage] = useState(0);
 	const [thread, setThread] = useState<Post[]>([]);
 	const dataLoadingRef = useRef<HTMLDivElement>(null);
+	const loadingMoreTimeoutRef = useRef<number | null>(null);
 
 	// Checkboxes for persistent user settings state variables
 	// TODO: the returned checkboxTooltip is shared by all tooltips which kind of sucks
@@ -104,6 +105,7 @@ export default function Feed() {
 	//       is increased, triggering a second evaluation of the block
 	useEffect(() => {
 		const showMorePosts = () => {
+			if (isLoadingMorePosts) return;
 			if (numDisplayedPosts < visibleTimeline.length) {
 				logger.log(
 					`Showing ${numDisplayedPosts} posts, adding ${numPostsToLoadOnScroll} more (${visibleTimeline.length} available in feed)`,
@@ -112,7 +114,12 @@ export default function Feed() {
 				// Use requestAnimationFrame to ensure UI updates before adding posts
 				requestAnimationFrame(() => {
 					setNumDisplayedPosts((prev) => prev + numPostsToLoadOnScroll);
-					setIsLoadingMorePosts(false);
+					if (loadingMoreTimeoutRef.current) {
+						window.clearTimeout(loadingMoreTimeoutRef.current);
+					}
+					loadingMoreTimeoutRef.current = window.setTimeout(() => {
+						setIsLoadingMorePosts(false);
+					}, 250);
 				});
 			}
 		};
@@ -158,11 +165,19 @@ export default function Feed() {
 	}, [
 		isBottom,
 		isLoading,
+		isLoadingMorePosts,
 		numDisplayedPosts,
 		visibleTimeline.length,
 		defaultNumDisplayedPosts,
 		numPostsToLoadOnScroll,
 	]);
+	useEffect(() => {
+		return () => {
+			if (loadingMoreTimeoutRef.current) {
+				window.clearTimeout(loadingMoreTimeoutRef.current);
+			}
+		};
+	}, []);
 
 	// TODO: probably easier to not rely on fefme's measurement of the last load time; we can easily track it ourselves.
 	const footerMsg = useMemo(() => {
@@ -508,11 +523,13 @@ export default function Feed() {
 								)}
 
 								{isLoadingMorePosts && (
-									<div className="flex items-center justify-center gap-3 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] p-4">
-										<div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
-										<p className="text-sm text-[color:var(--color-muted-fg)]">
-											Loading more posts...
-										</p>
+									<div className="pointer-events-none fixed bottom-6 left-1/2 z-40 -translate-x-1/2">
+										<div className="flex items-center justify-center gap-3 rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] px-4 py-2 shadow-lg">
+											<div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
+											<p className="text-sm text-[color:var(--color-muted-fg)]">
+												Loading more posts...
+											</p>
+										</div>
 									</div>
 								)}
 

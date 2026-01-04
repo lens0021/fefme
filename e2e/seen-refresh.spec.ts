@@ -294,3 +294,150 @@ test("scrolling to the bottom loads more visible posts", async ({ page }) => {
 	const countAfterScroll = await statusCards.count();
 	expect(countAfterScroll).toBeLessThanOrEqual(45);
 });
+
+test("scroll-to-load shows the loading indicator", async ({ page }) => {
+	const user = {
+		access_token: "test-token",
+		id: "1",
+		profilePicture: "",
+		server,
+		username: "tester",
+	};
+
+	await page.addInitScript(
+		({ serverKey, user }) => {
+			window.localStorage.setItem("server", serverKey);
+			window.localStorage.setItem(
+				"serverUsers",
+				JSON.stringify({
+					[serverKey]: {
+						app: null,
+						user,
+					},
+				}),
+			);
+		},
+		{ serverKey, user },
+	);
+
+	const initialPosts = makeStatuses(1, 45);
+
+	await page.route("**/api/v1/**", async (route) => {
+		const url = new URL(route.request().url());
+		if (url.pathname.endsWith("/instance")) {
+			await route.fulfill({
+				contentType: "application/json",
+				status: 200,
+				body: JSON.stringify(instanceInfo),
+			});
+			return;
+		}
+
+		if (url.pathname.endsWith("/timelines/home")) {
+			await route.fulfill({
+				contentType: "application/json",
+				status: 200,
+				body: JSON.stringify(initialPosts),
+			});
+			return;
+		}
+
+		if (url.pathname.endsWith("/accounts/verify_credentials")) {
+			await route.fulfill({
+				contentType: "application/json",
+				status: 200,
+				body: JSON.stringify(makeAccount("tester", "1")),
+			});
+			return;
+		}
+
+		await route.fulfill({
+			contentType: "application/json",
+			status: 200,
+			body: JSON.stringify([]),
+		});
+	});
+
+	await page.route("**/api/v2/**", async (route) => {
+		const url = new URL(route.request().url());
+		if (url.pathname.endsWith("/instance")) {
+			await route.fulfill({
+				contentType: "application/json",
+				status: 200,
+				body: JSON.stringify(instanceInfo),
+			});
+			return;
+		}
+		await route.fulfill({
+			contentType: "application/json",
+			status: 200,
+			body: JSON.stringify([]),
+		});
+	});
+
+	await page.goto("/#/");
+
+	const statusCards = page.getByTestId("status-card");
+	await expect(statusCards).toHaveCount(20, { timeout: 20_000 });
+
+	await page.evaluate(() => {
+		(
+			window as typeof window & { __loadingIndicatorSeen?: boolean }
+		).__loadingIndicatorSeen = false;
+		(
+			window as typeof window & { __loadingIndicatorInterval?: number }
+		).__loadingIndicatorInterval = window.setInterval(() => {
+			const indicator = Array.from(document.querySelectorAll("p")).find((el) =>
+				el.textContent?.includes("Loading more posts..."),
+			);
+			if (!indicator) return;
+			const style = window.getComputedStyle(indicator);
+			if (
+				style.display === "none" ||
+				style.visibility === "hidden" ||
+				Number(style.opacity) === 0
+			) {
+				return;
+			}
+			const rect = indicator.getBoundingClientRect();
+			const inView = rect.bottom > 0 && rect.top < window.innerHeight;
+			if (inView && rect.width > 0 && rect.height > 0) {
+				(
+					window as typeof window & { __loadingIndicatorSeen?: boolean }
+				).__loadingIndicatorSeen = true;
+			}
+		}, 50);
+	});
+
+	await page.getByTestId("feed-bottom-sentinel").scrollIntoViewIfNeeded();
+
+	await expect
+		.poll(async () => statusCards.count(), { timeout: 20_000 })
+		.toBeGreaterThan(20);
+
+	await expect
+		.poll(
+			async () =>
+				page.evaluate(
+					() =>
+						(window as typeof window & { __loadingIndicatorSeen?: boolean })
+							.__loadingIndicatorSeen,
+				),
+			{ timeout: 5_000 },
+		)
+		.toBe(true);
+
+	const indicatorSeen = await page.evaluate(
+		() =>
+			(window as typeof window & { __loadingIndicatorSeen?: boolean })
+				.__loadingIndicatorSeen,
+	);
+	await page.evaluate(() => {
+		const interval = (
+			window as typeof window & { __loadingIndicatorInterval?: number }
+		).__loadingIndicatorInterval;
+		if (interval) window.clearInterval(interval);
+	});
+
+	expect(indicatorSeen).toBe(true);
+});
