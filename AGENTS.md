@@ -259,6 +259,12 @@ Defined in `/src/core/enums.ts`:
 - `AlgorithmStorageKey` - App state (weights, filters, timeline)
 - `FediverseCacheKey` - Fediverse-wide trending data
 
+### Timeline Cache Behavior
+- `VisibleTimelinePosts` is the filtered timeline used for fast initial render.
+- `NextVisibleTimelinePosts` stores the next filtered timeline after background updates.
+- `VisibleTimelineStale` marks the visible timeline as stale when new posts are queued.
+- On page load, `loadCachedData()` promotes `NextVisibleTimelinePosts` to `VisibleTimelinePosts` only if `VisibleTimelineStale` is set (or missing) and then clears the stale flag.
+
 ## TODO
 - Decide whether to rename `AlgorithmProvider`/`useAlgorithm` to match `FeedCoordinator` for naming consistency.
 - Further split large algorithm modules (e.g., `src/core/coordinator/feed.ts`, `src/core/coordinator/state.ts`) into smaller role-focused units.
