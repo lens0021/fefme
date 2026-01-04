@@ -352,6 +352,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 				aria-label={ariaLabel}
 				className="mb-4 rounded-2xl border p-4 shadow-sm focus-within:ring-2 focus-within:ring-[color:var(--color-primary)]"
 				data-testid="status-card"
+				ref={statusRef}
 				style={style}
 				tabIndex={0}
 			>
@@ -529,10 +530,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 					)}
 
 					{/* Actions (boost, favorite, show score, etc) that appear in bottom panel of post */}
-					<div
-						className="flex flex-wrap items-center justify-between gap-2"
-						ref={statusRef}
-					>
+					<div className="flex flex-wrap items-center justify-between gap-2">
 						<div className="flex flex-wrap items-center gap-2">
 							{!post.isDM && buildActionButton(TootAction.Reblog)}
 							{buildActionButton(TootAction.Favourite)}

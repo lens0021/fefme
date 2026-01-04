@@ -116,7 +116,6 @@ export async function saveTimelineToCache(
 		0,
 	);
 	if (
-		state.loadingMutex.isLocked() ||
 		state.totalNumTimesShown === newTotalNumTimesShown
 	)
 		return;

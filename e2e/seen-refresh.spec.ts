@@ -200,3 +200,97 @@ test("seen-only filter keeps visible list stable until bubble reload", async ({
 	await expect(page.getByText("Post 1")).toHaveCount(0);
 	await expect(page.getByText("Post 21")).toBeVisible();
 });
+
+test("scrolling to the bottom loads more visible posts", async ({ page }) => {
+	const user = {
+		access_token: "test-token",
+		id: "1",
+		profilePicture: "",
+		server,
+		username: "tester",
+	};
+
+	await page.addInitScript(
+		({ serverKey, user }) => {
+			window.localStorage.setItem("server", serverKey);
+			window.localStorage.setItem(
+				"serverUsers",
+				JSON.stringify({
+					[serverKey]: {
+						app: null,
+						user,
+					},
+				}),
+			);
+		},
+		{ serverKey, user },
+	);
+
+	const initialPosts = makeStatuses(1, 45);
+
+	await page.route("**/api/v1/**", async (route) => {
+		const url = new URL(route.request().url());
+		if (url.pathname.endsWith("/instance")) {
+			await route.fulfill({
+				contentType: "application/json",
+				status: 200,
+				body: JSON.stringify(instanceInfo),
+			});
+			return;
+		}
+
+		if (url.pathname.endsWith("/timelines/home")) {
+			await route.fulfill({
+				contentType: "application/json",
+				status: 200,
+				body: JSON.stringify(initialPosts),
+			});
+			return;
+		}
+
+		if (url.pathname.endsWith("/accounts/verify_credentials")) {
+			await route.fulfill({
+				contentType: "application/json",
+				status: 200,
+				body: JSON.stringify(makeAccount("tester", "1")),
+			});
+			return;
+		}
+
+		await route.fulfill({
+			contentType: "application/json",
+			status: 200,
+			body: JSON.stringify([]),
+		});
+	});
+
+	await page.route("**/api/v2/**", async (route) => {
+		const url = new URL(route.request().url());
+		if (url.pathname.endsWith("/instance")) {
+			await route.fulfill({
+				contentType: "application/json",
+				status: 200,
+				body: JSON.stringify(instanceInfo),
+			});
+			return;
+		}
+		await route.fulfill({
+			contentType: "application/json",
+			status: 200,
+			body: JSON.stringify([]),
+		});
+	});
+
+	await page.goto("/#/");
+
+	const statusCards = page.getByTestId("status-card");
+	await expect(statusCards).toHaveCount(20, { timeout: 20_000 });
+
+	await page.getByTestId("feed-bottom-sentinel").scrollIntoViewIfNeeded();
+
+	await expect
+		.poll(async () => statusCards.count(), { timeout: 20_000 })
+		.toBeGreaterThan(20);
+	const countAfterScroll = await statusCards.count();
+	expect(countAfterScroll).toBeLessThanOrEqual(45);
+});

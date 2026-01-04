@@ -127,6 +127,12 @@ export default function Feed() {
 				? (scrollPosition / totalScrollableHeight) * 100
 				: 0;
 			setScrollPercentage(percentage);
+			const nearBottom =
+				totalScrollableHeight <= 0 ||
+				scrollPosition >= totalScrollableHeight - 24;
+			if (nearBottom && visibleTimeline.length) {
+				showMorePosts();
+			}
 
 			if (
 				percentage <= 10 &&
@@ -141,6 +147,7 @@ export default function Feed() {
 		};
 
 		window.addEventListener("scroll", handleScroll);
+		handleScroll();
 		return () => window.removeEventListener("scroll", handleScroll);
 	}, [
 		isBottom,
@@ -494,7 +501,11 @@ export default function Feed() {
 									</div>
 								)}
 
-								<div ref={bottomRef} className="mt-2.5" />
+								<div
+									ref={bottomRef}
+									className="mt-2.5 h-px"
+									data-testid="feed-bottom-sentinel"
+								/>
 							</>
 						)}
 					</div>
