@@ -45,7 +45,12 @@ export const TYPE_FILTERS: Record<TypeFilterName, TypeFilter> = {
 	[TypeFilterName.REPLIES]: (post) => !!post.realToot.inReplyToId,
 	[TypeFilterName.BOOSTS]: (post) => !!post.reblog,
 	[TypeFilterName.SEEN]: (post) =>
-		(post.numTimesShown ?? 0) > 0 || (post.realToot.numTimesShown ?? 0) > 0,
+		(post.numTimesShown ?? 0) > 0 ||
+		(post.realToot.numTimesShown ?? 0) > 0 ||
+		!!post.favourited ||
+		!!post.realToot?.favourited ||
+		!!post.reblogged ||
+		!!post.realToot?.reblogged,
 	[TypeFilterName.SENSITIVE]: (post) => post.realToot.sensitive,
 	[TypeFilterName.SPOILERED]: (post) => !isEmptyStr(post.realToot.spoilerText),
 	[TypeFilterName.TRENDING_TAGS]: (post) =>
