@@ -73,7 +73,7 @@ export default function Feed() {
 
 	// Computed variables etc.
 	const bottomRef = useRef<HTMLDivElement>(null);
-	const isBottom = useOnScreen(bottomRef);
+	const isBottom = useOnScreen(bottomRef, "500px");
 	const numShownPosts = Math.max(defaultNumDisplayedPosts, numDisplayedPosts);
 	const showInitialLoading = !hasInitialCache && (isLoading || !algorithm);
 	const showRebuildLoading = isRebuildLoading && hasInitialCache;
