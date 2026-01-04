@@ -17,6 +17,7 @@ import Feed from "../Feed";
 
 vi.mock("../../core/Storage", () => ({
 	default: {
+		getCoerced: vi.fn(() => []),
 		set: vi.fn(() => Promise.resolve()),
 		remove: vi.fn(() => Promise.resolve()),
 	},

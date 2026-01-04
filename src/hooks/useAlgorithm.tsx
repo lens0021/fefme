@@ -449,6 +449,17 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 				locale: navigator?.language,
 			});
 
+			const pendingVisibleTimeline = await Storage.getCoerced<Post>(
+				AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_POSTS,
+			);
+			if (pendingVisibleTimeline.length > 0) {
+				await Storage.set(
+					AlgorithmStorageKey.VISIBLE_TIMELINE_POSTS,
+					pendingVisibleTimeline,
+				);
+				await Storage.remove(AlgorithmStorageKey.NEXT_VISIBLE_TIMELINE_POSTS);
+			}
+
 			if (await algo.isGoToSocialUser()) {
 				logger.warn(
 					"User is on a GoToSocial instance, skipping call to api.v1.apps.verifyCredentials()...",
@@ -473,18 +484,22 @@ export default function AlgorithmProvider(props: PropsWithChildren) {
 
 			setAlgorithm(algo);
 
-			const hasCachedPosts = algo.timeline.length > 0;
+			const cachedTimeline =
+				pendingVisibleTimeline.length > 0
+					? pendingVisibleTimeline
+					: algo.timeline;
+			const hasCachedPosts = cachedTimeline.length > 0;
 			setHasInitialCache(hasCachedPosts);
 
 			// Manually display the initial cache if it exists.
 			if (hasCachedPosts) {
 				logger.log(
-					`Displaying ${algo.timeline.length} cached posts while loading fresh data`,
+					`Displaying ${cachedTimeline.length} cached posts while loading fresh data`,
 				);
-				setTimeline(algo.timeline);
+				setTimeline(cachedTimeline);
 				Storage.set(
 					AlgorithmStorageKey.VISIBLE_TIMELINE_POSTS,
-					algo.timeline,
+					cachedTimeline,
 				).catch((err) =>
 					logger.error("Failed to persist visible timeline cache:", err),
 				);
