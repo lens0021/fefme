@@ -3,9 +3,11 @@ import type Post from "../api/objects/post";
 import { config } from "../config";
 import {
 	AlgorithmStorageKey,
+	BooleanFilterName,
 	CacheKey,
 	FediverseCacheKey,
 	STORAGE_KEYS_WITH_POSTS,
+	TypeFilterName,
 } from "../enums";
 import { truncateToLength } from "../helpers/collection_helpers";
 import { updateBooleanFilterOptions } from "../filters/feed_filters";
@@ -56,10 +58,14 @@ export async function loadCachedData(
 	}
 
 	state.filters = (await Storage.getFilters()) ?? state.filters;
+	const hasSeenExclude =
+		state.filters.booleanFilters?.[BooleanFilterName.TYPE]?.excludedOptions?.includes(
+			TypeFilterName.SEEN,
+		) ?? false;
 
 	if (state.feed.length > 0) {
 		await updateBooleanFilterOptions(state.filters, state.feed);
-		if (visibleTimeline.length > 0) {
+		if (visibleTimeline.length > 0 && !hasSeenExclude) {
 			state.filteredTimeline = visibleTimeline;
 			if (shouldSetInApp) {
 				state.setTimelineInApp(state.filteredTimeline);
