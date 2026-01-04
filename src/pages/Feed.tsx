@@ -65,6 +65,7 @@ export default function Feed() {
 	const [thread, setThread] = useState<Post[]>([]);
 	const dataLoadingRef = useRef<HTMLDivElement>(null);
 	const loadingMoreTimeoutRef = useRef<number | null>(null);
+	const loadingMoreApplyRef = useRef<number | null>(null);
 
 	// Checkboxes for persistent user settings state variables
 	// TODO: the returned checkboxTooltip is shared by all tooltips which kind of sucks
@@ -74,7 +75,7 @@ export default function Feed() {
 
 	// Computed variables etc.
 	const bottomRef = useRef<HTMLDivElement>(null);
-	const isBottom = useOnScreen(bottomRef, "500px");
+	const isBottom = useOnScreen(bottomRef, "0px 0px 30% 0px");
 	const numShownPosts = Math.max(defaultNumDisplayedPosts, numDisplayedPosts);
 	const showInitialLoading = !hasInitialCache && (isLoading || !algorithm);
 	const showRebuildLoading = isRebuildLoading && hasInitialCache;
@@ -111,8 +112,10 @@ export default function Feed() {
 					`Showing ${numDisplayedPosts} posts, adding ${numPostsToLoadOnScroll} more (${visibleTimeline.length} available in feed)`,
 				);
 				setIsLoadingMorePosts(true);
-				// Use requestAnimationFrame to ensure UI updates before adding posts
-				requestAnimationFrame(() => {
+				if (loadingMoreApplyRef.current) {
+					window.clearTimeout(loadingMoreApplyRef.current);
+				}
+				loadingMoreApplyRef.current = window.setTimeout(() => {
 					setNumDisplayedPosts((prev) => prev + numPostsToLoadOnScroll);
 					if (loadingMoreTimeoutRef.current) {
 						window.clearTimeout(loadingMoreTimeoutRef.current);
@@ -120,7 +123,7 @@ export default function Feed() {
 					loadingMoreTimeoutRef.current = window.setTimeout(() => {
 						setIsLoadingMorePosts(false);
 					}, 250);
-				});
+				}, 150);
 			}
 		};
 
@@ -136,13 +139,14 @@ export default function Feed() {
 				document.documentElement.scrollTop || window.scrollY; // Current scroll position
 			const viewportHeight = document.documentElement.clientHeight; // Visible viewport height
 			const totalScrollableHeight = scrollHeight - viewportHeight; // Scrollable distance
+			const preloadThresholdPx = Math.round(window.innerHeight * 0.3);
 			const percentage = totalScrollableHeight
 				? (scrollPosition / totalScrollableHeight) * 100
 				: 0;
 			setScrollPercentage(percentage);
 			const nearBottom =
 				totalScrollableHeight <= 0 ||
-				scrollPosition >= totalScrollableHeight - 24;
+				scrollPosition >= totalScrollableHeight - preloadThresholdPx;
 			if (nearBottom && visibleTimeline.length) {
 				showMorePosts();
 			}
@@ -175,6 +179,9 @@ export default function Feed() {
 		return () => {
 			if (loadingMoreTimeoutRef.current) {
 				window.clearTimeout(loadingMoreTimeoutRef.current);
+			}
+			if (loadingMoreApplyRef.current) {
+				window.clearTimeout(loadingMoreApplyRef.current);
 			}
 		};
 	}, []);
@@ -523,13 +530,11 @@ export default function Feed() {
 								)}
 
 								{isLoadingMorePosts && (
-									<div className="pointer-events-none fixed bottom-6 left-1/2 z-40 -translate-x-1/2">
-										<div className="flex items-center justify-center gap-3 rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] px-4 py-2 shadow-lg">
-											<div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
-											<p className="text-sm text-[color:var(--color-muted-fg)]">
-												Loading more posts...
-											</p>
-										</div>
+									<div className="flex items-center justify-center gap-3 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] p-4">
+										<div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600" />
+										<p className="text-sm text-[color:var(--color-muted-fg)]">
+											Loading more posts...
+										</p>
 									</div>
 								)}
 
