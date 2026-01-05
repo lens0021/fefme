@@ -107,6 +107,7 @@ export default function CoordinatorProvider(props: PropsWithChildren) {
 	const pendingTimelineReasonsRef = React.useRef<Set<PendingTimelineReason>>(
 		new Set(),
 	);
+	const isBusyRef = React.useRef(false);
 	const seenRefreshTimeoutRef = React.useRef<ReturnType<
 		typeof setTimeout
 	> | null>(null);
@@ -249,6 +250,10 @@ export default function CoordinatorProvider(props: PropsWithChildren) {
 	useEffect(() => {
 		visibleTimelineRef.current = timeline;
 	}, [timeline]);
+
+	useEffect(() => {
+		isBusyRef.current = isLoading || isRebuildLoading;
+	}, [isLoading, isRebuildLoading]);
 
 	const queuePendingTimeline = useCallback((reason?: PendingTimelineReason) => {
 		if (!pendingTimelineRef.current) return;
@@ -451,6 +456,57 @@ export default function CoordinatorProvider(props: PropsWithChildren) {
 			await algorithm.resetSeenState();
 		});
 	}, [algorithm, resetErrors, runRebuild]);
+
+	useEffect(() => {
+		if (!algorithm) return;
+		const refreshMinutes = config.timeline.backgroundRefreshIntervalMinutes;
+		if (!refreshMinutes || refreshMinutes <= 0) return;
+
+		const runBackgroundRefresh = async () => {
+			if (!algorithm || isBusyRef.current) return;
+			try {
+				await algorithm.triggerFeedUpdate();
+				queuePendingTimeline("new-posts");
+			} catch (err) {
+				if (err instanceof Error && err.message.includes(GET_FEED_BUSY_MSG)) {
+					return;
+				}
+				logger.error("Background refresh failed:", err);
+			}
+		};
+
+		const intervalId = setInterval(
+			runBackgroundRefresh,
+			refreshMinutes * 60 * 1000,
+		);
+
+		return () => clearInterval(intervalId);
+	}, [algorithm, queuePendingTimeline]);
+
+	useEffect(() => {
+		if (!algorithm) return;
+		const pruneMinutes = config.timeline.backgroundPruneIntervalMinutes;
+		if (!pruneMinutes || pruneMinutes <= 0) return;
+
+		const runBackgroundPrune = async () => {
+			if (!algorithm || isBusyRef.current) return;
+			try {
+				const pruned = await algorithm.pruneOldPosts();
+				if (pruned) {
+					queuePendingTimeline("new-posts");
+				}
+			} catch (err) {
+				logger.error("Background prune failed:", err);
+			}
+		};
+
+		const intervalId = setInterval(
+			runBackgroundPrune,
+			pruneMinutes * 60 * 1000,
+		);
+
+		return () => clearInterval(intervalId);
+	}, [algorithm, queuePendingTimeline]);
 
 	// Initial load of the feed
 	useEffect(() => {

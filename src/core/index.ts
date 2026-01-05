@@ -35,6 +35,7 @@ import {
 } from "./enums";
 import BooleanFilter from "./filters/boolean_filter";
 import NumericFilter from "./filters/numeric_filter";
+import { updateBooleanFilterOptions } from "./filters/feed_filters";
 import { makeChunks, sortKeysByValue } from "./helpers/collection_helpers";
 import {
 	isDebugMode,
@@ -581,6 +582,55 @@ export default class FeedCoordinator {
 	 */
 	async refreshFilteredTimeline(): Promise<Post[]> {
 		return filterFeedAndSetInApp(this.state);
+	}
+
+	/**
+	 * Remove posts that are no longer valid for the feed (e.g. too old).
+	 * @returns {Promise<boolean>} True if any posts were removed.
+	 */
+	async pruneOldPosts(): Promise<boolean> {
+		const hereLogger = logger.tempLogger("pruneOldPosts");
+		if (this.state.loadingMutex.isLocked()) {
+			hereLogger.trace("Skipping prune while feed is loading");
+			return false;
+		}
+		if (this.state.feed.length === 0 && this.state.homeFeed.length === 0) {
+			return false;
+		}
+
+		const feedBefore = this.state.feed.length;
+		const homeBefore = this.state.homeFeed.length;
+
+		const prunedFeed = await Post.removeInvalidPosts(
+			this.state.feed,
+			hereLogger,
+		);
+		const prunedHomeFeed =
+			this.state.homeFeed.length > 0
+				? await Post.removeInvalidPosts(this.state.homeFeed, hereLogger)
+				: [];
+
+		const feedChanged = prunedFeed.length !== feedBefore;
+		const homeChanged = prunedHomeFeed.length !== homeBefore;
+		if (!feedChanged && !homeChanged) return false;
+
+		this.state.feed = prunedFeed;
+		this.state.homeFeed = prunedHomeFeed;
+
+		await updateBooleanFilterOptions(this.state.filters, this.state.feed);
+		filterFeedAndSetInApp(this.state);
+
+		await Storage.set(CoordinatorStorageKey.TIMELINE_POSTS, this.state.feed);
+		await Storage.set(CacheKey.HOME_TIMELINE_POSTS, this.state.homeFeed);
+		this.state.totalNumTimesShown = this.state.feed.reduce(
+			(sum, post) => sum + (post.numTimesShown ?? 0),
+			0,
+		);
+
+		hereLogger.info(
+			`Pruned old posts (feed ${feedBefore} → ${prunedFeed.length}, home ${homeBefore} → ${prunedHomeFeed.length})`,
+		);
+		return true;
 	}
 
 	/**

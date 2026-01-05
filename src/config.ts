@@ -124,6 +124,8 @@ type StatsConfig = {
 
 type TimelineConfig = {
 	readonly autoloadOnFocusAfterMinutes: number;
+	readonly backgroundPruneIntervalMinutes: number;
+	readonly backgroundRefreshIntervalMinutes: number;
 	readonly apiErrorsUserMsgSuffix: string;
 	readonly defaultLoadingMsg: string;
 	readonly defaultNumDisplayedPosts: number;
@@ -353,6 +355,8 @@ const config: Readonly<ConfigType> = {
 
 	timeline: {
 		autoloadOnFocusAfterMinutes: 5, // Autoload new posts if timeline is this old (and feature is enabled)
+		backgroundPruneIntervalMinutes: 30, // How often to prune old posts from the cached timeline
+		backgroundRefreshIntervalMinutes: 5, // How often to auto-load new posts in the background
 		apiErrorsUserMsgSuffix: "warnings while retrieving Mastodon data",
 		defaultLoadingMsg: "Loading (first time can take up to a minute or so)", // Message when first loading posts
 		defaultNumDisplayedPosts: 20, // Default number of posts displayed in the timeline
