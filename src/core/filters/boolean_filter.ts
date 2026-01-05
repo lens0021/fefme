@@ -62,7 +62,8 @@ export const TYPE_FILTERS: Record<TypeFilterName, TypeFilter> = {
 // Matchers for each BooleanFilterName.
 const POST_MATCHERS: Record<BooleanFilterName, TootMatcher> = {
 	[BooleanFilterName.APP]: (post: Post, selectedOptions: string[]) => {
-		return selectedOptions.includes(post.realToot.application?.name);
+		const appName = post.realToot.application?.name;
+		return appName ? selectedOptions.includes(appName) : false;
 	},
 	[BooleanFilterName.SERVER]: (post: Post, selectedOptions: string[]) => {
 		return selectedOptions.includes(post.homeserver);
@@ -105,7 +106,7 @@ export interface BooleanFilterArgs extends Omit<FilterArgs, "description"> {
  * @property {string} [description] - Optional description of the filter for display or documentation purposes.
  * @property {boolean} [invertSelection] - If true, the filter logic is inverted (e.g. exclude instead of include).
  * @property {BooleanFilterOptionList} options - The BooleanFilterOptions available for this filter.
- * @property {BooleanFilterName} propretyName - The BooleanFilterOptions available for this filter.
+ * @property {BooleanFilterName} propertyName - The BooleanFilterOptions available for this filter.
  * @property {string[]} selectedOptions - The names of the options selected for use in filtering.
  */
 export default class BooleanFilter extends PostFilter {
@@ -271,24 +272,24 @@ export default class BooleanFilter extends PostFilter {
 	updateOption(optionName: string, state: BooleanFilterOptionState): void {
 		this.logger.trace(`updateOption(${optionName}, ${state}) invoked`);
 
-		this.selectedOptions = this.removeAndDeduplicate(
-			this.selectedOptions,
-			optionName,
+		// Remove from both arrays first
+		const newSelectedOptions = this.selectedOptions.filter(
+			(opt) => opt !== optionName,
 		);
-		this.excludedOptions = this.removeAndDeduplicate(
-			this.excludedOptions,
-			optionName,
+		const newExcludedOptions = this.excludedOptions.filter(
+			(opt) => opt !== optionName,
 		);
 
+		// Add to appropriate array based on state
 		if (state === "include") {
-			this.selectedOptions.push(optionName);
+			newSelectedOptions.push(optionName);
 		} else if (state === "exclude") {
-			this.excludedOptions.push(optionName);
+			newExcludedOptions.push(optionName);
 		}
 
-		// Build new Array object to trigger useMemo() in Demo App  // TODO: not great
-		this.selectedOptions = [...this.selectedOptions];
-		this.excludedOptions = [...this.excludedOptions];
+		// Assign new arrays to trigger React re-renders
+		this.selectedOptions = newSelectedOptions;
+		this.excludedOptions = newExcludedOptions;
 	}
 
 	getOptionState(optionName: string): BooleanFilterOptionState {
@@ -307,6 +308,28 @@ export default class BooleanFilter extends PostFilter {
 		filterArgs.selectedOptions = this.selectedOptions;
 		filterArgs.excludedOptions = this.excludedOptions;
 		return filterArgs;
+	}
+
+	/**
+	 * Add synthetic options for selected/excluded options that are missing from the options list.
+	 * @private
+	 * @param {BooleanFilterOption[]} options - The current options list.
+	 */
+	private addMissingActiveOptions(options: BooleanFilterOption[]): void {
+		const activeOptions = [...this.selectedOptions, ...this.excludedOptions];
+
+		activeOptions.forEach((optionName) => {
+			if (optionName && !options.some((opt) => opt.name === optionName)) {
+				this.logger.warn(
+					`Active option "${optionName}" not found in options, adding synthetically`,
+				);
+				options.push({
+					name: optionName,
+					displayName: optionName,
+					numPosts: 0,
+				} as BooleanFilterOption);
+			}
+		});
 	}
 
 	/**
@@ -331,18 +354,7 @@ export default class BooleanFilter extends PostFilter {
 			);
 		});
 
-		[...this.selectedOptions, ...this.excludedOptions].forEach((selected) => {
-			if (selected && !newOptions.some((opt) => opt.name === selected)) {
-				this.logger.warn(
-					`Selected option "${selected}" not found in options, adding synthetically`,
-				);
-				newOptions.push({
-					name: selected,
-					displayName: selected,
-					numPosts: 0,
-				} as BooleanFilterOption);
-			}
-		});
+		this.addMissingActiveOptions(newOptions);
 
 		return new BooleanFilterOptionList(newOptions, this.propertyName);
 	}

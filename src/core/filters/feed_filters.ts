@@ -60,9 +60,7 @@ const logger = new Logger("feed_filters.ts");
  * @returns {FeedFilterSettings}
  */
 export function buildNewFilterSettings(): FeedFilterSettings {
-	const filters: FeedFilterSettings = JSON.parse(
-		JSON.stringify(DEFAULT_FILTERS),
-	); // Deep copy
+	const filters: FeedFilterSettings = structuredClone(DEFAULT_FILTERS);
 	populateMissingFilters(filters);
 	return filters;
 }
@@ -105,19 +103,6 @@ export function buildFiltersFromArgs(
  */
 export function repairFilterSettings(filters: FeedFilterSettings): boolean {
 	let wasChanged = false;
-
-	// For upgrades of existing users for the rename of booleanFilterArgs
-	// TODO: remove this eventually
-	if ("feedFilterSectionArgs" in filters) {
-		logger.warn(
-			`Old filter format "feedFilterSectionArgs:, converting to booleanFilterArgs:`,
-			filters,
-		);
-		filters.booleanFilterArgs =
-			filters.feedFilterSectionArgs as BooleanFilterArgs[];
-		delete filters.feedFilterSectionArgs;
-		wasChanged = true;
-	}
 
 	const validBooleanFilterArgs = BooleanFilter.removeInvalidFilterArgs(
 		filters.booleanFilterArgs,
@@ -245,9 +230,8 @@ export async function updateBooleanFilterOptions(
 			}
 		});
 
-		// Count tags // TODO: this only counts actual tags whereas the demo app filters based on
-		// containsString() so the counts don't match. To fix this we'd have to go back over the posts
-		// and check for each tag but that is for now too slow.
+		// Count tags. Note: This only counts explicit hashtags (#tag), not substring matches
+		// in post text. The scanForTags parameter enables a slower but more comprehensive scan.
 		post.realToot.tags.forEach((tag) => {
 			// Suppress non-Latin script tags unless they match the user's language
 			if (tag.language && tag.language != config.locale.language) {
@@ -319,6 +303,51 @@ function populateMissingFilters(filters: FeedFilterSettings): void {
 }
 
 /**
+ * Create a combined options list with followed tags added.
+ * @private
+ */
+function addFollowedTagsToOptions(
+	options: BooleanFilterOptionList,
+	followedTags: TagList,
+): BooleanFilterOptionList {
+	const allOptions = new BooleanFilterOptionList(options.objs, options.source);
+	allOptions.addObjs(
+		followedTags.objs.map((tag) => {
+			return { name: tag.name, isFollowed: true };
+		}),
+	);
+	return allOptions;
+}
+
+/**
+ * Scan posts for substring matches of a tag and update counts.
+ * @private
+ */
+function scanPostsForTagMatches(
+	posts: Post[],
+	tag: TagWithUsageCounts,
+	option: BooleanFilterOption,
+	allOptions: BooleanFilterOptionList,
+	tagsFound: StringNumberDict,
+): number {
+	let followedTagMatches = 0;
+
+	posts.forEach((post) => {
+		// Check if post contains tag as substring but not as explicit hashtag
+		if (post.realToot.containsTag(tag, true) && !post.realToot.containsTag(tag)) {
+			allOptions.incrementCount(tag.name);
+			incrementCount(tagsFound, tag.name);
+
+			if (option.isFollowed) {
+				followedTagMatches++;
+			}
+		}
+	});
+
+	return followedTagMatches;
+}
+
+/**
  * Scan a list of {@linkcode Post}s for a set of hashtags and update their counts in the provided
  * hashtagOptions. Used to search the home timeline for Posts that contain discussion of a given
  * tag even if it's not actually tagged with it (e.g. post mentions "AI" in the text but doesn't
@@ -335,14 +364,7 @@ function updateHashtagCounts(
 ): BooleanFilterOptionList {
 	const startedAt = Date.now();
 	const tagsFound: StringNumberDict = {};
-
-	// Add followedTags to the options list so we can increment their counts if found.
-	const allOptions = new BooleanFilterOptionList(options.objs, options.source);
-	allOptions.addObjs(
-		followedTags.objs.map((tag) => {
-			return { name: tag.name, isFollowed: true };
-		}),
-	);
+	const allOptions = addFollowedTagsToOptions(options, followedTags);
 	let followedTagsFound = 0;
 
 	allOptions.topObjs().forEach((option) => {
@@ -352,24 +374,18 @@ function updateHashtagCounts(
 			numPosts: option.numPosts,
 		};
 
-		// Skip invalid tags and those that don't already appear in the hashtagOptions.
+		// Skip invalid tags and those that don't already appear in the hashtagOptions
 		if (!(isValidForSubstringSearch(tag) && options.getObj(tag.name))) {
 			return;
 		}
 
-		posts.forEach((post) => {
-			if (
-				post.realToot.containsTag(tag, true) &&
-				!post.realToot.containsTag(tag)
-			) {
-				allOptions.incrementCount(tag.name);
-				incrementCount(tagsFound, tag.name);
-
-				if (option.isFollowed) {
-					followedTagsFound++;
-				}
-			}
-		});
+		followedTagsFound += scanPostsForTagMatches(
+			posts,
+			tag,
+			option,
+			allOptions,
+			tagsFound,
+		);
 	});
 
 	logger.info(
