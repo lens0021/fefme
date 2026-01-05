@@ -323,20 +323,17 @@ Review the following files, and add TODO items for it.
   - [ ] Verify theme_color matches actual app theme
 - [x] src/components/ApiErrorsPanel.tsx
 - [x] src/components/coordinator/BooleanFilterAccordionSection.tsx
-- src/components/coordinator/FeedFiltersAccordionSection.tsx
-  - [ ] Optimize Object.keys(filterPositions).sort().map() pattern - convert to array first for better performance
+- [x] src/components/coordinator/FeedFiltersAccordionSection.tsx - Optimized to use Object.entries() for better performance
 - src/components/coordinator/filters/FilterCheckboxGrid.tsx
   - [ ] Address existing TODO: "maybe rename this BooleanFilterCheckboxGrid?" (line 122)
   - [ ] Consider splitting this 403-line component into smaller, focused components
   - [ ] Extract getGradientTooltip and findTooltip functions to separate utility file
   - [ ] Convert optionGrid from IIFE to useMemo for better React optimization
   - [ ] Consider extracting gradient calculation logic to separate module
-- src/components/coordinator/filters/HeaderSwitch.tsx
-  - [ ] Remove props destructuring with let and reassignment (line 52) - use separate variable or conditional
-  - [ ] Verify spelling consistency: "Colour" is British English - confirm this matches project style guide
-- src/components/coordinator/filters/NumericFilters.tsx
-  - [ ] Address existing TODO: implement useCallback for onChange to reduce re-renders (line 32)
-  - [ ] Remove duplicate numericFilters declaration (line 16 unused, only line 24 needed)
+- [x] src/components/coordinator/filters/HeaderSwitch.tsx
+  - [x] Remove props destructuring with let and reassignment (line 52) - use separate variable or conditional - Changed to const with finalTooltip variable
+  - [x] Verify spelling consistency: "Colour" is British English - confirm this matches project style guide - Changed to American English "Color"
+- [x] src/components/coordinator/filters/NumericFilters.tsx
 - [ ] src/components/coordinator/filters/__tests__/FilterCheckboxGrid.test.tsx
 - [ ] src/components/coordinator/filters/__tests__/NumericFilters.test.tsx
 - [ ] src/components/coordinator/Slider.tsx

@@ -68,9 +68,9 @@ export default function FeedFiltersAccordionSection() {
 			{HIGHLIGHTED_TOOLTIP}
 
 			<div>
-				{Object.keys(filterPositions)
-					.sort()
-					.map((position) => filterPositions[position])}
+				{Object.entries(filterPositions)
+					.sort(([a], [b]) => Number(a) - Number(b))
+					.map(([, element]) => element)}
 			</div>
 		</Accordion>
 	);

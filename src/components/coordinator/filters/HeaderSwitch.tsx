@@ -16,9 +16,9 @@ import Checkbox from "../../helpers/Checkbox";
 const HEADER_SWITCH_TOOLTIP_ANCHOR = "header-switch-tooltip-anchor";
 
 const TAG_HIGHLIGHT_LABELS: Record<TagPostsCategory, string> = {
-	[TagPostsCategory.FAVOURITED]: "Colour Favourites",
-	[TagPostsCategory.PARTICIPATED]: "Colour Participated",
-	[TagPostsCategory.TRENDING]: "Colour Trending",
+	[TagPostsCategory.FAVOURITED]: "Color Favourites",
+	[TagPostsCategory.PARTICIPATED]: "Color Participated",
+	[TagPostsCategory.TRENDING]: "Color Trending",
 };
 
 // Only invert selection requires a call to fefme's updateFilters() method
@@ -49,7 +49,7 @@ interface HeaderSwitchProps {
 }
 
 export default function HeaderSwitch(props: HeaderSwitchProps) {
-	let { isChecked, label, onChange, tooltip, tooltipText } = props;
+	const { isChecked, label, onChange, tooltip, tooltipText } = props;
 
 	if (tooltipText && tooltip) {
 		logger.warn(
@@ -57,7 +57,7 @@ export default function HeaderSwitch(props: HeaderSwitchProps) {
 		);
 	}
 
-	tooltip ||= {
+	const finalTooltip = tooltip || {
 		anchor: HEADER_SWITCH_TOOLTIP_ANCHOR,
 		text: tooltipText || config.filters.headerSwitches.tooltipText[label],
 	};
@@ -69,7 +69,7 @@ export default function HeaderSwitch(props: HeaderSwitchProps) {
 			label={TAG_HIGHLIGHT_LABELS[label] || label}
 			onChange={onChange}
 			updateFilters={!SKIP_UPDATE_FILTERS_SWITCHES.includes(label)}
-			tooltip={tooltip}
+			tooltip={finalTooltip}
 		/>
 	);
 }

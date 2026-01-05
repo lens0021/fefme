@@ -3,6 +3,7 @@
  * Things like how much to prefer people you favorite a lot or how much to posts that
  * are trending in the Fediverse.
  */
+import { useCallback } from "react";
 import { capitalCase } from "change-case";
 
 import { config } from "../../../config";
@@ -13,7 +14,15 @@ import Slider from "./../Slider";
 export default function NumericFilters(props: { isActive: boolean }) {
 	const { isActive } = props;
 	const { algorithm, triggerFilterUpdate } = useCoordinator();
-	const numericFilters = Object.values(algorithm.filters.numericFilters);
+
+	const createHandleChange = useCallback(
+		(numericFilter: (typeof algorithm.filters.numericFilters)[keyof typeof algorithm.filters.numericFilters]) =>
+			async (e: React.ChangeEvent<HTMLInputElement>) => {
+				numericFilter.value = Number(e.target.value);
+				await triggerFilterUpdate?.(algorithm.filters);
+			},
+		[algorithm.filters, triggerFilterUpdate],
+	);
 
 	return (
 		<Accordion
@@ -29,11 +38,7 @@ export default function NumericFilters(props: { isActive: boolean }) {
 						label={capitalCase(numericFilter.propertyName)}
 						maxValue={config.filters.numeric.maxValue}
 						minValue={0}
-						// TODO: useCallback() could save a lot of re-renders here maybe...
-						onChange={async (e) => {
-							numericFilter.value = Number(e.target.value);
-							await triggerFilterUpdate?.(algorithm.filters);
-						}}
+						onChange={createHandleChange(numericFilter)}
 						stepSize={1}
 						value={numericFilter.value}
 					/>
