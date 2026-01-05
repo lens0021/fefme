@@ -331,8 +331,6 @@ Review the following files, and add TODO items for it.
   - [ ] Convert optionGrid from IIFE to useMemo for better React optimization
   - [ ] Consider extracting gradient calculation logic to separate module
 - [x] src/components/coordinator/filters/HeaderSwitch.tsx
-  - [x] Remove props destructuring with let and reassignment (line 52) - use separate variable or conditional - Changed to const with finalTooltip variable
-  - [x] Verify spelling consistency: "Colour" is British English - confirm this matches project style guide - Changed to American English "Color"
 - [x] src/components/coordinator/filters/NumericFilters.tsx
 - [ ] src/components/coordinator/filters/__tests__/FilterCheckboxGrid.test.tsx
 - [ ] src/components/coordinator/filters/__tests__/NumericFilters.test.tsx

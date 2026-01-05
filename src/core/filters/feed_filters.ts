@@ -334,7 +334,10 @@ function scanPostsForTagMatches(
 
 	posts.forEach((post) => {
 		// Check if post contains tag as substring but not as explicit hashtag
-		if (post.realToot.containsTag(tag, true) && !post.realToot.containsTag(tag)) {
+		if (
+			post.realToot.containsTag(tag, true) &&
+			!post.realToot.containsTag(tag)
+		) {
 			allOptions.incrementCount(tag.name);
 			incrementCount(tagsFound, tag.name);
 

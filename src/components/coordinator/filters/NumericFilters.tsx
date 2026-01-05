@@ -16,7 +16,9 @@ export default function NumericFilters(props: { isActive: boolean }) {
 	const { algorithm, triggerFilterUpdate } = useCoordinator();
 
 	const createHandleChange = useCallback(
-		(numericFilter: (typeof algorithm.filters.numericFilters)[keyof typeof algorithm.filters.numericFilters]) =>
+		(
+			numericFilter: (typeof algorithm.filters.numericFilters)[keyof typeof algorithm.filters.numericFilters],
+		) =>
 			async (e: React.ChangeEvent<HTMLInputElement>) => {
 				numericFilter.value = Number(e.target.value);
 				await triggerFilterUpdate?.(algorithm.filters);
