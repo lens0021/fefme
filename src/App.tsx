@@ -1,11 +1,6 @@
-import { Buffer } from "buffer"; // Required for class-transformer to work (maybe???)
 import type React from "react";
 import { useEffect } from "react";
-const windowWithBuffer = window as Window & { Buffer?: typeof Buffer };
-windowWithBuffer.Buffer = Buffer;
-
 import { HashRouter, Route, Routes } from "react-router-dom";
-import { useLocation, useNavigate } from "react-router-dom";
 
 import "./theme.css";
 import Footer from "./components/Footer";
@@ -19,6 +14,7 @@ import { useTheme } from "./hooks/useTheme";
 import CallbackPage from "./pages/CallbackPage";
 import Feed from "./pages/Feed";
 import LoginPage from "./pages/LoginPage";
+import NotFoundPage from "./pages/NotFoundPage";
 
 const logger = getLogger("App.tsx");
 
@@ -106,22 +102,4 @@ export default function App(): React.ReactElement {
 			</div>
 		</HashRouter>
 	);
-}
-
-function NotFoundPage() {
-	const navigate = useNavigate();
-	const location = useLocation();
-	const currentPath = location.pathname;
-
-	logger.log(
-		`<NotFoundPage> You shouldn't be here! currentPath: "${currentPath}", location:`,
-		location,
-	);
-
-	useEffect(() => {
-		navigate("/");
-		// navigate is stable (from react-router), so this only runs once on mount
-	}, [navigate]);
-
-	return <div>Redirecting...</div>;
 }

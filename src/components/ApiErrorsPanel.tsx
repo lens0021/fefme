@@ -7,7 +7,7 @@ import { useCoordinator } from "../hooks/useCoordinator";
  * The footer that appears on the login screen when API errors and warnings were encountered
  * while retrieving Mastodon data.
  */
-export default function ApiErrorsPanel(): JSX.Element {
+export default function ApiErrorsPanel(): JSX.Element | null {
 	const { algorithm } = useCoordinator();
 	const [isExpanded, setIsExpanded] = useState(false);
 
@@ -16,31 +16,38 @@ export default function ApiErrorsPanel(): JSX.Element {
 	}
 
 	return (
-		<div className="bg-[#4f4f42] mt-[35px] font-[Tahoma,Geneva,sans-serif] rounded overflow-hidden">
-			<div className="bg-[#4f4f42]">
-				<div className="bg-[#4f4f42]">
-					<button
-						type="button"
-						className="bg-[#4f4f42] border-0 text-[#a4a477] w-full p-3 cursor-pointer text-left"
-						onClick={() => setIsExpanded(!isExpanded)}
-					>
-						{algorithm.apiErrorMsgs.length}{" "}
-						{config.timeline.apiErrorsUserMsgSuffix} (click to inspect)
-					</button>
-				</div>
+		<div
+			className="mt-[35px] font-[Tahoma,Geneva,sans-serif] rounded overflow-hidden"
+			style={{ backgroundColor: "var(--color-warning-bg)" }}
+		>
+			<button
+				type="button"
+				className="border-0 w-full p-3 cursor-pointer text-left"
+				style={{
+					backgroundColor: "var(--color-warning-bg)",
+					color: "var(--color-warning-fg)",
+				}}
+				onClick={() => setIsExpanded(!isExpanded)}
+			>
+				{algorithm.apiErrorMsgs.length}{" "}
+				{config.timeline.apiErrorsUserMsgSuffix} (click to inspect)
+			</button>
 
-				{isExpanded && (
-					<div className="bg-[#4f4f42] p-3">
-						<ul className="list-decimal pl-[25px]">
-							{algorithm.apiErrorMsgs.map((msg) => (
-								<li key={msg} className="text-[#c6d000] text-xs mt-[2px]">
-									{msg}
-								</li>
-							))}
-						</ul>
-					</div>
-				)}
-			</div>
+			{isExpanded && (
+				<div className="p-3" style={{ backgroundColor: "var(--color-warning-bg)" }}>
+					<ul className="list-decimal pl-[25px]">
+						{algorithm.apiErrorMsgs.map((msg, index) => (
+							<li
+								key={index}
+								className="text-xs mt-[2px]"
+								style={{ color: "var(--color-warning-text)" }}
+							>
+								{msg}
+							</li>
+						))}
+					</ul>
+				</div>
+			)}
 		</div>
 	);
 }

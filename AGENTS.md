@@ -274,3 +274,203 @@ Defined in `/src/core/enums.ts`:
 - Decide whether to rename `CoordinatorProvider`/`useCoordinator` to match `FeedCoordinator` for naming consistency.
 - Further split large algorithm modules (e.g., `src/core/coordinator/feed.ts`, `src/core/coordinator/state.ts`) into smaller role-focused units.
 - Align code boundaries with the Component Roles list (enforce module responsibilities and remove cross-role coupling).
+
+### Review files
+
+Review the following files, and add TODO items for it.
+
+- **biome.json**
+  - ~~Consider customizing linter rules beyond "recommended": true for project-specific needs~~
+  - [ ] Evaluate if additional files should be ignored beyond src/default.css
+
+- **e2e/seen-refresh.spec.ts**
+  - [ ] Extract API route mocking logic into shared helper functions to reduce duplication across all 3 tests
+  - [ ] Move makeAccount, makeStatus, makeStatuses test helpers to separate fixture file (e.g., e2e/fixtures/mockData.ts)
+  - [ ] Extract hardcoded timeout values (20_000, 1500, etc.) to named constants for maintainability
+  - [ ] Consider extracting common test setup (user initialization, page.addInitScript) into beforeEach hook
+  - [ ] Refactor instanceInfo object to shared fixture
+
+- **index.html**
+  - [ ] Add meta description tag for SEO
+  - [ ] Consider adding Open Graph meta tags for social sharing
+  - [ ] Add theme-color meta tag for better PWA integration
+  - [ ] Consider adding noscript tag with message for users without JavaScript
+
+- **src/App.tsx**
+  - [x] Verify if Buffer polyfill is actually required for class-transformer (line 1 comment says "maybe???") - Not required, removed
+  - [x] Remove or update misleading Bootstrap CDN comment (line 6) - index.html doesn't have Bootstrap CDN
+  - [x] Move OAuth redirect logic (lines 38-47) into useEffect to avoid side effects during render
+  - [x] Move Service Worker registration (lines 49-58) into useEffect hook
+  - [x] Add success logging for Service Worker registration
+  - [ ] Consider showing 404 message briefly before redirecting in NotFoundPage instead of immediate redirect
+  - [x] Review Footer placement outside CoordinatorProvider - verify if intentional (line 88) - Intentional: Footer should be visible even when not authenticated
+  - [x] Consider extracting NotFoundPage to separate file in src/pages/ - Extracted to src/pages/NotFoundPage.tsx
+  - [x] Document or simplify useEffect dependency array in NotFoundPage (navigate is stable but could add comment)
+  - [x] Review mixing of inline styles (CSS variables) with Tailwind classes for consistency - Intentional: CSS variables needed for theming
+
+- **lefthook.yml**
+  - [ ] Consider adding glob patterns to run hooks only on relevant file changes (e.g., skip tsc for markdown-only changes)
+
+- **package.json**
+  - [ ] Consider upgrading React from 18.2 to 18.3 (latest stable)
+  - [x] Verify if "private": false is intentional - package doesn't seem meant for npm publishing
+  - [ ] Replace lodash with lodash-es or individual imports to reduce bundle size
+  - [x] Remove or document browserslist config - Vite doesn't use it without @vitejs/plugin-legacy
+
+- **playwright.config.ts**
+  - [ ] Fix port mismatch: webServer uses "npm run dev" but specifies port 4173 (preview port) - should use dev port 3000 or use "npm run preview"
+  - [ ] Add workers configuration for parallel test execution control
+  - [ ] Add retries configuration for handling flaky tests
+  - ~~Consider adding reporter configuration for better test output~~
+
+- **public/manifest.json**
+  - ~~Add multiple icon sizes (192x192, 512x512 PNG) in addition to SVG for better PWA support~~
+  - ~~Add "description" field for app stores and browsers~~
+  - ~~Consider adding "screenshots" field for Progressive Web App installation~~
+  - [ ] Verify theme_color matches actual app theme
+
+- [x] src/components/ApiErrorsPanel.tsx
+- [x] src/components/coordinator/BooleanFilterAccordionSection.tsx
+
+- **src/components/coordinator/FeedFiltersAccordionSection.tsx**
+  - [ ] Optimize Object.keys(filterPositions).sort().map() pattern - convert to array first for better performance
+
+- **src/components/coordinator/filters/FilterCheckboxGrid.tsx**
+  - [ ] Address existing TODO: "maybe rename this BooleanFilterCheckboxGrid?" (line 122)
+  - [ ] Consider splitting this 403-line component into smaller, focused components
+  - [ ] Extract getGradientTooltip and findTooltip functions to separate utility file
+  - [ ] Convert optionGrid from IIFE to useMemo for better React optimization
+  - [ ] Consider extracting gradient calculation logic to separate module
+
+- **src/components/coordinator/filters/HeaderSwitch.tsx**
+  - [ ] Remove props destructuring with let and reassignment (line 52) - use separate variable or conditional
+  - [ ] Verify spelling consistency: "Colour" is British English - confirm this matches project style guide
+
+- **src/components/coordinator/filters/NumericFilters.tsx**
+  - [ ] Address existing TODO: implement useCallback for onChange to reduce re-renders (line 32)
+  - [ ] Remove duplicate numericFilters declaration (line 16 unused, only line 24 needed)
+- [ ] src/components/coordinator/filters/__tests__/FilterCheckboxGrid.test.tsx
+- [ ] src/components/coordinator/filters/__tests__/NumericFilters.test.tsx
+- [ ] src/components/coordinator/Slider.tsx
+- [ ] src/components/coordinator/WeightSetter.tsx
+- [ ] src/components/coordinator/WeightSlider.tsx
+- [ ] src/components/experimental/ExperimentalFeatures.tsx
+- [ ] src/components/Footer.tsx
+- [ ] src/components/Header.tsx
+- [ ] src/components/helpers/Accordion.tsx
+- [ ] src/components/helpers/Checkbox.tsx
+- [ ] src/components/helpers/Confirmation.tsx
+- [ ] src/components/helpers/ErrorHandler.tsx
+- [ ] src/components/helpers/LabeledDropdownButton.tsx
+- [ ] src/components/helpers/NewTabLink.tsx
+- [ ] src/components/ProtectedRoute.tsx
+- [ ] src/components/status/ActionButton.tsx
+- [ ] src/components/status/AttachmentsModal.tsx
+- [ ] src/components/status/MultimediaNode.tsx
+- [ ] src/components/status/Poll.tsx
+- [ ] src/components/status/PreviewCard.tsx
+- [ ] src/components/status/Status.tsx
+- [ ] src/components/status/__tests__/StatusSeenDuringBackgroundLoad.test.tsx
+- [ ] src/components/TrendingSection.tsx
+- [ ] src/config.ts
+- [ ] src/core/api/api.ts
+- [ ] src/core/api/counted_list.ts
+- [ ] src/core/api/errors.ts
+- [ ] src/core/api/mastodon_server.ts
+- [ ] src/core/api/objects/account.ts
+- [ ] src/core/api/objects/filter.ts
+- [ ] src/core/api/objects/post.ts
+- [ ] src/core/api/objects/tag.ts
+- [ ] src/core/api/objects/trending_with_history.ts
+- [ ] src/core/api/tag_list.ts
+- [ ] src/core/api/tags_for_fetching_posts.ts
+- [ ] src/core/api/user_data_poller.ts
+- [ ] src/core/api/user_data.ts
+- [ ] src/core/config.ts
+- [ ] src/core/coordinator/actions.ts
+- [ ] src/core/coordinator/background.ts
+- [ ] src/core/coordinator/cache.ts
+- [ ] src/core/coordinator/constants.ts
+- [ ] src/core/coordinator/feed_stats.ts
+- [ ] src/core/coordinator/feed.ts
+- [ ] src/core/coordinator/filters.ts
+- [ ] src/core/coordinator/loaders.ts
+- [ ] src/core/coordinator/loggers.ts
+- [ ] src/core/coordinator/scorers.ts
+- [ ] src/core/coordinator/scoring.ts
+- [ ] src/core/coordinator/source_stats.ts
+- [ ] src/core/coordinator/state.ts
+- [ ] src/core/coordinator/stats.ts
+- [ ] src/core/coordinator/__tests__/cache.test.ts
+- [ ] src/core/enums.ts
+- [ ] src/core/filters/boolean_filter.ts
+- [ ] src/core/filters/feed_filters.ts
+- [ ] src/core/filters/numeric_filter.ts
+- [ ] src/core/filters/post_filter.ts
+- [ ] src/core/filters/__tests__/SeenFilter.test.ts
+- [ ] src/core/helpers/collection_helpers.ts
+- [ ] src/core/helpers/environment_helpers.ts
+- [ ] src/core/helpers/language_helper.ts
+- [ ] src/core/helpers/logger.ts
+- [ ] src/core/helpers/math_helper.ts
+- [ ] src/core/helpers/mutex_helpers.ts
+- [ ] src/core/helpers/string_helpers.ts
+- [ ] src/core/helpers/suppressed_hashtags.ts
+- [ ] src/core/helpers/time_helpers.ts
+- [ ] src/core/index.ts
+- [ ] src/core/scorer/feed/diversity_feed_scorer.ts
+- [ ] src/core/scorer/feed_scorer.ts
+- [ ] src/core/scorer/post/acccount_scorer.ts
+- [ ] src/core/scorer/post/already_shown_scorer.ts
+- [ ] src/core/scorer/post/author_followers_scorer.ts
+- [ ] src/core/scorer/post/boosts_in_feed_scorer.ts
+- [ ] src/core/scorer/post/chaos_scorer.ts
+- [ ] src/core/scorer/post/followed_accounts_scorer.ts
+- [ ] src/core/scorer/post/followed_tags_scorer.ts
+- [ ] src/core/scorer/post/followers_scorer.ts
+- [ ] src/core/scorer/post/interactions_scorer.ts
+- [ ] src/core/scorer/post/mentions_followed_scorer.ts
+- [ ] src/core/scorer/post/most_boosted_accounts_scorer.ts
+- [ ] src/core/scorer/post/most_favourited_accounts_scorer.ts
+- [ ] src/core/scorer/post/most_replied_accounts_scorer.ts
+- [ ] src/core/scorer/post/property_scorer_factory.ts
+- [ ] src/core/scorer/post_scorer.ts
+- [ ] src/core/scorer/post/tag_scorer_factory.ts
+- [ ] src/core/scorer/post/trending_tags_scorer.ts
+- [ ] src/core/scorer/scorer_cache.ts
+- [ ] src/core/scorer/scorer.ts
+- [ ] src/core/scorer/weight_presets.ts
+- [ ] src/core/Storage.ts
+- [ ] src/core/types.ts
+- [ ] src/helpers/async_helpers.ts
+- [ ] src/helpers/log_helpers.ts
+- [ ] src/helpers/mastodon_helpers.ts
+- [ ] src/helpers/min_posts.ts
+- [ ] src/helpers/navigation.ts
+- [ ] src/helpers/number_helpers.ts
+- [ ] src/helpers/source_labels.ts
+- [ ] src/helpers/string_helpers.ts
+- [ ] src/helpers/styles/index.ts
+- [ ] src/helpers/styles/theme.ts
+- [ ] src/helpers/ui.tsx
+- [ ] src/hooks/useAuth.tsx
+- [ ] src/hooks/useCoordinator.tsx
+- [ ] src/hooks/useLocalStorage.tsx
+- [ ] src/hooks/useOnScreen.tsx
+- [ ] src/hooks/useTheme.ts
+- [ ] src/index.css
+- [ ] src/index.tsx
+- [ ] src/pages/CallbackPage.tsx
+- [ ] src/pages/Feed.tsx
+- [ ] src/pages/LoginPage.tsx
+- [ ] src/pages/__tests__/FeedInitialLoadingFilters.test.tsx
+- [ ] src/pages/__tests__/FeedLoadingOnce.test.tsx
+- [ ] src/react-app-env.d.ts
+- [ ] src/test/mastoMock.ts
+- [ ] src/test/setup.ts
+- [ ] src/theme.css
+- [ ] src/types.ts
+- [ ] src/version.ts
+- [ ] tsconfig.json
+- [ ] vite.config.ts
+

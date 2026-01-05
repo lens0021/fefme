@@ -12,6 +12,9 @@
 	--color-dm-bg: #f0f9ff;
 	--color-light-shade: #00000005;
 	--color-success: #10b981;
+	--color-warning-bg: #4f4f42;
+	--color-warning-fg: #a4a477;
+	--color-warning-text: #c6d000;
 }
 
 [data-theme="dark"] {
@@ -26,4 +29,7 @@
 	--color-dm-bg: #1e3a8a;
 	--color-light-shade: #ffffff05;
 	--color-success: #34d399;
+	--color-warning-bg: #5a5a4a;
+	--color-warning-fg: #b4b487;
+	--color-warning-text: #d6e010;
 }
