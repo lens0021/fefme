@@ -279,24 +279,21 @@ Defined in `/src/core/enums.ts`:
 
 Review the following files, and add TODO items for it.
 
-- **biome.json**
+- biome.json
   - ~~Consider customizing linter rules beyond "recommended": true for project-specific needs~~
   - [ ] Evaluate if additional files should be ignored beyond src/default.css
-
-- **e2e/seen-refresh.spec.ts**
+- e2e/seen-refresh.spec.ts
   - [ ] Extract API route mocking logic into shared helper functions to reduce duplication across all 3 tests
   - [ ] Move makeAccount, makeStatus, makeStatuses test helpers to separate fixture file (e.g., e2e/fixtures/mockData.ts)
   - [ ] Extract hardcoded timeout values (20_000, 1500, etc.) to named constants for maintainability
   - [ ] Consider extracting common test setup (user initialization, page.addInitScript) into beforeEach hook
   - [ ] Refactor instanceInfo object to shared fixture
-
-- **index.html**
+- index.html
   - [ ] Add meta description tag for SEO
   - [ ] Consider adding Open Graph meta tags for social sharing
   - [ ] Add theme-color meta tag for better PWA integration
   - [ ] Consider adding noscript tag with message for users without JavaScript
-
-- **src/App.tsx**
+- src/App.tsx
   - [x] Verify if Buffer polyfill is actually required for class-transformer (line 1 comment says "maybe???") - Not required, removed
   - [x] Remove or update misleading Bootstrap CDN comment (line 6) - index.html doesn't have Bootstrap CDN
   - [x] Move OAuth redirect logic (lines 38-47) into useEffect to avoid side effects during render
@@ -307,46 +304,37 @@ Review the following files, and add TODO items for it.
   - [x] Consider extracting NotFoundPage to separate file in src/pages/ - Extracted to src/pages/NotFoundPage.tsx
   - [x] Document or simplify useEffect dependency array in NotFoundPage (navigate is stable but could add comment)
   - [x] Review mixing of inline styles (CSS variables) with Tailwind classes for consistency - Intentional: CSS variables needed for theming
-
-- **lefthook.yml**
+- lefthook.yml
   - [ ] Consider adding glob patterns to run hooks only on relevant file changes (e.g., skip tsc for markdown-only changes)
-
-- **package.json**
+- package.json
   - [ ] Consider upgrading React from 18.2 to 18.3 (latest stable)
   - [x] Verify if "private": false is intentional - package doesn't seem meant for npm publishing
   - [ ] Replace lodash with lodash-es or individual imports to reduce bundle size
   - [x] Remove or document browserslist config - Vite doesn't use it without @vitejs/plugin-legacy
-
-- **playwright.config.ts**
+- playwright.config.ts
   - [ ] Fix port mismatch: webServer uses "npm run dev" but specifies port 4173 (preview port) - should use dev port 3000 or use "npm run preview"
   - [ ] Add workers configuration for parallel test execution control
   - [ ] Add retries configuration for handling flaky tests
   - ~~Consider adding reporter configuration for better test output~~
-
-- **public/manifest.json**
+- public/manifest.json
   - ~~Add multiple icon sizes (192x192, 512x512 PNG) in addition to SVG for better PWA support~~
   - ~~Add "description" field for app stores and browsers~~
   - ~~Consider adding "screenshots" field for Progressive Web App installation~~
   - [ ] Verify theme_color matches actual app theme
-
 - [x] src/components/ApiErrorsPanel.tsx
 - [x] src/components/coordinator/BooleanFilterAccordionSection.tsx
-
-- **src/components/coordinator/FeedFiltersAccordionSection.tsx**
+- src/components/coordinator/FeedFiltersAccordionSection.tsx
   - [ ] Optimize Object.keys(filterPositions).sort().map() pattern - convert to array first for better performance
-
-- **src/components/coordinator/filters/FilterCheckboxGrid.tsx**
+- src/components/coordinator/filters/FilterCheckboxGrid.tsx
   - [ ] Address existing TODO: "maybe rename this BooleanFilterCheckboxGrid?" (line 122)
   - [ ] Consider splitting this 403-line component into smaller, focused components
   - [ ] Extract getGradientTooltip and findTooltip functions to separate utility file
   - [ ] Convert optionGrid from IIFE to useMemo for better React optimization
   - [ ] Consider extracting gradient calculation logic to separate module
-
-- **src/components/coordinator/filters/HeaderSwitch.tsx**
+- src/components/coordinator/filters/HeaderSwitch.tsx
   - [ ] Remove props destructuring with let and reassignment (line 52) - use separate variable or conditional
   - [ ] Verify spelling consistency: "Colour" is British English - confirm this matches project style guide
-
-- **src/components/coordinator/filters/NumericFilters.tsx**
+- src/components/coordinator/filters/NumericFilters.tsx
   - [ ] Address existing TODO: implement useCallback for onChange to reduce re-renders (line 32)
   - [ ] Remove duplicate numericFilters declaration (line 16 unused, only line 24 needed)
 - [ ] src/components/coordinator/filters/__tests__/FilterCheckboxGrid.test.tsx

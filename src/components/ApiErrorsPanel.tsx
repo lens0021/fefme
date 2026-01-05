@@ -29,12 +29,15 @@ export default function ApiErrorsPanel(): JSX.Element | null {
 				}}
 				onClick={() => setIsExpanded(!isExpanded)}
 			>
-				{algorithm.apiErrorMsgs.length}{" "}
-				{config.timeline.apiErrorsUserMsgSuffix} (click to inspect)
+				{algorithm.apiErrorMsgs.length} {config.timeline.apiErrorsUserMsgSuffix}{" "}
+				(click to inspect)
 			</button>
 
 			{isExpanded && (
-				<div className="p-3" style={{ backgroundColor: "var(--color-warning-bg)" }}>
+				<div
+					className="p-3"
+					style={{ backgroundColor: "var(--color-warning-bg)" }}
+				>
 					<ul className="list-decimal pl-[25px]">
 						{algorithm.apiErrorMsgs.map((msg, index) => (
 							<li
