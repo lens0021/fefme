@@ -7,6 +7,7 @@ import { capitalCase } from "change-case";
 import { Type } from "class-transformer";
 import { isEmpty, isFinite } from "lodash";
 import type { mastodon } from "masto";
+import type { QuoteApproval } from "masto/dist/esm/mastodon/entities/v1/quote-approval.js";
 
 import { config } from "../../config";
 import {
@@ -131,6 +132,9 @@ export interface SerializableToot extends mastodon.v1.Status {
 	audioAttachments?: mastodon.v1.MediaAttachment[];
 	imageAttachments?: mastodon.v1.MediaAttachment[];
 	videoAttachments?: mastodon.v1.MediaAttachment[];
+	// New fields from masto package updates
+	quotesCount: number;
+	quoteApproval: QuoteApproval;
 }
 
 /**
@@ -253,6 +257,8 @@ export default class Post implements PostObj {
 	reblogged?: boolean | null;
 	text?: string | null;
 	url?: string | null;
+	quotesCount!: number;
+	quoteApproval!: QuoteApproval;
 
 	// extensions to mastodon.v1.Status. Most of these are set in completeProperties()
 	completedAt?: string;
@@ -413,6 +419,12 @@ export default class Post implements PostObj {
 		postObj.text = post.text;
 		postObj.url = post.url;
 		postObj.visibility = post.visibility;
+		postObj.quotesCount = post.quotesCount ?? 0;
+		postObj.quoteApproval = post.quoteApproval ?? {
+			automatic: [],
+			manual: [],
+			currentUser: "unknown",
+		};
 
 		// Unique to fefme
 		postObj.numTimesShown = post.numTimesShown || 0;
