@@ -3,7 +3,6 @@ import type React from "react";
 import { useEffect } from "react";
 const windowWithBuffer = window as Window & { Buffer?: typeof Buffer };
 windowWithBuffer.Buffer = Buffer;
-// NOTE: Using CDN to get boostrap instead of importing bootstrap.min.css (see index.html)
 
 import { HashRouter, Route, Routes } from "react-router-dom";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -29,33 +28,48 @@ export default function App(): React.ReactElement {
 	// Initialize theme detection
 	useTheme();
 
+	// OAuth redirect handler for GitHub Pages compatibility
 	// This is a workaround for Github pages (which only allows GET query params), the HashRouter,
 	// and OAuth redirects. OAuth redirects cannot include a hash and Github Pages doesn't accept
 	// any route URLs without a hash.
 	//       otherwise this: http://localhost:3000/?code=abcdafwgwdgw
 	//    is routed to this: http://localhost:3000/?code=abcdafwgwdgw#/login
 	// From: https://github.com/auth0/auth0-spa-js/issues/407
-	if (window.location.href.includes("?code=")) {
-		const newUrl = window.location.href.replace(
-			/\/(\?code=.*)/,
-			"/#/callback$1",
-		);
-		logger.trace(
-			`<App.tsx> OAuth callback to "${window.location.href}", redirecting to "${newUrl}"`,
-		);
-		window.location.href = newUrl;
-	}
+	useEffect(() => {
+		if (window.location.href.includes("?code=")) {
+			const newUrl = window.location.href.replace(
+				/\/(\?code=.*)/,
+				"/#/callback$1",
+			);
+			logger.trace(
+				`<App.tsx> OAuth callback to "${window.location.href}", redirecting to "${newUrl}"`,
+			);
+			window.location.href = newUrl;
+		}
+	}, []);
 
-	if ("serviceWorker" in navigator) {
-		logger.log("Service Worker is supported, registering...");
+	// Service Worker registration for offline support
+	// Service worker for github pages: https://gist.github.com/kosamari/7c5d1e8449b2fbc97d372675f16b566e
+	useEffect(() => {
+		if ("serviceWorker" in navigator) {
+			logger.log("Service Worker is supported, registering...");
 
-		// Service worker for github pages: https://gist.github.com/kosamari/7c5d1e8449b2fbc97d372675f16b566e
-		window.addEventListener("load", () => {
-			navigator.serviceWorker.register("./service-worker.js").catch((error) => {
-				logger.error("Error registering service worker:", error);
-			});
-		});
-	}
+			const registerServiceWorker = async () => {
+				try {
+					await navigator.serviceWorker.register("./service-worker.js");
+					logger.log("Service Worker registered successfully");
+				} catch (error) {
+					logger.error("Error registering service worker:", error);
+				}
+			};
+
+			window.addEventListener("load", registerServiceWorker);
+
+			return () => {
+				window.removeEventListener("load", registerServiceWorker);
+			};
+		}
+	}, []);
 
 	return (
 		<HashRouter>
@@ -103,8 +117,11 @@ function NotFoundPage() {
 		`<NotFoundPage> You shouldn't be here! currentPath: "${currentPath}", location:`,
 		location,
 	);
+
 	useEffect(() => {
 		navigate("/");
+		// navigate is stable (from react-router), so this only runs once on mount
 	}, [navigate]);
+
 	return <div>Redirecting...</div>;
 }
