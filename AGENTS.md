@@ -289,10 +289,10 @@ Review the following files, and add TODO items for it.
   - [ ] Consider extracting common test setup (user initialization, page.addInitScript) into beforeEach hook
   - [ ] Refactor instanceInfo object to shared fixture
 - index.html
-  - [ ] Add meta description tag for SEO
-  - [ ] Consider adding Open Graph meta tags for social sharing
-  - [ ] Add theme-color meta tag for better PWA integration
-  - [ ] Consider adding noscript tag with message for users without JavaScript
+  - [x] Add meta description tag for SEO
+  - [x] Consider adding Open Graph meta tags for social sharing
+  - [x] Add theme-color meta tag for better PWA integration
+  - [x] Consider adding noscript tag with message for users without JavaScript
 - src/App.tsx
   - [x] Verify if Buffer polyfill is actually required for class-transformer (line 1 comment says "maybe???") - Not required, removed
   - [x] Remove or update misleading Bootstrap CDN comment (line 6) - index.html doesn't have Bootstrap CDN

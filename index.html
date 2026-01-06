@@ -10,10 +10,29 @@
         <link rel="manifest" href="/manifest.json" />
 
         <title>Fefme for Mastodon</title>
+
+        <meta name="description" content="Fefme (Fediverse timeline for ME) is a client-side algorithmic timeline for Mastodon. It runs entirely in your browser with a privacy-first architecture." />
+        <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
+
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://lens0021.github.io/fefme/" />
+        <meta property="og:title" content="Fefme for Mastodon" />
+        <meta property="og:description" content="Fefme is a client-side algorithmic timeline for Mastodon. Customize your feed ranking with 15+ scoring factors." />
+        <meta property="og:image" content="https://lens0021.github.io/fefme/assets/logo.svg" />
+
+        <!-- Twitter -->
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content="https://lens0021.github.io/fefme/" />
+        <meta property="twitter:title" content="Fefme for Mastodon" />
+        <meta property="twitter:description" content="Fefme is a client-side algorithmic timeline for Mastodon. Customize your feed ranking with 15+ scoring factors." />
+        <meta property="twitter:image" content="https://lens0021.github.io/fefme/assets/logo.svg" />
     </head>
 
     <body>
         <div id="root"></div>
+        <noscript>You need to enable JavaScript to run this app.</noscript>
         <script type="module" src="/src/index.tsx"></script>
     </body>
 </html>
