@@ -238,8 +238,10 @@ export default function CoordinatorProvider(props: PropsWithChildren) {
 					);
 				})
 				.finally(() => {
+					// Increment tick to force re-render of components that depend on seen state (e.g., seen filter count badges)
 					setSeenRefreshTick((value) => value + 1);
 				});
+			// Mark visible timeline as stale so it gets promoted on next page load
 			Storage.set(CoordinatorStorageKey.VISIBLE_TIMELINE_STALE, 1).catch(
 				(err) =>
 					logger.error("Failed to persist visible timeline stale flag:", err),
@@ -257,6 +259,7 @@ export default function CoordinatorProvider(props: PropsWithChildren) {
 
 	const queuePendingTimeline = useCallback((reason?: PendingTimelineReason) => {
 		if (!pendingTimelineRef.current) return;
+		// For new-posts reason, check if there are actually new posts (not just re-scored existing ones)
 		if (reason === "new-posts") {
 			const currentTimeline = visibleTimelineRef.current;
 			const currentUris = new Set(currentTimeline.map((post) => post.uri));
@@ -273,6 +276,7 @@ export default function CoordinatorProvider(props: PropsWithChildren) {
 		}
 		setHasPendingTimeline(true);
 		setPendingTimelineReasons(Array.from(pendingTimelineReasonsRef.current));
+		// Mark timeline as stale for promotion on next page load
 		Storage.set(CoordinatorStorageKey.VISIBLE_TIMELINE_STALE, 1).catch((err) =>
 			logger.error("Failed to persist visible timeline stale flag:", err),
 		);
@@ -417,6 +421,8 @@ export default function CoordinatorProvider(props: PropsWithChildren) {
 	const runRebuild = useCallback(
 		async (reason: PendingTimelineReason, run: () => Promise<void>) => {
 			if (!algorithm) return;
+			// If a rebuild is already in flight, queue this one to run after
+			// rebuildInFlightRef prevents concurrent rebuilds that could race and produce inconsistent state
 			if (rebuildInFlightRef.current) {
 				pendingTimelineReasonsRef.current.add(reason);
 				queuedRebuildRef.current = { reason, run };
@@ -438,6 +444,7 @@ export default function CoordinatorProvider(props: PropsWithChildren) {
 				rebuildInFlightRef.current = false;
 				queuePendingTimeline(reason);
 
+				// Process queued rebuild if one was requested during this rebuild
 				pendingTimelineReasonsRef.current = new Set();
 				const queued = queuedRebuildRef.current;
 				queuedRebuildRef.current = null;
@@ -691,7 +698,7 @@ export default function CoordinatorProvider(props: PropsWithChildren) {
 		triggerFilterUpdate: async (filters: FeedFilterSettings) => {
 			if (!algorithm) return;
 			await runRebuild("filters", async () => {
-				algorithm.updateFilters(filters);
+				await algorithm.updateFilters(filters);
 			});
 		},
 		triggerFeedUpdate,

@@ -15,3 +15,13 @@ export function launchBackgroundPollers(state: CoordinatorState): void {
 		);
 	}
 }
+
+export function stopBackgroundPollers(state: CoordinatorState): void {
+	state.userDataPoller.stop();
+
+	if (state.cacheUpdater) {
+		clearInterval(state.cacheUpdater);
+		state.cacheUpdater = undefined;
+		logger.trace("Stopped cacheUpdater interval");
+	}
+}

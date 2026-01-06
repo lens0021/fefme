@@ -31,6 +31,7 @@ export async function loadCachedData(
 		CoordinatorStorageKey.VISIBLE_TIMELINE_STALE,
 	);
 	const visibleTimelineStale = visibleTimelineStaleValue === 1;
+	// Promote pending timeline if: (1) STALE flag is set, OR (2) STALE flag doesn't exist yet (first load after NEXT was populated)
 	const shouldPromotePending =
 		nextVisibleTimeline.length > 0 &&
 		(visibleTimelineStale || visibleTimelineStaleValue === null);
@@ -43,6 +44,7 @@ export async function loadCachedData(
 		await Storage.remove(CoordinatorStorageKey.NEXT_VISIBLE_TIMELINE_POSTS);
 		await Storage.remove(CoordinatorStorageKey.VISIBLE_TIMELINE_STALE);
 	} else if (visibleTimelineStale && nextVisibleTimeline.length === 0) {
+		// Edge case: STALE flag was set but NEXT is empty (e.g., background refresh failed or was interrupted)
 		await Storage.remove(CoordinatorStorageKey.VISIBLE_TIMELINE_STALE);
 	}
 
@@ -121,10 +123,9 @@ export async function saveTimelineToCache(
 		const numShownPosts = state.feed.filter(
 			(post) => post.numTimesShown,
 		).length;
-		const msg =
-			`Saving ${state.feed.length} posts with ${newTotalNumTimesShown} times shown` +
-			` on ${numShownPosts} posts (previous totalNumTimesShown: ${state.totalNumTimesShown})`;
-		saveTimelineToCacheLogger.debug(msg);
+		saveTimelineToCacheLogger.debug(
+			`Saving ${state.feed.length} posts (${numShownPosts} seen, total views: ${newTotalNumTimesShown})`,
+		);
 		await Storage.set(CoordinatorStorageKey.TIMELINE_POSTS, state.feed);
 		state.totalNumTimesShown = newTotalNumTimesShown;
 	} catch (error) {

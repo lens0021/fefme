@@ -372,17 +372,40 @@ Review the following files, and add TODO items for it.
 - [ ] src/core/config.ts
 - [ ] src/core/coordinator/actions.ts
 - [ ] src/core/coordinator/background.ts
+  - [x] Consider adding stopBackgroundPollers() function to properly cleanup intervals
+  - [ ] When cacheUpdater already exists, consider whether to restart it or keep the existing one (currently just logs and ignores)
+  - [ ] File only contains one 12-line function - consider merging into another module or expanding with related background task management
 - [ ] src/core/coordinator/cache.ts
+  - [ ] loadCachedData() has too many responsibilities - split into promotePendingTimeline(), shouldUseVisibleCache()
+  - [x] Add comment explaining visibleTimelineStaleValue === null condition (line 34-36) or use clearer variable like isFirstLoad
+  - [x] Add comment explaining edge case: STALE flag exists but NEXT is empty (line 45-47)
+  - [ ] Extract hasSeenExclude logic to helper function isSeenFilterExcluded(filters) - 4-level optional chaining is fragile (line 71-74)
+  - [ ] Consider moving truncate logic (line 55-68) to separate function or different location
+  - [ ] Move resetSeenState() to separate module (seen_state.ts) - doesn't belong in cache.ts
+  - [ ] Extract resetPost inline function to Post class method (post.resetSeenState())
+  - [x] Simplify verbose log message (line 124-126) using template literals
+  - [ ] Unify error handling strategy across cache functions (saveTimelineToCache catches but doesn't throw, resetSeenState has no try-catch)
 - [ ] src/core/coordinator/constants.ts
 - [ ] src/core/coordinator/feed_stats.ts
 - [ ] src/core/coordinator/feed.ts
+  - [ ] Remove hardcoded CacheKey.HOME_TIMELINE_POSTS from log message (line 30) - function handles multiple sources
+  - [ ] Add comment or extract shouldUpdateFilters() helper to clarify complex filter update condition (line 83-93)
+  - [ ] Add comment explaining why loadingStatus update is skipped for TIMELINE_BACKFILL (line 96-99)
+  - [ ] Split finishFeedUpdate() into smaller functions: finalizeTimeline(), cleanupLoadingState() - too many responsibilities (line 106-133)
 - [ ] src/core/coordinator/filters.ts
+  - [ ] filterFeedAndSetInApp() has multiple responsibilities: filtering + defer handling + first-post telemetry
+  - [ ] Consider extracting hasProvidedAnyPostsToClient flag management to separate concern
+  - [x] updateFilters() calls Storage.setFilters without await - Promise is ignored, may cause race conditions
 - [ ] src/core/coordinator/loaders.ts
 - [ ] src/core/coordinator/loggers.ts
 - [ ] src/core/coordinator/scorers.ts
 - [ ] src/core/coordinator/scoring.ts
+  - [ ] scoreAndFilterFeed() does 4 things: scoring + truncate + storage + filtering - consider splitting responsibilities
+  - [ ] Duplicate truncate logic with cache.ts - consolidate into single location
+  - [ ] Function name "scoreAndFilter" doesn't indicate it also saves to storage - rename or split
 - [ ] src/core/coordinator/source_stats.ts
 - [ ] src/core/coordinator/state.ts
+  - [ ] Review completed - minimal improvements needed, class structure is clean
 - [ ] src/core/coordinator/stats.ts
 - [ ] src/core/coordinator/__tests__/cache.test.ts
 - [ ] src/core/enums.ts
@@ -438,13 +461,21 @@ Review the following files, and add TODO items for it.
 - [ ] src/helpers/ui.tsx
 - [ ] src/hooks/useAuth.tsx
 - [ ] src/hooks/useCoordinator.tsx
+  - [ ] File is too large (724 lines) - consider splitting into multiple hooks (useTimeline, useBackgroundSync, usePendingTimeline)
+  - [ ] Initial load useEffect (512-667) is 156 lines - extract constructFeed and finalizeInitialLoad as separate functions outside useEffect
+  - [x] scheduleSeenRefresh: unclear why setSeenRefreshTick is needed when refreshFilteredTimeline already updates state
+  - [x] queuePendingTimeline: complex logic with new-post detection - add comments explaining the flow
+  - [x] runRebuild: complex queuing logic - add comments explaining rebuildInFlightRef and queuedRebuildRef
+  - [ ] Background refresh useEffect (460-484): extract runBackgroundRefresh as separate function
+  - [ ] Too many refs (7) - evaluate if some can be converted to state or removed
+  - [ ] Consider extracting pending timeline promotion logic to a custom hook
 - [ ] src/hooks/useLocalStorage.tsx
 - [ ] src/hooks/useOnScreen.tsx
 - [ ] src/hooks/useTheme.ts
 - [ ] src/index.css
 - [ ] src/index.tsx
 - [ ] src/pages/CallbackPage.tsx
-- [ ] src/pages/Feed.tsx
+- [ ] src/pages/Feed.tsx ⭐
 - [ ] src/pages/LoginPage.tsx
 - [ ] src/pages/__tests__/FeedInitialLoadingFilters.test.tsx
 - [ ] src/pages/__tests__/FeedLoadingOnce.test.tsx

@@ -104,6 +104,7 @@ import {
 	mergeExternalStatuses,
 } from "./coordinator/feed";
 import { getHomeTimeline, mergeFederatedTimeline } from "./coordinator/loaders";
+import { stopBackgroundPollers } from "./coordinator/background";
 import {
 	getDataStats,
 	getSourceBounds,
@@ -488,9 +489,7 @@ export default class FeedCoordinator {
 		await startAction(this.state, LoadAction.RESET);
 
 		try {
-			this.state.userDataPoller.stop();
-			if (this.state.cacheUpdater) clearInterval(this.state.cacheUpdater);
-			this.state.cacheUpdater = undefined;
+			stopBackgroundPollers(this.state);
 			this.state.hasProvidedAnyPostsToClient = false;
 			this.state.loadingStatus =
 				config.locale.messages[LogAction.INITIAL_LOADING_STATUS];
@@ -569,10 +568,10 @@ export default class FeedCoordinator {
 	/**
 	 * Update the feed filters and return the newly filtered feed.
 	 * @param {FeedFilterSettings} newFilters - The new filter settings.
-	 * @returns {Post[]} The filtered feed.
+	 * @returns {Promise<Post[]>} The filtered feed.
 	 */
-	updateFilters(newFilters: FeedFilterSettings): Post[] {
-		return updateFilters(this.state, newFilters);
+	async updateFilters(newFilters: FeedFilterSettings): Promise<Post[]> {
+		return await updateFilters(this.state, newFilters);
 	}
 
 	/**

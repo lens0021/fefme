@@ -36,12 +36,12 @@ export function flushDeferredTimeline(state: CoordinatorState): void {
 	state.deferredTimeline = null;
 }
 
-export function updateFilters(
+export async function updateFilters(
 	state: CoordinatorState,
 	newFilters: FeedFilterSettings,
-): Post[] {
+): Promise<Post[]> {
 	logger.info(`updateFilters() called with newFilters:`, newFilters);
 	state.filters = newFilters;
-	Storage.setFilters(newFilters);
+	await Storage.setFilters(newFilters);
 	return filterFeedAndSetInApp(state);
 }
