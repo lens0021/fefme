@@ -2,7 +2,7 @@
  * @fileoverview Class for retrieving and sorting the user's feed based on their chosen
  * weighting values.
  */
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 
 import FeedCoordinator, {
 	READY_TO_LOAD_MSG,
@@ -23,13 +23,11 @@ import Accordion from "../components/helpers/Accordion";
 import { persistentCheckbox } from "../components/helpers/Checkbox";
 import StatusComponent from "../components/status/Status";
 import { GuiCheckboxName, config } from "../config";
-import { getLogger } from "../helpers/log_helpers";
 import { booleanIcon } from "../helpers/ui";
 import { reloadPage } from "../helpers/navigation";
 import { useCoordinator } from "../hooks/useCoordinator";
+import useFeedScroll from "../hooks/useFeedScroll";
 import useOnScreen from "../hooks/useOnScreen";
-
-const logger = getLogger("Feed");
 
 /** Component to display the Fefme user's timeline. */
 export default function Feed() {
@@ -57,15 +55,8 @@ export default function Feed() {
 
 	// State variables
 	const [isLoadingThread, setIsLoadingThread] = useState(false);
-	const [isLoadingMorePosts, setIsLoadingMorePosts] = useState(false);
-	const [numDisplayedPosts, setNumDisplayedPosts] = useState<number>(
-		defaultNumDisplayedPosts,
-	);
-	const [scrollPercentage, setScrollPercentage] = useState(0);
 	const [thread, setThread] = useState<Post[]>([]);
 	const dataLoadingRef = useRef<HTMLDivElement>(null);
-	const loadingMoreTimeoutRef = useRef<number | null>(null);
-	const loadingMoreApplyRef = useRef<number | null>(null);
 
 	// Checkboxes for persistent user settings state variables
 	// TODO: the returned checkboxTooltip is shared by all tooltips which kind of sucks
@@ -76,6 +67,22 @@ export default function Feed() {
 	// Computed variables etc.
 	const bottomRef = useRef<HTMLDivElement>(null);
 	const isBottom = useOnScreen(bottomRef, "0px 0px 30% 0px");
+	const visibleTimeline = useMemo(() => {
+		if (selfTypeFilterMode === "none" || !currentUserWebfinger) return timeline;
+		const shouldInvert = selfTypeFilterMode === "exclude";
+		return timeline.filter((post) => {
+			const isSelf = post.accounts?.some(
+				(account) => account.webfingerURI === currentUserWebfinger,
+			);
+			return shouldInvert ? !isSelf : isSelf;
+		});
+	}, [currentUserWebfinger, selfTypeFilterMode, timeline]);
+	const { isLoadingMorePosts, numDisplayedPosts, scrollPercentage } =
+		useFeedScroll({
+			defaultNumDisplayedPosts,
+			numPostsToLoadOnScroll,
+			visibleCount: visibleTimeline.length,
+		});
 	const numShownPosts = Math.max(defaultNumDisplayedPosts, numDisplayedPosts);
 	const showInitialLoading = !hasInitialCache && (isLoading || !algorithm);
 	const showRebuildLoading = isRebuildLoading && hasInitialCache;
@@ -87,99 +94,9 @@ export default function Feed() {
 				? "Apply filters"
 				: "Update feed"
 			: "New posts";
-	const visibleTimeline = useMemo(() => {
-		if (selfTypeFilterMode === "none" || !currentUserWebfinger) return timeline;
-		const shouldInvert = selfTypeFilterMode === "exclude";
-		return timeline.filter((post) => {
-			const isSelf = post.accounts?.some(
-				(account) => account.webfingerURI === currentUserWebfinger,
-			);
-			return shouldInvert ? !isSelf : isSelf;
-		});
-	}, [currentUserWebfinger, selfTypeFilterMode, timeline]);
 
 	// Note: Auto-fetch is disabled when visible timeline is empty due to filters
 	// User can manually load using buttons shown in the empty state
-
-	// Show more posts when the user scrolls near the bottom of the page.
-	useEffect(() => {
-		const showMorePosts = () => {
-			if (isLoadingMorePosts) return;
-			if (numDisplayedPosts < visibleTimeline.length) {
-				logger.log(
-					`Showing ${numDisplayedPosts} posts, adding ${numPostsToLoadOnScroll} more (${visibleTimeline.length} available in feed)`,
-				);
-				setIsLoadingMorePosts(true);
-				if (loadingMoreApplyRef.current) {
-					window.clearTimeout(loadingMoreApplyRef.current);
-				}
-				loadingMoreApplyRef.current = window.setTimeout(() => {
-					setNumDisplayedPosts((prev) => prev + numPostsToLoadOnScroll);
-					if (loadingMoreTimeoutRef.current) {
-						window.clearTimeout(loadingMoreTimeoutRef.current);
-					}
-					loadingMoreTimeoutRef.current = window.setTimeout(() => {
-						setIsLoadingMorePosts(false);
-					}, 250);
-				}, 150);
-			}
-		};
-
-		// If there's less than numDisplayedPosts in the feed set numDisplayedPosts to the # of posts in the feed
-		if (visibleTimeline.length && visibleTimeline.length < numDisplayedPosts)
-			setNumDisplayedPosts(visibleTimeline.length);
-
-		const handleScroll = () => {
-			const scrollHeight = document.documentElement.scrollHeight; // Total height
-			const scrollPosition =
-				document.documentElement.scrollTop || window.scrollY; // Current scroll position
-			const viewportHeight = document.documentElement.clientHeight; // Visible viewport height
-			const totalScrollableHeight = scrollHeight - viewportHeight; // Scrollable distance
-			const preloadThresholdPx = Math.round(window.innerHeight * 0.3);
-			const percentage = totalScrollableHeight
-				? (scrollPosition / totalScrollableHeight) * 100
-				: 0;
-			setScrollPercentage(percentage);
-			const nearBottom =
-				totalScrollableHeight <= 0 ||
-				scrollPosition >= totalScrollableHeight - preloadThresholdPx;
-			if (nearBottom && visibleTimeline.length) {
-				showMorePosts();
-			}
-
-			if (
-				percentage <= 10 &&
-				numDisplayedPosts > defaultNumDisplayedPosts * 3
-			) {
-				const newNumDisplayedPosts = Math.floor(numDisplayedPosts * 0.8);
-				logger.log(
-					`Scroll pctage less than 10%, lowering numDisplayedPosts to ${newNumDisplayedPosts}`,
-				);
-				setNumDisplayedPosts(newNumDisplayedPosts);
-			}
-		};
-
-		window.addEventListener("scroll", handleScroll);
-		handleScroll();
-		return () => window.removeEventListener("scroll", handleScroll);
-	}, [
-		isLoading,
-		isLoadingMorePosts,
-		numDisplayedPosts,
-		visibleTimeline.length,
-		defaultNumDisplayedPosts,
-		numPostsToLoadOnScroll,
-	]);
-	useEffect(() => {
-		return () => {
-			if (loadingMoreTimeoutRef.current) {
-				window.clearTimeout(loadingMoreTimeoutRef.current);
-			}
-			if (loadingMoreApplyRef.current) {
-				window.clearTimeout(loadingMoreApplyRef.current);
-			}
-		};
-	}, []);
 
 	// TODO: probably easier to not rely on fefme's measurement of the last load time; we can easily track it ourselves.
 	const footerMsg = useMemo(() => {

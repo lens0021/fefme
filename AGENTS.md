@@ -357,6 +357,8 @@ Review the following files, and add TODO items for it.
 - [ ] src/components/TrendingSection.tsx
 - [ ] src/config.ts
 - [ ] src/core/api/api.ts
+  - [ ] Avoid returning an empty array when apiMutex is locked for a foreground fetch; consider awaiting the mutex or returning cached rows to prevent accidental data loss.
+  - [ ] Remove the cacheKey fallback hack in handleApiError() by guaranteeing cacheKey in params or throwing when missing.
 - [ ] src/core/api/counted_list.ts
 - [ ] src/core/api/errors.ts
 - [ ] src/core/api/mastodon_server.ts
@@ -424,6 +426,8 @@ Review the following files, and add TODO items for it.
 - [ ] src/core/helpers/suppressed_hashtags.ts
 - [ ] src/core/helpers/time_helpers.ts
 - [ ] src/core/index.ts
+  - [ ] Remove the unused Buffer import (or document why it is still required for class-transformer).
+  - [ ] Await startAction() in triggerPullAllUserData() so the loading mutex is reliably acquired before work starts.
 - [ ] src/core/scorer/feed/diversity_feed_scorer.ts
 - [ ] src/core/scorer/feed_scorer.ts
 - [ ] src/core/scorer/post/acccount_scorer.ts
@@ -475,7 +479,9 @@ Review the following files, and add TODO items for it.
 - [ ] src/index.css
 - [ ] src/index.tsx
 - [ ] src/pages/CallbackPage.tsx
-- [ ] src/pages/Feed.tsx ⭐
+- [ ] src/pages/Feed.tsx
+  - [x] Consolidate infinite-scroll triggering (isBottom + scroll handler) to avoid duplicate load-more calls.
+  - [x] Extract scroll/loading state management into a custom hook to reduce effect churn and simplify Feed.tsx.
 - [ ] src/pages/LoginPage.tsx
 - [ ] src/pages/__tests__/FeedInitialLoadingFilters.test.tsx
 - [ ] src/pages/__tests__/FeedLoadingOnce.test.tsx
@@ -487,4 +493,3 @@ Review the following files, and add TODO items for it.
 - [ ] src/version.ts
 - [ ] tsconfig.json
 - [ ] vite.config.ts
-
