@@ -3,14 +3,15 @@ import type Post from "../api/objects/post";
 import { config } from "../config";
 import {
 	CoordinatorStorageKey,
-	BooleanFilterName,
 	CacheKey,
 	FediverseCacheKey,
 	STORAGE_KEYS_WITH_POSTS,
-	TypeFilterName,
 } from "../enums";
 import { truncateToLength } from "../helpers/collection_helpers";
-import { updateBooleanFilterOptions } from "../filters/feed_filters";
+import {
+	updateBooleanFilterOptions,
+	isSeenFilterExcluded,
+} from "../filters/feed_filters";
 import { EMPTY_TRENDING_DATA } from "./constants";
 import { filterFeedAndSetInApp } from "./filters";
 import { loadCacheLogger, saveTimelineToCacheLogger } from "./loggers";
@@ -70,10 +71,7 @@ export async function loadCachedData(
 	}
 
 	state.filters = (await Storage.getFilters()) ?? state.filters;
-	const hasSeenExclude =
-		state.filters.booleanFilters?.[
-			BooleanFilterName.TYPE
-		]?.excludedOptions?.includes(TypeFilterName.SEEN) ?? false;
+	const hasSeenExclude = isSeenFilterExcluded(state.filters);
 
 	if (state.feed.length > 0) {
 		await updateBooleanFilterOptions(state.filters, state.feed);

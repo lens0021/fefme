@@ -399,3 +399,14 @@ function updateHashtagCounts(
 
 	return allOptions;
 }
+
+/**
+ * Check if the "Seen" type filter is excluded in the current filter settings.
+ * @param filters - The feed filter settings to check
+ * @returns true if "Seen" posts are being filtered out
+ */
+export function isSeenFilterExcluded(filters: FeedFilterSettings): boolean {
+	const typeFilter = filters.booleanFilters?.[BooleanFilterName.TYPE];
+	if (!typeFilter?.excludedOptions) return false;
+	return typeFilter.excludedOptions.includes("seen");
+}
