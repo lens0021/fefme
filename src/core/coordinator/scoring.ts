@@ -14,6 +14,7 @@ export async function scoreAndFilterFeed(
 ): Promise<Post[]> {
 	state.feed = await Scorer.scorePosts(state.feed, true);
 
+	// Enforce max timeline length after scoring (feed can grow beyond max after merging new posts)
 	state.feed = truncateToLength(
 		state.feed,
 		config.posts.maxTimelineLength,

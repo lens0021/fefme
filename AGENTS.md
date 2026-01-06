@@ -379,8 +379,8 @@ Review the following files, and add TODO items for it.
   - [ ] loadCachedData() has too many responsibilities - split into promotePendingTimeline(), shouldUseVisibleCache()
   - [x] Add comment explaining visibleTimelineStaleValue === null condition (line 34-36) or use clearer variable like isFirstLoad
   - [x] Add comment explaining edge case: STALE flag exists but NEXT is empty (line 45-47)
-  - [ ] Extract hasSeenExclude logic to helper function isSeenFilterExcluded(filters) - 4-level optional chaining is fragile (line 71-74)
-  - [ ] Consider moving truncate logic (line 55-68) to separate function or different location
+  - [x] Extract hasSeenExclude logic to helper function isSeenFilterExcluded(filters) - 4-level optional chaining is fragile (line 71-74)
+  - [x] Consider moving truncate logic (line 55-68) to separate function or different location
   - [ ] Move resetSeenState() to separate module (seen_state.ts) - doesn't belong in cache.ts
   - [ ] Extract resetPost inline function to Post class method (post.resetSeenState())
   - [x] Simplify verbose log message (line 124-126) using template literals
@@ -401,7 +401,7 @@ Review the following files, and add TODO items for it.
 - [ ] src/core/coordinator/scorers.ts
 - [ ] src/core/coordinator/scoring.ts
   - [ ] scoreAndFilterFeed() does 4 things: scoring + truncate + storage + filtering - consider splitting responsibilities
-  - [ ] Duplicate truncate logic with cache.ts - consolidate into single location
+  - [x] Duplicate truncate logic with cache.ts - consolidate into single location
   - [ ] Function name "scoreAndFilter" doesn't indicate it also saves to storage - rename or split
 - [ ] src/core/coordinator/source_stats.ts
 - [ ] src/core/coordinator/state.ts

@@ -55,10 +55,11 @@ export async function loadCachedData(
 	);
 	state.trendingData = EMPTY_TRENDING_DATA;
 
-	if (state.feed.length === config.posts.maxTimelineLength) {
+	// On startup, if cache is at/over truncation threshold, truncate to give breathing room.
+	// Note: Ongoing truncation to maxTimelineLength happens in scoreAndFilterFeed()
+	if (state.feed.length >= config.posts.truncateFullTimelineToLength) {
 		const numToClear =
-			config.posts.maxTimelineLength -
-			config.posts.truncateFullTimelineToLength;
+			state.feed.length - config.posts.truncateFullTimelineToLength;
 		loadCacheLogger.info(
 			`Timeline cache is full (${state.feed.length}), discarding ${numToClear} old posts`,
 		);
