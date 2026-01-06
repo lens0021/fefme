@@ -299,7 +299,7 @@ Review the following files, and add TODO items for it.
   - [x] Move OAuth redirect logic (lines 38-47) into useEffect to avoid side effects during render
   - [x] Move Service Worker registration (lines 49-58) into useEffect hook
   - [x] Add success logging for Service Worker registration
-  - [ ] Consider showing 404 message briefly before redirecting in NotFoundPage instead of immediate redirect
+  - [x] Consider showing 404 message briefly before redirecting in NotFoundPage instead of immediate redirect
   - [x] Review Footer placement outside CoordinatorProvider - verify if intentional (line 88) - Intentional: Footer should be visible even when not authenticated
   - [x] Consider extracting NotFoundPage to separate file in src/pages/ - Extracted to src/pages/NotFoundPage.tsx
   - [x] Document or simplify useEffect dependency array in NotFoundPage (navigate is stable but could add comment)
@@ -333,17 +333,60 @@ Review the following files, and add TODO items for it.
 - [x] src/components/coordinator/filters/HeaderSwitch.tsx
 - [x] src/components/coordinator/filters/NumericFilters.tsx
 - [ ] src/components/coordinator/filters/__tests__/FilterCheckboxGrid.test.tsx
+  - [ ] Add tests for "Exclude" and "Any" filter states.
+  - [ ] Add tests for multiple filter options being selected.
+  - [ ] Add tests for other filter types (e.g., user, tag).
+  - [ ] Consider refactoring mock setup for simplicity.
 - [ ] src/components/coordinator/filters/__tests__/NumericFilters.test.tsx
+  - [ ] Add tests for multiple numeric filters.
+  - [ ] Use @testing-library/user-event for more realistic slider interaction simulation.
+  - [ ] Add assertions for the rendered output, such as the slider's value.
+  - [ ] Add tests for edge cases, such as when no numeric filters are available.
 - [ ] src/components/coordinator/Slider.tsx
+  - [ ] Simplify or add comments to the `decimals` calculation logic.
+  - [ ] Consider encapsulating styling to make the component more reusable.
+  - [ ] Re-evaluate the initial `value` check to handle it more explicitly.
 - [ ] src/components/coordinator/WeightSetter.tsx
+  - [ ] Refactor to use the project's `Storage` abstraction instead of direct `localStorage` access.
+  - [ ] Simplify `initWeights` or move loading/validation logic to the algorithm or a helper.
+  - [ ] Avoid `{} as Weights` for initial state to prevent potential runtime errors before initialization.
 - [ ] src/components/coordinator/WeightSlider.tsx
+  - [ ] Standardize storage access; avoid mixing `useLocalStorage` with direct `localStorage` calls for backup values.
+  - [ ] Centralize storage keys (`disabledKey`, `backupKey`) to prevent potential name collisions and improve maintainability.
+  - [ ] Simplify `defaultMax` and `stepSize` calculation logic.
+  - [ ] Investigate potential layout shifts caused by early returns when weights are not yet loaded.
 - [ ] src/components/experimental/ExperimentalFeatures.tsx
+  - [ ] Replace hardcoded colors (e.g., `bg-[#d3d3d3]`, `border-gray-300`) with theme-aware Tailwind classes or CSS variables.
+  - [ ] Convert manual pixel-based spacing (e.g., `ml-[7px]`, `p-[7px]`, `rounded-[20px]`) to standard Tailwind spacing and rounding classes for consistency.
+  - [ ] Review and potentially refine the wording of experimental feature descriptions and confirmation messages for clarity and conciseness.
 - [ ] src/components/Footer.tsx
+  - [ ] Replace hardcoded `bg-gray-900` with a theme-aware color class or CSS variable.
+  - [ ] Update or remove the misleading JSDoc comment ("The footer that appears on the login screen") as it is used globally.
+  - [ ] Consider using a FontAwesome icon or a local SVG for the GitHub logo instead of an external image link.
 - [ ] src/components/Header.tsx
+  - [ ] Consolidate duplicate "delete all data" logic between `Header.tsx` and `ExperimentalFeatures.tsx`.
+  - [ ] Replace direct `localStorage` manipulation with the project's Storage abstraction.
+  - [ ] Refactor manual weight-related storage key cleanup into a centralized method in the algorithm or a storage helper.
+  - [ ] Improve positioning logic for the "Account & data reset" dropdown to ensure it doesn't overflow on small screens.
 - [ ] src/components/helpers/Accordion.tsx
+  - [ ] Re-evaluate the title casing logic; consider moving it out of the component or providing a prop to control it.
+  - [ ] Refactor common structure between `top` and `sub` variants to reduce duplication.
+  - [ ] Remove unnecessary `key` props from static children.
+  - [ ] Replace fragile margin hacks (e.g., `my-[-5px]`) with standard Tailwind alignment/spacing.
 - [ ] src/components/helpers/Checkbox.tsx
+  - [ ] Simplify tooltip anchor resolution logic.
+  - [ ] Consider moving label capitalization and truncation logic out of the component or using CSS for truncation.
+  - [ ] Ensure unique `id` attributes for inputs to improve accessibility, especially when labels might be duplicated.
+  - [ ] Review `persistentCheckbox` to ensure tooltip components are not unnecessarily duplicated in the DOM.
 - [ ] src/components/helpers/Confirmation.tsx
+  - [ ] Make the confirmation dialog theme-aware (currently hardcoded to white/black).
+  - [ ] Replace hardcoded colors with theme-aware Tailwind classes or CSS variables.
+  - [ ] Improve accessibility by using appropriate ARIA roles and managing focus when the dialog opens.
 - [ ] src/components/helpers/ErrorHandler.tsx
+  - [ ] Fix the misleading JSDoc comment for the `ErrorHandler` component.
+  - [ ] Make the error page and error modal theme-aware, replacing hardcoded background and text colors.
+  - [ ] Standardize modal styling using Tailwind classes, replacing manual pixel values for padding, rounding, etc.
+  - [ ] Simplify `logAndSetError` logic and consider a more robust way to handle multiple error formats.
 - [ ] src/components/helpers/LabeledDropdownButton.tsx
 - [ ] src/components/helpers/NewTabLink.tsx
 - [ ] src/components/ProtectedRoute.tsx
@@ -479,9 +522,7 @@ Review the following files, and add TODO items for it.
 - [ ] src/index.css
 - [ ] src/index.tsx
 - [ ] src/pages/CallbackPage.tsx
-- [ ] src/pages/Feed.tsx
-  - [x] Consolidate infinite-scroll triggering (isBottom + scroll handler) to avoid duplicate load-more calls.
-  - [x] Extract scroll/loading state management into a custom hook to reduce effect churn and simplify Feed.tsx.
+- [x] src/pages/Feed.tsx
 - [ ] src/pages/LoginPage.tsx
 - [ ] src/pages/__tests__/FeedInitialLoadingFilters.test.tsx
 - [ ] src/pages/__tests__/FeedLoadingOnce.test.tsx
