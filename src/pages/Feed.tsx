@@ -101,9 +101,7 @@ export default function Feed() {
 	// Note: Auto-fetch is disabled when visible timeline is empty due to filters
 	// User can manually load using buttons shown in the empty state
 
-	// Show more posts when the user scrolls to bottom of the page
-	// TODO: this triggers twice: once when isBottom changes to true and again because numDisplayedPosts
-	//       is increased, triggering a second evaluation of the block
+	// Show more posts when the user scrolls near the bottom of the page.
 	useEffect(() => {
 		const showMorePosts = () => {
 			if (isLoadingMorePosts) return;
@@ -127,8 +125,6 @@ export default function Feed() {
 			}
 		};
 
-		// If the user scrolls to the bottom of the page, show more posts
-		if (isBottom && visibleTimeline.length) showMorePosts();
 		// If there's less than numDisplayedPosts in the feed set numDisplayedPosts to the # of posts in the feed
 		if (visibleTimeline.length && visibleTimeline.length < numDisplayedPosts)
 			setNumDisplayedPosts(visibleTimeline.length);
@@ -167,7 +163,6 @@ export default function Feed() {
 		handleScroll();
 		return () => window.removeEventListener("scroll", handleScroll);
 	}, [
-		isBottom,
 		isLoading,
 		isLoadingMorePosts,
 		numDisplayedPosts,
