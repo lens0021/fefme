@@ -13,7 +13,7 @@ test.describe("Score stability", () => {
 	test.beforeEach(async ({ page }) => {
 		await mockUserPreferences(page);
 		// Mock with 20 statuses, all having score 100
-		const statuses = makeStatuses(1, 20).map(s => ({
+		const statuses = makeStatuses(1, 20).map((s) => ({
 			...s,
 			score: 100,
 			scoreInfo: {
@@ -23,7 +23,7 @@ test.describe("Score stability", () => {
 				timeDecayMultiplier: 1,
 				trendingMultiplier: 1,
 				weightedScore: 100,
-			}
+			},
 		}));
 
 		await mockMasto(page, {
@@ -41,7 +41,7 @@ test.describe("Score stability", () => {
 		// 1. Get the first post's score button text
 		const firstPost = page.locator('[data-testid="status-card"]').first();
 		const scoreButton = firstPost.getByRole("button", { name: "Show Score" });
-		
+
 		await expect(scoreButton).toBeVisible();
 		const initialScoreText = await scoreButton.textContent();
 
@@ -60,7 +60,7 @@ test.describe("Score stability", () => {
 
 		// 4. Verify score is still the same
 		await expect(scoreButton).toHaveText(initialScoreText!);
-		
+
 		// Check that the post is marked as seen (optional, to verify logic ran)
 		// The "Already Seen" icon should be visible (faEye icon)
 		const seenIcon = firstPost.locator('svg[data-icon="eye"]');

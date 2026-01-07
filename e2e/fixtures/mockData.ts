@@ -36,7 +36,10 @@ export const makeAccount = (
 	username: acct,
 });
 
-export const makeStatus = (id: number, overrides: Partial<Status> = {}): Status => ({
+export const makeStatus = (
+	id: number,
+	overrides: Partial<Status> = {},
+): Status => ({
 	account: makeAccount("author", "2"),
 	application: { name: "Web", website: null },
 	bookmarked: false,
@@ -130,11 +133,12 @@ interface MockMastoOptions {
 	instance?: typeof instanceInfo;
 }
 
-export async function mockMasto(
-	page: Page,
-	options: MockMastoOptions = {},
-) {
-	const { timeline = [], account = makeAccount("tester", "1"), instance = instanceInfo } = options;
+export async function mockMasto(page: Page, options: MockMastoOptions = {}) {
+	const {
+		timeline = [],
+		account = makeAccount("tester", "1"),
+		instance = instanceInfo,
+	} = options;
 
 	await page.route("**/api/v1/**", async (route) => {
 		const url = new URL(route.request().url());
