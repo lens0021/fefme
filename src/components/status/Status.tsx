@@ -155,6 +155,9 @@ export default function StatusComponent(props: StatusComponentProps) {
 	const isOnScreen = useOnScreen(statusRef);
 
 	const [showScoreModal, setShowScoreModal] = React.useState<boolean>(false);
+	const [isContentVisible, setIsContentVisible] = React.useState<boolean>(
+		!post.spoilerText,
+	);
 
 	// useEffect to handle things we want to do when the post makes its first appearnace on screen
 	useEffect(() => {
@@ -484,56 +487,80 @@ export default function StatusComponent(props: StatusComponentProps) {
 						</div>
 					</div>
 
-					{/* Text content of the post */}
-					<div className={contentClass} style={fontStyle}>
-						<div className={contentClass} lang={post.language}>
-							{parse(
-								post.contentNonTagsParagraphs(config.theme.defaultFontSize),
-							)}
-						</div>
-					</div>
-
-					{/* Preview card and attachment display (media attachments are preferred over preview cards) */}
-					{post.card && !hasAttachments && (
-						<PreviewCard card={post.card} showLinkPreviews={showLinkPreviews} />
-					)}
-					{hasAttachments && <MultimediaNode post={post} />}
-					{post.poll && <Poll poll={post.poll} />}
-
-					{/* Tags in smaller font, if they make up the entirety of the last paragraph */}
-					{post.contentTagsParagraph && (
-						<div className={`${contentClass} pt-[12px]`}>
-							<span
-								className="text-[color:var(--color-muted-fg)]"
-								style={{ fontSize: config.theme.footerHashtagsFontSize }}
-							>
-								{parse(post.contentTagsParagraph)}
-							</span>
-						</div>
-					)}
-
-					{(post.repliesCount > 0 || !!post.inReplyToAccountId) && (
-						<p className="pt-2">
+					{/* Content Warning (Spoiler Text) */}
+					{post.spoilerText && (
+						<div className="flex items-center justify-between gap-2 rounded-lg bg-[color:var(--color-muted)] px-3 py-2">
+							<span className="text-sm font-medium">{post.spoilerText}</span>
 							<button
 								type="button"
 								onClick={(e) => {
-									openToot(post, e, isGoToSocialUser).catch((err) => {
-										logger.warn(
-											"Failed to resolve post, opening original URL instead:",
-											err,
-										);
-										window.open(post.url, "_blank");
-									});
+									e.stopPropagation();
+									setIsContentVisible(!isContentVisible);
 								}}
-								className="text-[color:var(--color-muted-fg)] text-[11px] p-0 border-0 bg-transparent cursor-pointer hover:text-[color:var(--color-fg)] hover:underline transition-colors"
+								className="text-xs font-bold uppercase text-[color:var(--color-primary)] hover:underline"
 							>
-								↗ Open Thread
+								{isContentVisible ? "Show Less" : "Show More"}
 							</button>
-						</p>
+						</div>
+					)}
+
+					{/* Text content of the post */}
+					{isContentVisible && (
+						<div className="space-y-3 animate-in fade-in zoom-in-95 duration-200">
+							<div className={contentClass} style={fontStyle}>
+								<div className={contentClass} lang={post.language}>
+									{parse(
+										post.contentNonTagsParagraphs(config.theme.defaultFontSize),
+									)}
+								</div>
+							</div>
+
+							{/* Preview card and attachment display (media attachments are preferred over preview cards) */}
+							{post.card && !hasAttachments && (
+								<PreviewCard
+									card={post.card}
+									showLinkPreviews={showLinkPreviews}
+								/>
+							)}
+							{hasAttachments && <MultimediaNode post={post} />}
+							{post.poll && <Poll poll={post.poll} />}
+
+							{/* Tags in smaller font, if they make up the entirety of the last paragraph */}
+							{post.contentTagsParagraph && (
+								<div className={`${contentClass} pt-[12px]`}>
+									<span
+										className="text-[color:var(--color-muted-fg)]"
+										style={{ fontSize: config.theme.footerHashtagsFontSize }}
+									>
+										{parse(post.contentTagsParagraph)}
+									</span>
+								</div>
+							)}
+
+							{(post.repliesCount > 0 || !!post.inReplyToAccountId) && (
+								<p className="pt-2">
+									<button
+										type="button"
+										onClick={(e) => {
+											openToot(post, e, isGoToSocialUser).catch((err) => {
+												logger.warn(
+													"Failed to resolve post, opening original URL instead:",
+													err,
+												);
+												window.open(post.url, "_blank");
+											});
+										}}
+										className="text-[color:var(--color-muted-fg)] text-[11px] p-0 border-0 bg-transparent cursor-pointer hover:text-[color:var(--color-fg)] hover:underline transition-colors"
+									>
+										↗ Open Thread
+									</button>
+								</p>
+							)}
+						</div>
 					)}
 
 					{/* Actions (boost, favorite, show score, etc) that appear in bottom panel of post */}
-					<div className="flex flex-wrap items-center justify-between gap-2">
+					<div className="flex flex-wrap items-center justify-between gap-2 pt-1">
 						<div className="flex flex-wrap items-center gap-2">
 							{!post.isDM && buildActionButton(TootAction.Reblog)}
 							{buildActionButton(TootAction.Favourite)}
