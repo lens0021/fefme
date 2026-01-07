@@ -189,7 +189,7 @@ export default function MultimediaNode(
 				)}
 
 				<div
-					className={`relative grid gap-[2px] overflow-hidden rounded-xl border border-[color:var(--color-border)] ${getGridClass(images.length)}`}
+					className={`relative w-full max-w-full grid gap-[2px] overflow-hidden rounded-xl border border-[color:var(--color-border)] ${getGridClass(images.length)}`}
 					style={{
 						height:
 							images.length > 1 ? `${config.posts.imageHeight}px` : "auto",

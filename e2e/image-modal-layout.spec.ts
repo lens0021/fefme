@@ -68,6 +68,9 @@ test.describe("Image Modal Layout", () => {
 	test("does not cause horizontal scroll when opening image modal", async ({
 		page,
 	}) => {
+		// Set a mobile viewport
+		await page.setViewportSize({ width: 375, height: 667 });
+
 		// Mock image loading to avoid errors
 		await page.route("**/*.jpg", (route) =>
 			route.fulfill({
@@ -79,6 +82,10 @@ test.describe("Image Modal Layout", () => {
 				),
 			}),
 		);
+
+		// Check before clicking
+		const scrollWidthBefore = await page.evaluate(() => document.body.scrollWidth);
+		const clientWidthBefore = await page.evaluate(() => document.body.clientWidth);
 
 		// Click the first image
 		const firstImage = page.locator('img[alt="Large Image 1"]');
