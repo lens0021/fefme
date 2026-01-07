@@ -95,69 +95,56 @@ export default function ErrorHandler(props: PropsWithChildren) {
 		);
 	};
 
-	// First argument can be the Logger you wish to use to write the error
-	// If first non Logger arg is a string, that will be put in setError()
-	// for the user to see and the actual rest of the args (including any Errors) will be logged.
+	// First argument can be the Logger you wish to use to write the error.
+	// If first non-Logger arg is a string, that will be shown to the user.
+	// The rest of the args (including any Errors) will be logged to the console.
 	const logAndSetError = (
 		error: Logger | Error | ReactNode,
 		...args: unknown[]
 	) => {
+		let currentLogger = errorLogger;
 		let firstArg: unknown = error;
-		let logger = errorLogger;
 
-		// If the first argument is a Logger use it to log the error
 		if (error instanceof Logger) {
-			logger = error;
-
-			if (!args.length) {
-				logger.error("logAndSetError called with a Logger but no message!");
+			currentLogger = error;
+			if (args.length === 0) {
+				currentLogger.error("logAndSetError called with a Logger but no message!");
 				return;
 			}
-
 			firstArg = args.shift();
 		}
 
-		// Dig out the first Error argument from the args list (if any)
+		// Find the first Error object in the arguments
 		const errorArg =
 			firstArg instanceof Error
 				? firstArg
-				: args.find((arg): arg is Error => arg instanceof Error);
-		const formattedErrorMsg = logger.error(
+				: (args.find((arg) => arg instanceof Error) as Error | undefined);
+
+		const formattedErrorMsg = currentLogger.error(
 			String(firstArg),
 			...(args as unknown[]),
 		);
 
-		if (errorArg) {
-			setErrorObj(errorArg);
-			if (typeof firstArg === "string") {
-				setErrorMsg(firstArg);
-			} else {
-				setErrorMsg(formattedErrorMsg);
-			}
-		} else {
-			setErrorMsg(formattedErrorMsg);
-		}
+		setErrorObj(errorArg || null);
+		setErrorMsg(typeof firstArg === "string" ? firstArg : formattedErrorMsg);
 	};
 
-	// Accepts the 3 parts of an error popup as separate props (see ErrorLogProps above).
-	// args props is not shown to the user but they are passed through to the logger.
+	// Accepts structural error properties for more precise control over the error modal.
 	const logAndSetFormattedError = (errorProps: ErrorLogProps) => {
 		const { args, errorObj, logger, msg, note } = errorProps;
+		const currentLogger = logger || errorLogger;
+
 		setErrorObj(errorObj || null);
 		setErrorNote(note || null);
 		setErrorMsg(msg);
-		let normalizedArgs: unknown[] = [];
-		if (Array.isArray(args)) {
-			normalizedArgs = args;
-		} else if (args !== undefined) {
-			normalizedArgs = [args];
-		}
 
-		// Handle writing to console log, which means putting errorObj first for Logger
-		normalizedArgs = errorObj ? [errorObj, ...normalizedArgs] : normalizedArgs;
-		let logMsg = isString(msg) ? msg : String(msg);
-		logMsg += isEmptyStr(note) ? "" : `\n(note: ${note})`;
-		(logger || errorLogger).error(logMsg, ...normalizedArgs);
+		const normalizedArgs = Array.isArray(args) ? args : args !== undefined ? [args] : [];
+		const logArgs = errorObj ? [errorObj, ...normalizedArgs] : normalizedArgs;
+		
+		let logMsg = msg;
+		if (note) logMsg += `\n(note: ${note})`;
+		
+		currentLogger.error(logMsg, ...logArgs);
 	};
 
 	const showModal = !!errorMsg || !!errorObj;
@@ -199,18 +186,14 @@ export default function ErrorHandler(props: PropsWithChildren) {
 								))}
 
 							{errorNote && (
-								<p
-									className="text-[color:var(--color-muted-fg)] text-sm mb-4 italic"
-								>
+								<p className="text-[color:var(--color-muted-fg)] text-sm mb-4 italic">
 									{errorNote}
 								</p>
 							)}
 
 							{errorObj && (
 								<div className="bg-[color:var(--color-muted)] font-mono rounded-lg mt-4 p-6 border border-[color:var(--color-border)] overflow-auto max-h-[40vh]">
-									<p
-										className="text-red-500 w-full text-sm whitespace-pre-wrap"
-									>
+									<p className="text-red-500 w-full text-sm whitespace-pre-wrap">
 										{errorObj.toString()}
 									</p>
 								</div>

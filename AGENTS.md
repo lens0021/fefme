@@ -288,22 +288,8 @@ Review the following files, and add TODO items for it.
   - [ ] Extract hardcoded timeout values (20_000, 1500, etc.) to named constants for maintainability
   - [ ] Consider extracting common test setup (user initialization, page.addInitScript) into beforeEach hook
   - [ ] Refactor instanceInfo object to shared fixture
-- index.html
-  - [x] Add meta description tag for SEO
-  - [x] Consider adding Open Graph meta tags for social sharing
-  - [x] Add theme-color meta tag for better PWA integration
-  - [x] Consider adding noscript tag with message for users without JavaScript
-- src/App.tsx
-  - [x] Verify if Buffer polyfill is actually required for class-transformer (line 1 comment says "maybe???") - Not required, removed
-  - [x] Remove or update misleading Bootstrap CDN comment (line 6) - index.html doesn't have Bootstrap CDN
-  - [x] Move OAuth redirect logic (lines 38-47) into useEffect to avoid side effects during render
-  - [x] Move Service Worker registration (lines 49-58) into useEffect hook
-  - [x] Add success logging for Service Worker registration
-  - [x] Consider showing 404 message briefly before redirecting in NotFoundPage instead of immediate redirect
-  - [x] Review Footer placement outside CoordinatorProvider - verify if intentional (line 88) - Intentional: Footer should be visible even when not authenticated
-  - [x] Consider extracting NotFoundPage to separate file in src/pages/ - Extracted to src/pages/NotFoundPage.tsx
-  - [x] Document or simplify useEffect dependency array in NotFoundPage (navigate is stable but could add comment)
-  - [x] Review mixing of inline styles (CSS variables) with Tailwind classes for consistency - Intentional: CSS variables needed for theming
+- [x] index.html
+- [x] src/App.tsx
 - lefthook.yml
   - [ ] Consider adding glob patterns to run hooks only on relevant file changes (e.g., skip tsc for markdown-only changes)
 - package.json
@@ -383,7 +369,7 @@ Review the following files, and add TODO items for it.
   - [x] Fix the misleading JSDoc comment for the `ErrorHandler` component.
   - [x] Make the error page and error modal theme-aware, replacing hardcoded background and text colors.
   - [x] Standardize modal styling using Tailwind classes, replacing manual pixel values for padding, rounding, etc.
-  - [ ] Simplify `logAndSetError` logic and consider a more robust way to handle multiple error formats.
+  - [x] Simplify `logAndSetError` logic and consider a more robust way to handle multiple error formats.
 - [ ] src/components/helpers/LabeledDropdownButton.tsx
 - [ ] src/components/helpers/NewTabLink.tsx
 - [ ] src/components/ProtectedRoute.tsx
