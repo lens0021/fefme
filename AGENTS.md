@@ -375,6 +375,9 @@ Review the following files, and add TODO items for it.
   - [ ] Add a way to reset the dropdown value from the parent component if needed.
   - [x] Improve focus states for better accessibility.
 - [ ] src/components/helpers/NewTabLink.tsx
+  - [x] Add `noopener` to `rel` attribute for improved security.
+  - [ ] Add an optional visual indicator (e.g., an external link icon) for accessibility.
+  - [x] Refactor `onClick` to optionally allow the default behavior (opening the tab).
 - [ ] src/components/ProtectedRoute.tsx
 - [ ] src/components/status/ActionButton.tsx
 - [ ] src/components/status/AttachmentsModal.tsx
