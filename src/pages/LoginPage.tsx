@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 
 import { createRestAPIClient } from "masto";
+import { useLocation } from "react-router-dom";
 import { stringifyQuery } from "ufo";
 import { FEDIALGO } from "../core/index";
 
@@ -21,6 +22,7 @@ const logger = getLogger("LoginPage");
 /** Landing / login page. */
 export default function LoginPage() {
 	const { logAndSetFormattedError } = useError();
+	const location = useLocation();
 
 	// Global state
 	const serverUserState = useServerUserStorage();
@@ -54,6 +56,10 @@ export default function LoginPage() {
 			handleError(err);
 			return;
 		}
+
+		// Save intended redirect path
+		const from = (location.state as any)?.from?.pathname || "/";
+		localStorage.setItem("fefme_login_redirect", from);
 
 		// OAuth won't allow HashRouter's "#" chars in redirectUris
 		const redirectUri =

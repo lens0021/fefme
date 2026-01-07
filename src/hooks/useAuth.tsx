@@ -26,7 +26,7 @@ const logger = getLogger("AuthProvider");
 const AuthContext = createContext({
 	logout: (_preserveAppErrors?: boolean) => {},
 	setApp: (_app: object) => undefined,
-	setLoggedInUser: (_user: User) => {},
+	setLoggedInUser: (_user: User, _redirectTo?: string) => {},
 	setUser: (_user: User | null) => undefined,
 	user: null,
 });
@@ -48,10 +48,10 @@ export default function AuthProvider(props: PropsWithChildren) {
 	//     username: "cryptadamus"
 	// }
 	const setLoggedInUser = useCallback(
-		async (user: User) => {
+		async (user: User, redirectTo = "/") => {
 			setUser(user);
-			logger.debug(`Logged in user "${user.username}"`);
-			navigate("/");
+			logger.debug(`Logged in user "${user.username}", redirecting to "${redirectTo}"`);
+			navigate(redirectTo, { replace: true });
 		},
 		[navigate, setUser],
 	);

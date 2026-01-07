@@ -101,7 +101,9 @@ export default function CallbackPage() {
 						username: verifiedUser.username,
 					};
 
-					setLoggedInUser(userData); // TODO: the redirect should be here and not in setLoggedInUser()
+					const redirectTo = localStorage.getItem("fefme_login_redirect") || "/";
+					localStorage.removeItem("fefme_login_redirect");
+					setLoggedInUser(userData, redirectTo);
 				})
 				.catch((errorObj) => {
 					handleAuthError(

@@ -379,6 +379,8 @@ Review the following files, and add TODO items for it.
   - [ ] Add an optional visual indicator (e.g., an external link icon) for accessibility.
   - [x] Refactor `onClick` to optionally allow the default behavior (opening the tab).
 - [ ] src/components/ProtectedRoute.tsx
+  - [ ] Add a loading state while authentication status is being determined to prevent flickering.
+  - [x] Implement redirect-back logic to return users to their intended page after logging in.
 - [ ] src/components/status/ActionButton.tsx
 - [ ] src/components/status/AttachmentsModal.tsx
 - [ ] src/components/status/MultimediaNode.tsx
