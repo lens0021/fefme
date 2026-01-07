@@ -1,7 +1,9 @@
 pre-commit:
   commands:
     format:
-      run: npm run format
+      glob: "*.{js,ts,jsx,tsx,json,css,md}"
+      run: npx biome format --write {staged_files}
+      stage_fixed: true
     tsc:
       run: npm run tsc
     test:

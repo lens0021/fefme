@@ -84,8 +84,12 @@ test.describe("Image Modal Layout", () => {
 		);
 
 		// Check before clicking
-		const scrollWidthBefore = await page.evaluate(() => document.body.scrollWidth);
-		const clientWidthBefore = await page.evaluate(() => document.body.clientWidth);
+		const scrollWidthBefore = await page.evaluate(
+			() => document.body.scrollWidth,
+		);
+		const clientWidthBefore = await page.evaluate(
+			() => document.body.clientWidth,
+		);
 
 		// Click the first image
 		const firstImage = page.locator('img[alt="Large Image 1"]');
