@@ -216,12 +216,11 @@ export default abstract class Scorer {
 		scorers: Scorer[],
 	): Promise<void> {
 		const rawestScores = await Promise.all(scorers.map((s) => s.score(post)));
-
-		// Find non scorer weights
 		const userWeights = await Storage.getWeights();
+
 		const getWeight = (weightKey: WeightName) =>
 			userWeights[weightKey] ?? DEFAULT_WEIGHTS[weightKey];
-		const timeDecayWeight = getWeight(NonScoreWeightName.TIME_DECAY) / 10; // Divide by 10 to make it more user friendly
+
 		const trendingMultiplier = getWeight(NonScoreWeightName.TRENDING);
 		let outlierDampener = getWeight(NonScoreWeightName.OUTLIER_DAMPENER);
 
@@ -232,33 +231,34 @@ export default abstract class Scorer {
 			outlierDampener = 1; // Prevent division by zero
 		}
 
-		// Compute a weighted score for a post by multiplying the value of each scorable property's numeric
-		// score by the user's chosen weighting (the one configured with the GUI sliders) for that property.
+		// Compute individual weighted scores
 		const scores: TootScores = scorers.reduce((scoreDict, scorer, i) => {
 			const rawScore = rawestScores[i] || 0;
-			const outlierExponent = 1 / outlierDampener;
-			let weightedScore = rawScore * (userWeights[scorer.name] ?? 0);
+			const weight = userWeights[scorer.name] ?? 0;
 
-			// Apply the TRENDING modifier
-			if (TRENDING_WEIGHTS.has(scorer.name)) {
-				weightedScore *= trendingMultiplier;
-			}
+			const weightedScore = this.calculateWeightedScore(
+				rawScore,
+				weight,
+				scorer.name,
+				outlierDampener,
+				trendingMultiplier,
+			);
 
-			// Outlier dampener of 2 means take the square root of the score, 3 means cube root, etc.
-			if (weightedScore >= 0) {
-				weightedScore = Math.pow(weightedScore, outlierExponent);
-			} else {
-				weightedScore = -1 * Math.pow(-1 * weightedScore, outlierExponent);
-			}
-
-			scoreDict[scorer.name] = { raw: rawScore, weighted: weightedScore };
+			scoreDict[scorer.name] = {
+				raw: rawScore,
+				weighted: weightedScore,
+				weight,
+			};
 			return scoreDict;
 		}, {} as TootScores);
 
-		// Multiple weighted score by time decay penalty to get a final weightedScore
-		const decayExponent =
-			-1 * Math.pow(post.ageInHours, config.scoring.timeDecayExponent);
-		const timeDecayMultiplier = Math.pow(timeDecayWeight + 1, decayExponent);
+		// Calculate Final Score
+		const timeDecayWeight = getWeight(NonScoreWeightName.TIME_DECAY);
+		const timeDecayMultiplier = this.calculateTimeDecayMultiplier(
+			post.ageInHours,
+			timeDecayWeight,
+		);
+
 		const weightedScore = this.sumScores(scores, "weighted");
 		const score = weightedScore * timeDecayMultiplier;
 
@@ -274,6 +274,53 @@ export default abstract class Scorer {
 
 		// TODO: duping the score to realToot is a hack that sucks
 		post.realToot.scoreInfo = post.scoreInfo = scoreInfo;
+	}
+
+	/**
+	 * Calculates the weighted score for a single scorer.
+	 * @private
+	 * @static
+	 */
+	private static calculateWeightedScore(
+		rawScore: number,
+		weight: number,
+		scorerName: ScoreName,
+		outlierDampener: number,
+		trendingMultiplier: number,
+	): number {
+		let weightedScore = rawScore * weight;
+
+		// Apply the TRENDING modifier
+		if (TRENDING_WEIGHTS.has(scorerName)) {
+			weightedScore *= trendingMultiplier;
+		}
+
+		// Apply Outlier Dampener
+		const outlierExponent = 1 / outlierDampener;
+		// Outlier dampener of 2 means take the square root of the score, 3 means cube root, etc.
+		if (weightedScore >= 0) {
+			weightedScore = Math.pow(weightedScore, outlierExponent);
+		} else {
+			weightedScore = -1 * Math.pow(-1 * weightedScore, outlierExponent);
+		}
+
+		return weightedScore;
+	}
+
+	/**
+	 * Calculates the time decay multiplier.
+	 * @private
+	 * @static
+	 */
+	private static calculateTimeDecayMultiplier(
+		ageInHours: number,
+		timeDecayWeight: number,
+	): number {
+		// Divide by 10 to make it more user friendly (matching original logic)
+		const adjustedWeight = timeDecayWeight / 10;
+		const decayExponent =
+			-1 * Math.pow(ageInHours, config.scoring.timeDecayExponent);
+		return Math.pow(adjustedWeight + 1, decayExponent);
 	}
 
 	/**

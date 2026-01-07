@@ -308,33 +308,41 @@ export default function StatusComponent(props: StatusComponentProps) {
 						<div className="space-y-3">
 							{Object.entries(post.scoreInfo?.scores ?? {}).map(
 								([key, value]) => {
-									if (value.raw === 0 && value.weighted === 0) return null;
+									// Skip completely irrelevant entries (0 raw score AND 0 weight)
+									if (value.raw === 0 && (value.weight ?? 0) === 0) return null;
 
 									const weightInfo = algorithm?.weightsInfo[key];
 									const description = weightInfo?.description || key;
+									const isDisabled = (value.weight ?? 0) === 0;
 
 									return (
 										<div
 											key={key}
-											className="rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-muted)] p-4"
+											className={`rounded-lg border border-[color:var(--color-border)] p-4 ${isDisabled ? "bg-[color:var(--color-bg)] opacity-60" : "bg-[color:var(--color-muted)]"}`}
 										>
 											<div className="mb-2 flex items-start justify-between">
 												<div className="flex-1">
 													<h3 className="font-semibold text-[color:var(--color-fg)]">
-														{key}
+														{key} {isDisabled && "(Disabled)"}
 													</h3>
 													<p className="text-sm text-[color:var(--color-muted-fg)]">
 														{description}
 													</p>
 												</div>
 												<div className="ml-4 text-right">
-													<div className="text-lg font-bold text-[color:var(--color-primary)]">
-														{formatScore(value.weighted ?? value.raw)}
-													</div>
-													<div className="text-xs text-[color:var(--color-muted-fg)]">
-														Raw: {formatScore(value.raw)}
+													<div
+														className={`text-lg font-bold ${isDisabled ? "text-[color:var(--color-muted-fg)]" : "text-[color:var(--color-primary)]"}`}
+													>
+														{formatScore(value.weighted)}
 													</div>
 												</div>
+											</div>
+											<div className="flex items-center justify-end gap-4 text-xs text-[color:var(--color-muted-fg)]">
+												<div>Raw: {formatScore(value.raw)}</div>
+												<div>×</div>
+												<div>Weight: {formatScore(value.weight ?? 0)}</div>
+												<div>=</div>
+												<div>{formatScore(value.weighted)}</div>
 											</div>
 										</div>
 									);
@@ -342,12 +350,32 @@ export default function StatusComponent(props: StatusComponentProps) {
 							)}
 						</div>
 
-						<div className="mt-4 text-xs text-[color:var(--color-muted-fg)]">
-							<div>Note: Only showing categories with non-zero scores</div>
-							<div className="mt-1">
-								Raw: {formatScore(post.scoreInfo.rawScore)} · Weighted:{" "}
-								{formatScore(post.scoreInfo.weightedScore)} · Time decay:{" "}
-								{formatScore(post.scoreInfo.timeDecayMultiplier)} · Trending:{" "}
+						<div className="mt-6 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-muted)] p-4">
+							<h3 className="mb-3 font-bold text-[color:var(--color-fg)]">
+								Final Calculation
+							</h3>
+							<div className="space-y-2 text-sm text-[color:var(--color-fg)]">
+								<div className="flex justify-between">
+									<span>Sum of Weighted Scores:</span>
+									<span className="font-mono">
+										{formatScore(post.scoreInfo.weightedScore)}
+									</span>
+								</div>
+								<div className="flex justify-between text-[color:var(--color-muted-fg)]">
+									<span>Time Decay Multiplier:</span>
+									<span className="font-mono">
+										× {formatScore(post.scoreInfo.timeDecayMultiplier)}
+									</span>
+								</div>
+								<div className="mt-2 flex justify-between border-t border-[color:var(--color-border)] pt-2 font-bold">
+									<span>Final Score:</span>
+									<span className="font-mono text-[color:var(--color-primary)]">
+										{formatScore(post.scoreInfo.score)}
+									</span>
+								</div>
+							</div>
+							<div className="mt-3 text-xs text-[color:var(--color-muted-fg)]">
+								Raw Sum: {formatScore(post.scoreInfo.rawScore)} · Trending:{" "}
 								{formatScore(post.scoreInfo.trendingMultiplier)}
 							</div>
 						</div>

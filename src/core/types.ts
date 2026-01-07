@@ -216,6 +216,7 @@ export type TrendingWithHistory = TagWithUsageCounts | TrendingLink;
 export type WeightedScore = {
 	raw: number;
 	weighted: number;
+	weight: number; // The user-configured weight used for calculation
 };
 
 export type WeightInfo = {
