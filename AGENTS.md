@@ -371,6 +371,9 @@ Review the following files, and add TODO items for it.
   - [x] Standardize modal styling using Tailwind classes, replacing manual pixel values for padding, rounding, etc.
   - [x] Simplify `logAndSetError` logic and consider a more robust way to handle multiple error formats.
 - [ ] src/components/helpers/LabeledDropdownButton.tsx
+  - [x] Make the component theme-aware, replacing hardcoded `bg-white` and `border-gray-300`.
+  - [ ] Add a way to reset the dropdown value from the parent component if needed.
+  - [x] Improve focus states for better accessibility.
 - [ ] src/components/helpers/NewTabLink.tsx
 - [ ] src/components/ProtectedRoute.tsx
 - [ ] src/components/status/ActionButton.tsx
