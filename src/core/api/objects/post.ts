@@ -124,6 +124,7 @@ export interface SerializableToot extends mastodon.v1.Status {
 	reblog?: SerializableToot | null; // The post that was boosted (if any)
 	reblogsBy?: AccountLike[]; // The accounts that boosted this post (if any)
 	resolvedID?: string; // This Post with URLs resolved to homeserver versions
+	score?: number; // The final calculated score of the post
 	scoreInfo?: TootScore; // Scoring info for weighting/sorting this post
 	sources?: string[]; // Source of the post (e.g. trending tag posts, home timeline, etc.)
 	trendingLinks?: TrendingLink[]; // Links that are trending in this post
@@ -267,6 +268,7 @@ export default class Post implements PostObj {
 	participatedTags?: TagWithUsageCounts[]; // Array of tags that the user has participated in that exist in this post
 	@Type(() => Account) reblogsBy!: Account[]; // The accounts that boosted this post
 	resolvedID?: string; // This Post with URLs resolved to homeserver versions
+	score = 0; // Current overall score for this post.
 	scoreInfo?: TootScore; // Scoring info for weighting/sorting this post
 	sources?: string[]; // Source of the post (e.g. trending tag posts, home timeline, etc.)
 	trendingLinks?: TrendingLink[]; // Links that are trending in this post
@@ -336,9 +338,6 @@ export default class Post implements PostObj {
 	}
 	get replyMentions(): string[] {
 		return [...this.accounts, ...(this.mentions || [])].map((m) => at(m.acct));
-	}
-	get score(): number {
-		return this.scoreInfo?.score || 0;
 	}
 	get postedAt(): Date {
 		return new Date(this.createdAt);
@@ -437,6 +436,7 @@ export default class Post implements PostObj {
 		);
 		postObj.resolvedID = post.resolvedID;
 		postObj.scoreInfo = post.scoreInfo;
+		postObj.score = post.score || post.scoreInfo?.score || 0;
 		postObj.sources = post.sources;
 		postObj.trendingLinks = post.trendingLinks;
 		postObj.trendingRank = post.trendingRank;

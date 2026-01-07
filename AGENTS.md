@@ -274,6 +274,7 @@ Defined in `/src/core/enums.ts`:
 - Decide whether to rename `CoordinatorProvider`/`useCoordinator` to match `FeedCoordinator` for naming consistency.
 - Further split large algorithm modules (e.g., `src/core/coordinator/feed.ts`, `src/core/coordinator/state.ts`) into smaller role-focused units.
 - Align code boundaries with the Component Roles list (enforce module responsibilities and remove cross-role coupling).
+- `Post` object now has an explicit `score` property (number) that is persisted in storage, ensuring the visible timeline retains fixed scores until refresh. This replaces the previous reliance on a getter calculating from `scoreInfo`.
 
 ### Review files
 

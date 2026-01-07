@@ -274,6 +274,7 @@ export default abstract class Scorer {
 
 		// TODO: duping the score to realToot is a hack that sucks
 		post.realToot.scoreInfo = post.scoreInfo = scoreInfo;
+		post.realToot.score = post.score = score;
 	}
 
 	/**
