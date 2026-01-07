@@ -105,7 +105,7 @@ export default function ActionButton(props: ActionButtonProps) {
 			const startingCount = post[actionInfo.countName] || 0;
 			const startingState = !!post[actionInfo.booleanName];
 			const newState = !startingState;
-			
+
 			setIsProcessing(true);
 			logger.log(
 				`${action}() post (startingState: ${startingState}, count: ${startingCount}): `,

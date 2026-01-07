@@ -108,7 +108,9 @@ export default function ErrorHandler(props: PropsWithChildren) {
 		if (error instanceof Logger) {
 			currentLogger = error;
 			if (args.length === 0) {
-				currentLogger.error("logAndSetError called with a Logger but no message!");
+				currentLogger.error(
+					"logAndSetError called with a Logger but no message!",
+				);
 				return;
 			}
 			firstArg = args.shift();
@@ -138,12 +140,16 @@ export default function ErrorHandler(props: PropsWithChildren) {
 		setErrorNote(note || null);
 		setErrorMsg(msg);
 
-		const normalizedArgs = Array.isArray(args) ? args : args !== undefined ? [args] : [];
+		const normalizedArgs = Array.isArray(args)
+			? args
+			: args !== undefined
+				? [args]
+				: [];
 		const logArgs = errorObj ? [errorObj, ...normalizedArgs] : normalizedArgs;
-		
+
 		let logMsg = msg;
 		if (note) logMsg += `\n(note: ${note})`;
-		
+
 		currentLogger.error(logMsg, ...logArgs);
 	};
 

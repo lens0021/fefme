@@ -34,11 +34,19 @@ export default function LabeledDropdownButton(props: LabeledDropdownButton) {
 			className="border border-[color:var(--color-border)] rounded-md px-3 py-1.5 bg-[color:var(--color-card-bg)] text-[color:var(--color-fg)] cursor-pointer text-sm font-medium focus:ring-2 focus:ring-[color:var(--color-primary)] focus:outline-none transition-shadow"
 			style={style || {}}
 		>
-			<option value={initialLabel} disabled className="text-[color:var(--color-muted-fg)]">
+			<option
+				value={initialLabel}
+				disabled
+				className="text-[color:var(--color-muted-fg)]"
+			>
 				{initialLabel}
 			</option>
 			{options.map((value) => (
-				<option key={value} value={value} className="bg-[color:var(--color-card-bg)] text-[color:var(--color-fg)]">
+				<option
+					key={value}
+					value={value}
+					className="bg-[color:var(--color-card-bg)] text-[color:var(--color-fg)]"
+				>
 					{value}
 				</option>
 			))}

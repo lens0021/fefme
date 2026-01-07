@@ -101,7 +101,8 @@ export default function CallbackPage() {
 						username: verifiedUser.username,
 					};
 
-					const redirectTo = localStorage.getItem("fefme_login_redirect") || "/";
+					const redirectTo =
+						localStorage.getItem("fefme_login_redirect") || "/";
 					localStorage.removeItem("fefme_login_redirect");
 					setLoggedInUser(userData, redirectTo);
 				})

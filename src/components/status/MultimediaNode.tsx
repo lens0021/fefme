@@ -99,10 +99,7 @@ export default function MultimediaNode(
 	// Make a LazyLoadImage element for displaying an image within a Post.
 	const makeImage = useCallback(
 		(image: mastodon.v1.MediaAttachment, idx: number): React.ReactElement => (
-			<div
-				className={getImageClass(idx, images.length)}
-				key={image.previewUrl}
-			>
+			<div className={getImageClass(idx, images.length)} key={image.previewUrl}>
 				{removeMediaAttachment && (
 					<button
 						type="button"
@@ -194,8 +191,10 @@ export default function MultimediaNode(
 				<div
 					className={`relative grid gap-[2px] overflow-hidden rounded-xl border border-[color:var(--color-border)] ${getGridClass(images.length)}`}
 					style={{
-						height: images.length > 1 ? `${config.posts.imageHeight}px` : "auto",
-						maxHeight: images.length === 1 ? `${config.posts.imageHeight}px` : undefined,
+						height:
+							images.length > 1 ? `${config.posts.imageHeight}px` : "auto",
+						maxHeight:
+							images.length === 1 ? `${config.posts.imageHeight}px` : undefined,
 						aspectRatio: images.length === 1 ? "auto" : "16/9",
 					}}
 				>

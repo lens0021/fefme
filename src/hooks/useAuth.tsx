@@ -50,7 +50,9 @@ export default function AuthProvider(props: PropsWithChildren) {
 	const setLoggedInUser = useCallback(
 		async (user: User, redirectTo = "/") => {
 			setUser(user);
-			logger.debug(`Logged in user "${user.username}", redirecting to "${redirectTo}"`);
+			logger.debug(
+				`Logged in user "${user.username}", redirecting to "${redirectTo}"`,
+			);
 			navigate(redirectTo, { replace: true });
 		},
 		[navigate, setUser],
