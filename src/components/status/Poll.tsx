@@ -104,11 +104,11 @@ export default function Poll(props: PollProps) {
 			const updatedPoll = await api.v1.polls
 				.$select(poll.id)
 				.votes.create({ choices: choiceIndexes });
-			
+
 			setPoll(updatedPoll);
 			setHasVoted(true);
 			setRevealed(true);
-			
+
 			logger.debug(
 				"Vote successful, selected:",
 				selected,

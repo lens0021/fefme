@@ -450,7 +450,11 @@ export default function StatusComponent(props: StatusComponentProps) {
 
 							{sourceLabels.length > 0 && (
 								<span className="flex flex-wrap items-center gap-1 text-[11px] text-[color:var(--color-muted-fg)]">
-									<FontAwesomeIcon icon={faDatabase} className="mr-1" title="Sources" />
+									<FontAwesomeIcon
+										icon={faDatabase}
+										className="mr-1"
+										title="Sources"
+									/>
 									{sourceLabels.map((source, index) => (
 										<span
 											key={`${source}-${index}`}
