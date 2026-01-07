@@ -362,11 +362,7 @@ Review the following files, and add TODO items for it.
   - [ ] Ensure unique `id` attributes for inputs to improve accessibility, especially when labels might be duplicated.
   - [ ] Review `persistentCheckbox` to ensure tooltip components are not unnecessarily duplicated in the DOM.
 - [x] src/components/helpers/Confirmation.tsx
-- [ ] src/components/helpers/ErrorHandler.tsx
-  - [x] Fix the misleading JSDoc comment for the `ErrorHandler` component.
-  - [x] Make the error page and error modal theme-aware, replacing hardcoded background and text colors.
-  - [x] Standardize modal styling using Tailwind classes, replacing manual pixel values for padding, rounding, etc.
-  - [x] Simplify `logAndSetError` logic and consider a more robust way to handle multiple error formats.
+- [x] src/components/helpers/ErrorHandler.tsx
 - [ ] src/components/helpers/LabeledDropdownButton.tsx
   - [x] Make the component theme-aware, replacing hardcoded `bg-white` and `border-gray-300`.
   - [ ] Add a way to reset the dropdown value from the parent component if needed.
@@ -398,6 +394,10 @@ Review the following files, and add TODO items for it.
   - [x] Add a "Multiple choice" label for polls that allow multiple selections.
   - [ ] Avoid direct mutation of the `poll` object; use a proper state update or callback.
 - [ ] src/components/status/PreviewCard.tsx
+  - [x] Remove the unused `<canvas>` element.
+  - [x] Replace hardcoded color `text-[#4b427a]` with a theme-aware color variable.
+  - [ ] Implement an image load error handler to show a fallback icon or placeholder.
+  - [ ] Standardize the card's border and hover states using consistent Tailwind utility classes.
 - [ ] src/components/status/Status.tsx
 - [ ] src/components/status/__tests__/StatusSeenDuringBackgroundLoad.test.tsx
 - [ ] src/components/TrendingSection.tsx

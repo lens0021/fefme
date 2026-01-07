@@ -25,7 +25,7 @@ export default function PreviewCard(
 
 	const headline = (
 		<>
-			<span className="text-[#4b427a]">
+			<span className="text-[color:var(--color-primary)] font-bold opacity-80">
 				[{card.providerName || extractDomain(card.url)}]
 			</span>{" "}
 			<span>{parse(card.title)}</span>
@@ -51,8 +51,6 @@ export default function PreviewCard(
 		>
 			<div className="flex flex-col sm:flex-row">
 				<div className="w-full shrink-0 bg-black/5 sm:w-48">
-					<canvas className="hidden" height="32" width="32" />
-
 					<LazyLoadImage
 						alt={altText}
 						className="h-full w-full object-cover"
