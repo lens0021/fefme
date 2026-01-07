@@ -495,7 +495,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 						</div>
 
 						{/* Top right icons + timestamp that link to the post (now on right) */}
-						<div className="flex flex-col items-end gap-1 text-xs text-[color:var(--color-muted-fg)] sm:flex-row sm:items-center">
+						<div className="flex flex-wrap items-center justify-start sm:justify-end gap-2 text-xs text-[color:var(--color-muted-fg)] w-full sm:w-auto sm:ml-auto mt-1 sm:mt-0">
 							<span className="inline-flex items-center gap-1">
 								{post.editedAt && infoIcon(InfoIconType.Edited)}
 								{(post.numTimesShown || 0) > 0 && infoIcon(InfoIconType.Read)}
@@ -528,7 +528,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 
 							<button
 								type="button"
-								className="inline-flex items-center gap-2 hover:text-[color:var(--color-fg)]"
+								className="inline-flex items-center gap-2 hover:text-[color:var(--color-fg)] whitespace-nowrap"
 								onClick={(e) => {
 									openToot(post, e, isGoToSocialUser).catch((err) => {
 										logAndSetFormattedError({
