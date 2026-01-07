@@ -380,9 +380,9 @@ Review the following files, and add TODO items for it.
   - [x] Replace hardcoded colors with theme-aware Tailwind classes or CSS variables.
   - [x] Improve accessibility by using appropriate ARIA roles and managing focus when the dialog opens.
 - [ ] src/components/helpers/ErrorHandler.tsx
-  - [ ] Fix the misleading JSDoc comment for the `ErrorHandler` component.
-  - [ ] Make the error page and error modal theme-aware, replacing hardcoded background and text colors.
-  - [ ] Standardize modal styling using Tailwind classes, replacing manual pixel values for padding, rounding, etc.
+  - [x] Fix the misleading JSDoc comment for the `ErrorHandler` component.
+  - [x] Make the error page and error modal theme-aware, replacing hardcoded background and text colors.
+  - [x] Standardize modal styling using Tailwind classes, replacing manual pixel values for padding, rounding, etc.
   - [ ] Simplify `logAndSetError` logic and consider a more robust way to handle multiple error formats.
 - [ ] src/components/helpers/LabeledDropdownButton.tsx
 - [ ] src/components/helpers/NewTabLink.tsx
