@@ -401,7 +401,7 @@ Review the following files, and add TODO items for it.
 - [ ] src/components/status/Status.tsx
   - [x] Add a Content Warning (CW) overlay to hide sensitive text behind a "Show More" button.
   - [x] Refactor the Score Modal to use theme-aware standard styling and transitions.
-  - [ ] Improve the top bar layout to reduce clutter, potentially using icons for sources.
+  - [x] Improve the top bar layout to reduce clutter, potentially using icons for sources.
   - [x] Replace hardcoded colors (e.g., `text-[#636f7a]`, `text-sky-300`) with theme variables.
   - [x] Standardize the "Open Thread" button with consistent Tailwind styling.
 - [ ] src/components/status/__tests__/StatusSeenDuringBackgroundLoad.test.tsx

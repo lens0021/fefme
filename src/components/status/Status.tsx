@@ -13,6 +13,7 @@ import {
 	type IconDefinition,
 	faBolt,
 	faCheckCircle,
+	faDatabase,
 	faEye,
 	faFireFlameCurved,
 	faHashtag,
@@ -374,60 +375,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 				<div className={`space-y-3 ${isReblog ? "pt-2" : ""}`}>
 					{/* Top bar with account and info icons */}
 					<div className="flex flex-wrap items-start justify-between gap-3">
-						{/* Top right icons + timestamp that link to the post */}
-						<div className="flex items-center gap-2 text-xs text-[color:var(--color-muted-fg)]">
-							<span className="inline-flex items-center gap-1">
-								{post.editedAt && infoIcon(InfoIconType.Edited)}
-								{(post.numTimesShown || 0) > 0 && infoIcon(InfoIconType.Read)}
-								{post.inReplyToAccountId && infoIcon(InfoIconType.Reply)}
-								{(post.trendingRank || 0) > 0 &&
-									infoIcon(InfoIconType.TrendingToot)}
-								{post.containsUserMention() && infoIcon(InfoIconType.Mention)}
-								{post.containsTagsMsg() && infoIcon(InfoIconType.Hashtags)}
-								{post.isDM && infoIcon(InfoIconType.DM)}
-								{post.account.bot && infoIcon(InfoIconType.Bot)}
-							</span>
-
-							<span className="flex flex-wrap items-center gap-1 text-[11px] text-[color:var(--color-muted-fg)]">
-								<span>Sources:</span>
-								{sourceLabels.length ? (
-									sourceLabels.map((source, index) => (
-										<span
-											key={`${source}-${index}`}
-											className="rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-muted)] px-2 py-[1px]"
-										>
-											{source}
-										</span>
-									))
-								) : (
-									<span>Unknown</span>
-								)}
-							</span>
-
-							<button
-								type="button"
-								className="inline-flex items-center gap-2 hover:text-[color:var(--color-fg)]"
-								onClick={(e) => {
-									openToot(post, e, isGoToSocialUser).catch((err) => {
-										logAndSetFormattedError({
-											errorObj: err,
-											msg: "Failed to resolve post ID!",
-											note: "Could be connectivity issues or a deleted/suspended post.",
-										});
-									});
-								}}
-								title={timeString(post.createdAt)}
-							>
-								<time dateTime={post.createdAt}>
-									{timeString(post.createdAt)}
-								</time>
-								<span className="text-[color:var(--color-muted-fg)]">
-									({formatRelativeTime(post.createdAt)})
-								</span>
-							</button>
-						</div>
-
-						{/* Account name + avatar */}
+						{/* Account name + avatar (now on left) */}
 						<div
 							title={post.account.webfingerURI}
 							className="flex items-center gap-3"
@@ -484,6 +432,57 @@ export default function StatusComponent(props: StatusComponentProps) {
 									@{post.account.webfingerURI}
 								</span>
 							</span>
+						</div>
+
+						{/* Top right icons + timestamp that link to the post (now on right) */}
+						<div className="flex flex-col items-end gap-1 text-xs text-[color:var(--color-muted-fg)] sm:flex-row sm:items-center">
+							<span className="inline-flex items-center gap-1">
+								{post.editedAt && infoIcon(InfoIconType.Edited)}
+								{(post.numTimesShown || 0) > 0 && infoIcon(InfoIconType.Read)}
+								{post.inReplyToAccountId && infoIcon(InfoIconType.Reply)}
+								{(post.trendingRank || 0) > 0 &&
+									infoIcon(InfoIconType.TrendingToot)}
+								{post.containsUserMention() && infoIcon(InfoIconType.Mention)}
+								{post.containsTagsMsg() && infoIcon(InfoIconType.Hashtags)}
+								{post.isDM && infoIcon(InfoIconType.DM)}
+								{post.account.bot && infoIcon(InfoIconType.Bot)}
+							</span>
+
+							{sourceLabels.length > 0 && (
+								<span className="flex flex-wrap items-center gap-1 text-[11px] text-[color:var(--color-muted-fg)]">
+									<FontAwesomeIcon icon={faDatabase} className="mr-1" title="Sources" />
+									{sourceLabels.map((source, index) => (
+										<span
+											key={`${source}-${index}`}
+											className="rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-muted)] px-2 py-[1px]"
+										>
+											{source}
+										</span>
+									))}
+								</span>
+							)}
+
+							<button
+								type="button"
+								className="inline-flex items-center gap-2 hover:text-[color:var(--color-fg)]"
+								onClick={(e) => {
+									openToot(post, e, isGoToSocialUser).catch((err) => {
+										logAndSetFormattedError({
+											errorObj: err,
+											msg: "Failed to resolve post ID!",
+											note: "Could be connectivity issues or a deleted/suspended post.",
+										});
+									});
+								}}
+								title={timeString(post.createdAt)}
+							>
+								<time dateTime={post.createdAt}>
+									{timeString(post.createdAt)}
+								</time>
+								<span className="text-[color:var(--color-muted-fg)]">
+									({formatRelativeTime(post.createdAt)})
+								</span>
+							</button>
 						</div>
 					</div>
 
