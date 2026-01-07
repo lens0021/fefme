@@ -30,7 +30,11 @@ export default function AttachmentsModal(props: AttachmentsModalProps) {
 			);
 		} else if (media.type === MediaCategory.IMAGE) {
 			element = (
-				<img alt={media.description ?? ""} src={media.url} width={"100%"} />
+				<img
+					alt={media.description ?? ""}
+					src={media.url}
+					className="max-w-full max-h-full object-contain"
+				/>
 			);
 		} else if (VIDEO_TYPES.includes(media.type)) {
 			element = (
@@ -81,7 +85,7 @@ export default function AttachmentsModal(props: AttachmentsModalProps) {
 
 	return (
 		<div
-			className="fixed inset-0 z-[1100] flex items-center justify-center bg-black/90 backdrop-blur-sm animate-in fade-in duration-200"
+			className="fixed inset-0 z-[1100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-in fade-in duration-200"
 			role="dialog"
 			aria-modal="true"
 		>
@@ -91,7 +95,7 @@ export default function AttachmentsModal(props: AttachmentsModalProps) {
 				onClick={() => setMediaInspectionIdx(-1)}
 				className="absolute inset-0 h-full w-full cursor-default"
 			/>
-			<div className="relative z-10 bg-[color:var(--color-card-bg)] text-[color:var(--color-fg)] rounded-xl shadow-2xl max-w-5xl w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col border border-[color:var(--color-border)] animate-in zoom-in duration-200">
+			<div className="relative z-10 bg-[color:var(--color-card-bg)] text-[color:var(--color-fg)] rounded-xl shadow-2xl max-w-5xl w-full max-h-[95vh] overflow-hidden flex flex-col border border-[color:var(--color-border)] animate-in zoom-in duration-200">
 				<div className="p-4 border-b border-[color:var(--color-border)] flex justify-between items-center bg-[color:var(--color-muted)]">
 					<h3 className="text-sm font-bold truncate pr-8">
 						{post.contentShortened()}
@@ -106,7 +110,7 @@ export default function AttachmentsModal(props: AttachmentsModalProps) {
 					</button>
 				</div>
 
-				<div className="flex-1 overflow-auto flex items-center justify-center bg-black/20">
+				<div className="flex-1 overflow-auto flex items-center justify-center bg-black/20 p-1">
 					{element}
 				</div>
 			</div>
