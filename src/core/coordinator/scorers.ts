@@ -22,9 +22,7 @@ import NumFavouritesScorer, {
 	VideoAttachmentScorer,
 } from "../scorer/post/property_scorer_factory";
 import BoostsInFeedScorer from "../scorer/post/boosts_in_feed_scorer";
-import FavouritedTagsScorer, {
-	HashtagParticipationScorer,
-} from "../scorer/post/tag_scorer_factory";
+import FavouritedTagsScorer from "../scorer/post/tag_scorer_factory";
 import TrendingTagsScorer from "../scorer/post/trending_tags_scorer";
 import type PostScorer from "../scorer/post_scorer";
 import type { WeightInfoDict } from "../types";
@@ -46,7 +44,6 @@ export function buildScorerBundle(): ScorerBundle {
 		new FollowedAccountsScorer(),
 		new FollowedTagsScorer(),
 		new FollowersScorer(),
-		new HashtagParticipationScorer(),
 		new ImageAttachmentScorer(),
 		new InteractionsScorer(),
 		new MentionsFollowedScorer(),

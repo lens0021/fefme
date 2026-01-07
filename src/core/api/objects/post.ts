@@ -120,7 +120,6 @@ export interface SerializableToot extends mastodon.v1.Status {
 	completedAt?: string; // Timestamp a full deep inspection of the post was completed
 	followedTags?: Hashtag[]; // Array of tags that the user follows that exist in this post
 	numTimesShown?: number; // Managed in client app. # of times the Post has been shown to the user.
-	participatedTags?: TagWithUsageCounts[]; // Tags that the user has participated in that exist in this post
 	reblog?: SerializableToot | null; // The post that was boosted (if any)
 	reblogsBy?: AccountLike[]; // The accounts that boosted this post (if any)
 	resolvedID?: string; // This Post with URLs resolved to homeserver versions
@@ -203,7 +202,6 @@ interface PostObj extends SerializableToot {
  * @property {boolean} isTrending - True if it's a trending post or contains any trending hashtags or links.
  * @property {string} lastEditedAt - The date when the post was last edited, or createdAt if never edited.
  * @property {number} [numTimesShown] - Managed in client app. # of times the Post has been shown to the user.
- * @property {TagWithUsageCounts[]} [participatedTags] - Tags that the user has participated in that exist in this post
  * @property {number} popularity - Sum of the trendingRank, numReblogs, replies, and local server favourites. Currently unused.
  * @property {Post} realToot - The post that was reblogged if it's a reblog, otherwise this post.
  * @property {string} realURI - URI for the realToot.
@@ -265,7 +263,6 @@ export default class Post implements PostObj {
 	completedAt?: string;
 	followedTags?: mastodon.v1.Tag[]; // Array of tags that the user follows that exist in this post
 	numTimesShown!: number;
-	participatedTags?: TagWithUsageCounts[]; // Array of tags that the user has participated in that exist in this post
 	@Type(() => Account) reblogsBy!: Account[]; // The accounts that boosted this post
 	resolvedID?: string; // This Post with URLs resolved to homeserver versions
 	score = 0; // Current overall score for this post.
@@ -500,7 +497,7 @@ export default class Post implements PostObj {
 	}
 
 	/**
-	 * Generate a string describing the followed, trending, and participated tags in the post.
+	 * Generate a string describing the followed and trending tags in the post.
 	 * TODO: add favourited tags?
 	 * @returns {string | undefined}
 	 */
@@ -508,7 +505,6 @@ export default class Post implements PostObj {
 		let msgs = [
 			this.containsTagsOfTypeMsg(TypeFilterName.FOLLOWED_HASHTAGS),
 			this.containsTagsOfTypeMsg(TypeFilterName.TRENDING_TAGS),
-			this.containsTagsOfTypeMsg(TypeFilterName.PARTICIPATED_TAGS),
 		];
 
 		msgs = msgs.filter((msg) => msg);
@@ -826,11 +822,6 @@ export default class Post implements PostObj {
 		if (this.isComplete()) return;
 		const post = this.realToot; // Boosts never have their own tags, etc.
 
-		// containsString() matched way too many posts so we use containsTag() for participated tags
-		// TODO: things might be fast enough to try this again
-		post.participatedTags = userData.participatedTags.filter((tag) =>
-			post.containsTag(tag),
-		).objs;
 		// With all the containsString() calls it takes ~1.1 seconds to build 40 posts
 		// Without them it's ~0.1 seconds. In particular the trendingLinks are slow! maybe 90% of that time.
 		post.followedTags = userData.followedTags.filter((tag) =>
@@ -857,8 +848,6 @@ export default class Post implements PostObj {
 
 		if (tagType == TypeFilterName.FOLLOWED_HASHTAGS) {
 			tags = this.followedTags || [];
-		} else if (tagType == TypeFilterName.PARTICIPATED_TAGS) {
-			tags = this.participatedTags || [];
 		} else if (tagType == TypeFilterName.TRENDING_TAGS) {
 			tags = this.trendingTags || [];
 		} else {

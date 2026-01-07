@@ -84,7 +84,6 @@ export enum FediverseCacheKey {
  */
 export enum TagPostsCategory {
 	FAVOURITED = "FavouritedHashtagPosts",
-	PARTICIPATED = "ParticipatedHashtagPosts",
 	TRENDING = "TrendingTagPosts",
 }
 
@@ -121,7 +120,6 @@ export enum ScoreName {
 	NUM_FAVOURITES = "NumFavourites",
 	NUM_REPLIES = "NumReplies",
 	NUM_BOOSTS = "NumBoosts",
-	PARTICIPATED_TAGS = "ParticipatedTags",
 	BOOSTED_IN_FEED = "BoostedInFeed",
 	TRENDING_TAGS = "TrendingTags",
 	TRENDING_POSTS = "TrendingPosts",
@@ -176,7 +174,6 @@ export enum TypeFilterName {
 	IMAGES = "images",
 	LINKS = "links",
 	MENTIONS = "mentions",
-	PARTICIPATED_TAGS = "participated hashtags",
 	POLLS = "polls",
 	PRIVATE = "private",
 	REPLIES = "replies",

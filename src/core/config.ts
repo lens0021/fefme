@@ -95,10 +95,6 @@ type LocaleConfig = {
 	messages: LoadingStatusMsgs & TriggerLoadMsgFxn; // TRIGGER_FEED_UPDATE is a fxn, everything else is a string
 };
 
-interface ParticipatedTagsConfig extends TagPostsConfig {
-	minPctToCountBoosts: number;
-}
-
 type ScoringConfig = {
 	diversityScorerMinTrendingTagPostsForPenalty: number;
 	diversityScorerBoostMultiplier: number; // How much to multiply the diversity score of a post with retweets by
@@ -151,7 +147,6 @@ interface ConfigType {
 	favouritedTags: Readonly<TagPostsConfig>;
 	fediverse: Readonly<FediverseConfig>;
 	locale: Readonly<LocaleConfig>;
-	participatedTags: Readonly<ParticipatedTagsConfig>;
 	scoring: Readonly<ScoringConfig>;
 	posts: Readonly<PostsConfig>;
 	trending: Readonly<TrendingConfig>;
@@ -228,7 +223,7 @@ class Config implements ConfigType {
 			},
 			[CacheKey.HASHTAG_POSTS]: {
 				// hashtag timeline posts are not cached as a group, they're pulled in small amounts and used
-				// to create other sets of posts from a lot of small requests, e.g. TRENDING_TAG_POSTS or PARTICIPATED_TAG_POSTS
+				// to create other sets of posts from a lot of small requests, e.g. TRENDING_TAG_POSTS or FAVOURITED_TAG_POSTS
 				canBeDisabledOnGoToSocial: true,
 			},
 			[CacheKey.HOME_TIMELINE_POSTS]: {
@@ -270,9 +265,6 @@ class Config implements ConfigType {
 			},
 			[TagPostsCategory.FAVOURITED]: {
 				minutesUntilStale: 60,
-			},
-			[TagPostsCategory.PARTICIPATED]: {
-				minutesUntilStale: 20,
 			},
 			[TagPostsCategory.TRENDING]: {
 				minutesUntilStale: 15,
@@ -322,14 +314,6 @@ class Config implements ConfigType {
 			[LoadAction.RESET]: `Resetting state`,
 			[LoadAction.TIMELINE_BACKFILL]: `Loading older home timeline posts`,
 		},
-	};
-
-	participatedTags = {
-		invalidTags: ["eupol", "news", "uspol", "uspolitics"],
-		maxPosts: 200, // How many total posts to include for the user's most participated tags
-		minPctToCountBoosts: 0.75, // Minimum percentage of retweets to count them as "participation"
-		numTags: 30, // Pull posts for this many of the user's most participated tags
-		numPostsPerTag: 10, // How many posts to pull for each participated tag
 	};
 
 	scoring = {
@@ -3518,7 +3502,6 @@ if (isQuickMode) {
 	config.api.backgroundLoadIntervalMinutes = SECONDS_IN_HOUR;
 	config.favouritedTags.numTags = 5;
 	config.posts.maxTimelineLength = 1_500;
-	config.participatedTags.numTags = 10;
 	config.trending.tags.numTags = 10;
 }
 
@@ -3545,9 +3528,6 @@ if (isLoadTest) {
 	config.api.data[CacheKey.HOME_TIMELINE_POSTS]!.initialMaxRecords = 2_500;
 	config.posts.maxTimelineLength = 5_000;
 	config.api.maxRecordsForFeatureScoring = 15_000;
-	config.participatedTags.maxPosts = 500;
-	config.participatedTags.numTags = 50;
-	config.participatedTags.numPostsPerTag = 10;
 	config.trending.tags.maxPosts = 1_000;
 	config.trending.tags.numTags = 40;
 }

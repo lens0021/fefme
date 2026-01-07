@@ -34,7 +34,6 @@ export function getSourceStats(
 		CacheKey.HOME_TIMELINE_POSTS,
 		FEDERATED_TIMELINE_SOURCE,
 		TagPostsCategory.FAVOURITED,
-		TagPostsCategory.PARTICIPATED,
 	];
 
 	return sourcesToTrack.reduce(

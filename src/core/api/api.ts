@@ -797,7 +797,7 @@ export default class MastoApi {
 				maxRecords,
 				maxId: maxId ?? undefined,
 				// hashtag timeline posts are not cached as a group, they're pulled in small amounts and used
-				// to create other sets of posts from a lot of small requests, e.g. PARTICIPATED_TAG_POSTS
+				// to create other sets of posts from a lot of small requests, e.g. FAVOURITED_TAG_POSTS
 				skipCache: true,
 				// Concurrency is managed by the semaphore above, not the mutexes
 				skipMutex: true,

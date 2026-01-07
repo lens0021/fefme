@@ -44,10 +44,3 @@ export default class FavouritedTagsScorer extends createTagScorerClass(
 	"Favour posts containing hashtags you favourite",
 	() => TagList.buildFavouritedTags(),
 ) {}
-
-export class HashtagParticipationScorer extends createTagScorerClass(
-	ScoreName.PARTICIPATED_TAGS,
-	"Favour hashtags you've posted about",
-	() => TagList.buildParticipatedTags(),
-	Math.sqrt, // Use square root to prevent runaway scores for hashtags like #uspol
-) {}

@@ -35,35 +35,6 @@ export default class TagList extends CountedList<TagWithUsageCounts> {
 		);
 	}
 
-	/** Alternate constructor to build a list of tags the user has posted about recently. **/
-	static async buildParticipatedTags(): Promise<TagList> {
-		return this.fromParticipations(
-			await MastoApi.instance.getRecentUserPosts(),
-			(await MastoApi.instance.getUserData()).isBooster,
-		);
-	}
-
-	/**
-	 * Alternate constructor that builds a list of Tags the user has posted about based on their post history.
-	 * @param {Post[]} recentPosts - Array of Post objects to count tags from.
-	 * @param {boolean} [includeBoosts] - If true, includes boosts when counting tag usages.
-	 * @returns {TagList} A new TagList instance with tags counted from the recent user posts.
-	 * */
-	static fromParticipations(
-		recentPosts: Post[],
-		includeBoosts?: boolean,
-	): TagList {
-		const tagList = TagList.fromUsageCounts(
-			recentPosts,
-			TagPostsCategory.PARTICIPATED,
-			includeBoosts,
-		);
-		logger.trace(
-			`fromParticipations() found ${tagList.length} tags in ${recentPosts.length} recent user posts`,
-		);
-		return tagList;
-	}
-
 	/**
 	 * Alternate constructor that populates {@linkcode this.objs} with {@linkcode TagWithUsageCounts} objects
 	 * with {@linkcode numPosts} set to the # of times the tag appears in the {@linkcode posts} array.

@@ -41,7 +41,6 @@ export const DEFAULT_WEIGHTS: Weights = {
 	[ScoreName.NUM_FAVOURITES]: 0.0, // Favourites only show up on the home server so underweight this
 	[ScoreName.NUM_REPLIES]: 1.0,
 	[ScoreName.NUM_BOOSTS]: 1.0,
-	[ScoreName.PARTICIPATED_TAGS]: 0.15,
 	[ScoreName.BOOSTED_IN_FEED]: 2.0,
 	[ScoreName.TRENDING_TAGS]: 0.2,
 	[ScoreName.TRENDING_POSTS]: 1.0,
@@ -77,8 +76,6 @@ export const WEIGHT_PRESETS: WeightPresets = {
 		[ScoreName.MOST_BOOSTED_ACCOUNTS]: 0.2,
 		[ScoreName.NUM_REPLIES]: 50.0,
 		[ScoreName.NUM_BOOSTS]: 0.2,
-		[ScoreName.PARTICIPATED_TAGS]:
-			DEFAULT_WEIGHTS[ScoreName.PARTICIPATED_TAGS] * 2,
 		[ScoreName.BOOSTED_IN_FEED]: 6.0,
 	},
 

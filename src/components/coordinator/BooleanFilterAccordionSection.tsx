@@ -38,7 +38,6 @@ const DEFAULT_SWITCH_STATE: HeaderSwitchState = {
 
 const DEFAULT_TAG_SWITCH_STATE: TagHighlightSwitchState = {
 	[TagPostsCategory.FAVOURITED]: true,
-	[TagPostsCategory.PARTICIPATED]: true,
 	[TagPostsCategory.TRENDING]: true,
 };
 

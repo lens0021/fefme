@@ -17,7 +17,6 @@ const HEADER_SWITCH_TOOLTIP_ANCHOR = "header-switch-tooltip-anchor";
 
 const TAG_HIGHLIGHT_LABELS: Record<TagPostsCategory, string> = {
 	[TagPostsCategory.FAVOURITED]: "Color Favourites",
-	[TagPostsCategory.PARTICIPATED]: "Color Participated",
 	[TagPostsCategory.TRENDING]: "Color Trending",
 };
 

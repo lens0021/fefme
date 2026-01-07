@@ -66,7 +66,6 @@ interface CoordinatorContext {
 	triggerHomeTimelineBackFill?: () => void;
 	triggerFederatedTimelineBackFill?: () => void;
 	triggerFavouritedTagBackFill?: () => void;
-	triggerParticipatedTagBackFill?: () => void;
 	triggerMoarData?: () => void;
 	triggerPullAllUserData?: () => void;
 	triggerWeightUpdate?: (weights: Weights) => Promise<void>;
@@ -330,15 +329,6 @@ export default function CoordinatorProvider(props: PropsWithChildren) {
 		() =>
 			triggerWithPending(
 				() => algorithm.triggerTagTimelineBackFill(TagPostsCategory.FAVOURITED),
-				"new-posts",
-			),
-		[algorithm, triggerWithPending],
-	);
-	const triggerParticipatedTagBackFill = useCallback(
-		() =>
-			triggerWithPending(
-				() =>
-					algorithm.triggerTagTimelineBackFill(TagPostsCategory.PARTICIPATED),
 				"new-posts",
 			),
 		[algorithm, triggerWithPending],
@@ -705,7 +695,6 @@ export default function CoordinatorProvider(props: PropsWithChildren) {
 		triggerHomeTimelineBackFill,
 		triggerFederatedTimelineBackFill,
 		triggerFavouritedTagBackFill,
-		triggerParticipatedTagBackFill,
 		triggerMoarData,
 		triggerPullAllUserData,
 		triggerWeightUpdate: async (weights: Weights) => {

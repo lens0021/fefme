@@ -47,7 +47,6 @@ export default function Feed() {
 		triggerHomeTimelineBackFill,
 		triggerFederatedTimelineBackFill,
 		triggerFavouritedTagBackFill,
-		triggerParticipatedTagBackFill,
 		triggerMoarData,
 		triggerPullAllUserData,
 	} = useCoordinator();
@@ -161,18 +160,11 @@ export default function Feed() {
 				onClick: triggerFavouritedTagBackFill,
 				usesId: true,
 			},
-			{
-				key: TagPostsCategory.PARTICIPATED,
-				label: "participated tags",
-				onClick: triggerParticipatedTagBackFill,
-				usesId: true,
-			},
 		],
 		[
 			triggerFavouritedTagBackFill,
 			triggerFederatedTimelineBackFill,
 			triggerHomeTimelineBackFill,
-			triggerParticipatedTagBackFill,
 		],
 	);
 

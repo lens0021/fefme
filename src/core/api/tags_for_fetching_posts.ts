@@ -23,21 +23,8 @@ type TagPostsBuildConfig = {
 
 const HASHTAG_POSTS_CONFIG: Record<TagPostsCategory, TagPostsBuildConfig> = {
 	[TagPostsCategory.FAVOURITED]: {
-		buildTagList: async () => {
-			const tagList = await TagList.buildFavouritedTags();
-			// Remove tags that user uses often (we want only what they favourite, not what they participate in)
-			const participatedTags = await TagList.buildParticipatedTags();
-			const maxParticipations = config.favouritedTags.maxParticipations; // TODO: use heuristic to pick this number?
-			return tagList.filter(
-				(tag) =>
-					(participatedTags.getTag(tag)?.numPosts || 0) <= maxParticipations,
-			);
-		},
+		buildTagList: async () => await TagList.buildFavouritedTags(),
 		config: config.favouritedTags,
-	},
-	[TagPostsCategory.PARTICIPATED]: {
-		buildTagList: async () => await TagList.buildParticipatedTags(), // TODO: why do I have to define an anonymous fxn for this to work?
-		config: config.participatedTags,
 	},
 	[TagPostsCategory.TRENDING]: {
 		buildTagList: async () => new TagList([], TagPostsCategory.TRENDING),
@@ -177,7 +164,6 @@ export default class TagsForFetchingPosts {
 		return await resolvePromiseDict(
 			{
 				[TagPostsCategory.FAVOURITED]: TagList.buildFavouritedTags(),
-				[TagPostsCategory.PARTICIPATED]: TagList.buildParticipatedTags(),
 				[TagPostsCategory.TRENDING]: Promise.resolve(
 					new TagList([], TagPostsCategory.TRENDING),
 				),

@@ -71,11 +71,9 @@ export default class UserData {
 	favouritedTags = new TagList([], TagPostsCategory.FAVOURITED);
 	followedAccounts: StringNumberDict = {};
 	followedTags = new TagList([], ScoreName.FOLLOWED_TAGS);
-	isBooster = false;
 	languagesPostedIn: ObjList = new CountedList([], BooleanFilterName.LANGUAGE);
 	mutedAccounts: AccountNames = {};
 	mutedKeywordsRegex!: RegExp; // Cached regex for muted keywords, built from server-side filters
-	participatedTags = new TagList([], TagPostsCategory.PARTICIPATED);
 	preferredLanguage = config.locale.defaultLanguage;
 	serverSideFilters: mastodon.v2.Filter[] = [];
 
@@ -127,13 +125,6 @@ export default class UserData {
 	static buildFromData(data: UserApiData): UserData {
 		const userData = new UserData();
 
-		if (data.recentPosts.length) {
-			const boostsPct =
-				Post.onlyBoosts(data.recentPosts).length / data.recentPosts.length;
-			userData.isBooster =
-				boostsPct > config.participatedTags.minPctToCountBoosts;
-		}
-
 		userData.blockedDomains = new Set(data.blockedDomains);
 		userData.favouritedTags = TagList.fromUsageCounts(
 			data.favouritedPosts,
@@ -146,10 +137,6 @@ export default class UserData {
 		);
 		userData.mutedAccounts = Account.buildAccountNames(data.mutedAccounts);
 		userData.mutedKeywordsRegex = buildMutedRegex(data.serverSideFilters);
-		userData.participatedTags = TagList.fromParticipations(
-			data.recentPosts,
-			userData.isBooster,
-		);
 		userData.serverSideFilters = data.serverSideFilters;
 		userData.languagesPostedIn.populateByCountingProps(
 			data.recentPosts,

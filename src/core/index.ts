@@ -310,6 +310,11 @@ export default class FeedCoordinator {
 	 * @param {TagPostsCategory} category - Tag category to backfill.
 	 * @returns {Promise<void>}
 	 */
+	/**
+	 * Trigger the fetching of additional earlier {@linkcode Post}s for a tag category.
+	 * @param {TagPostsCategory} category - Tag category to backfill.
+	 * @returns {Promise<void>}
+	 */
 	async triggerTagTimelineBackFill(category: TagPostsCategory): Promise<void> {
 		await startAction(this.state, LoadAction.TIMELINE_BACKFILL);
 		const hereLogger = loggers[LoadAction.TIMELINE_BACKFILL];

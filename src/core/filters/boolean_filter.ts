@@ -39,8 +39,6 @@ export const TYPE_FILTERS: Record<TypeFilterName, TypeFilter> = {
 	[TypeFilterName.LINKS]: (post) => !!post.realToot.card,
 	[TypeFilterName.MENTIONS]: (post) => post.containsUserMention(),
 	[TypeFilterName.POLLS]: (post) => !!post.realToot.poll,
-	[TypeFilterName.PARTICIPATED_TAGS]: (post) =>
-		!!post.realToot.participatedTags?.length,
 	[TypeFilterName.PRIVATE]: (post) => post.realToot.isPrivate,
 	[TypeFilterName.REPLIES]: (post) => !!post.realToot.inReplyToId,
 	[TypeFilterName.BOOSTS]: (post) => !!post.reblog,

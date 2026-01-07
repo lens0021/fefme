@@ -16,7 +16,6 @@ const SOURCE_LABELS: Record<string, string> = {
 	[CacheKey.RECENT_USER_POSTS]: "Your posts",
 	[FediverseCacheKey.TRENDING_POSTS]: "Trending posts",
 	[TagPostsCategory.FAVOURITED]: "Favourited hashtags",
-	[TagPostsCategory.PARTICIPATED]: "Hashtags you posted",
 	[TagPostsCategory.TRENDING]: "Trending hashtags",
 	[LoadAction.GET_CONVERSATION]: "Conversation",
 	[FEDERATED_TIMELINE_SOURCE]: "Federated timeline",

@@ -233,20 +233,6 @@ const config: Readonly<ConfigType> = {
 							},
 							text: "You favourited this hashtag",
 						},
-						[TagPostsCategory.PARTICIPATED]: {
-							highlight: {
-								gradient: {
-									adjustment: {
-										adjustPctiles: [0.95, 0.98], // Percentiles for gradient adjustment of participated tags
-										minTagsToAdjust: 40, // Minimum number of participated tags to adjust the gradient
-									},
-									endpoints: THEME.participatedTagGradient,
-									textWithSuffix: (s: string, n: number) =>
-										`${s} ${nTimes(n)} recently`,
-								},
-							},
-							text: "You posted this hashtag", // the string "N times" is appended in getTooltipInfo()
-						},
 						[TagPostsCategory.TRENDING]: {
 							highlight: {
 								gradient: {
@@ -426,11 +412,6 @@ const config: Readonly<ConfigType> = {
 				initialNumShown: 40,
 				objTypeLabel: "of your favourite hashtags",
 				title: "Hashtags You Often Favourite",
-			},
-			[TagPostsCategory.PARTICIPATED]: {
-				initialNumShown: 40,
-				objTypeLabel: "of your hashtags",
-				title: "Hashtags You Often Post About",
 			},
 			[TrendingType.SERVERS]: {
 				description:
