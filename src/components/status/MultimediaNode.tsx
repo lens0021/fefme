@@ -12,8 +12,6 @@ import { isEmptyStr } from "../../helpers/string_helpers";
 import { useCoordinator } from "../../hooks/useCoordinator";
 import AttachmentsModal from "./AttachmentsModal";
 
-// TODO: what is this <canvas> element for? It came from pkreissel's original implementation
-const HIDDEN_CANVAS = <canvas className="hidden" height="32" width="32" />;
 const VIDEO_HEIGHT = Math.floor(config.posts.imageHeight * 1.7);
 
 const logger = getLogger("MultimediaNode");
@@ -87,7 +85,6 @@ export default function MultimediaNode(
 				key={image.previewUrl}
 				style={{ width: `${(1 / images.length) * 100}%` }}
 			>
-				{HIDDEN_CANVAS}
 				{removeMediaAttachment && (
 					<button
 						type="button"
@@ -214,7 +211,6 @@ export default function MultimediaNode(
 							className="relative h-full w-full rounded-[15px] bg-black"
 							key={videoKey}
 						>
-							{HIDDEN_CANVAS}
 							{videoTag}
 						</div>
 					);
