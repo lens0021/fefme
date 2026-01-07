@@ -156,6 +156,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 	const isOnScreen = useOnScreen(statusRef);
 
 	const [showScoreModal, setShowScoreModal] = React.useState<boolean>(false);
+	const [showZeroScores, setShowZeroScores] = React.useState<boolean>(false);
 	const [isContentVisible, setIsContentVisible] = React.useState<boolean>(
 		!post.spoilerText,
 	);
@@ -178,6 +179,15 @@ export default function StatusComponent(props: StatusComponentProps) {
 		algorithm?.saveTimelineToCache?.();
 		scheduleSeenRefresh?.();
 	}, [algorithm, isOnScreen, status, post, scheduleSeenRefresh]);
+
+	const scoreEntries = useMemo(() => {
+		const all = Object.entries(post.scoreInfo?.scores ?? {}).filter(
+			([_key, value]) => !(value.raw === 0 && (value.weight ?? 0) === 0),
+		);
+		const active = all.filter(([_key, value]) => value.weighted !== 0);
+		const zero = all.filter(([_key, value]) => value.weighted === 0);
+		return { active, zero };
+	}, [post.scoreInfo?.scores]);
 
 	// Build the account link(s) for the reblogger(s) that appears at top of a boost
 	const rebloggersLinks = useMemo(
@@ -256,6 +266,44 @@ export default function StatusComponent(props: StatusComponentProps) {
 		return <ActionButton action={action} onClick={onClick} post={post} />;
 	};
 
+	const renderScoreEntry = ([key, value]: [string, any]) => {
+		const weightInfo = algorithm?.weightsInfo[key];
+		const description = weightInfo?.description || key;
+		const isDisabled = (value.weight ?? 0) === 0;
+
+		return (
+			<div
+				key={key}
+				className={`rounded-lg border border-[color:var(--color-border)] p-4 ${isDisabled || value.weighted === 0 ? "bg-[color:var(--color-bg)] opacity-60" : "bg-[color:var(--color-muted)]"}`}
+			>
+				<div className="mb-2 flex items-start justify-between">
+					<div className="flex-1">
+						<h3 className="font-semibold text-[color:var(--color-fg)]">
+							{key} {isDisabled && "(Disabled)"}
+						</h3>
+						<p className="text-sm text-[color:var(--color-muted-fg)]">
+							{description}
+						</p>
+					</div>
+					<div className="ml-4 text-right">
+						<div
+							className={`text-lg font-bold ${isDisabled || value.weighted === 0 ? "text-[color:var(--color-muted-fg)]" : "text-[color:var(--color-primary)]"}`}
+						>
+							{formatScore(value.weighted)}
+						</div>
+					</div>
+				</div>
+				<div className="flex items-center justify-end gap-4 text-xs text-[color:var(--color-muted-fg)]">
+					<div>Raw: {formatScore(value.raw)}</div>
+					<div>×</div>
+					<div>Weight: {formatScore(value.weight ?? 0)}</div>
+					<div>=</div>
+					<div>{formatScore(value.weighted)}</div>
+				</div>
+			</div>
+		);
+	};
+
 	return (
 		<div>
 			<Tooltip
@@ -270,7 +318,10 @@ export default function StatusComponent(props: StatusComponentProps) {
 			{showScoreModal && (
 				<div
 					className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
-					onClick={() => setShowScoreModal(false)}
+					onClick={() => {
+						setShowScoreModal(false);
+						setShowZeroScores(false);
+					}}
 					role="dialog"
 					aria-modal="true"
 				>
@@ -297,7 +348,10 @@ export default function StatusComponent(props: StatusComponentProps) {
 							</div>
 							<button
 								type="button"
-								onClick={() => setShowScoreModal(false)}
+								onClick={() => {
+									setShowScoreModal(false);
+									setShowZeroScores(false);
+								}}
 								className="text-2xl text-[color:var(--color-muted-fg)] hover:text-[color:var(--color-fg)] transition-colors p-1"
 								aria-label="Close"
 							>
@@ -306,47 +360,25 @@ export default function StatusComponent(props: StatusComponentProps) {
 						</div>
 
 						<div className="space-y-3">
-							{Object.entries(post.scoreInfo?.scores ?? {}).map(
-								([key, value]) => {
-									// Skip completely irrelevant entries (0 raw score AND 0 weight)
-									if (value.raw === 0 && (value.weight ?? 0) === 0) return null;
+							{scoreEntries.active.map(renderScoreEntry)}
 
-									const weightInfo = algorithm?.weightsInfo[key];
-									const description = weightInfo?.description || key;
-									const isDisabled = (value.weight ?? 0) === 0;
+							{scoreEntries.zero.length > 0 && (
+								<div className="pt-2">
+									<button
+										type="button"
+										onClick={() => setShowZeroScores(!showZeroScores)}
+										className="text-xs font-bold uppercase tracking-wider text-[color:var(--color-muted-fg)] hover:text-[color:var(--color-fg)] transition-colors"
+									>
+										{showZeroScores ? "− Hide" : "+ Show"}{" "}
+										{scoreEntries.zero.length} categories with 0 score
+									</button>
 
-									return (
-										<div
-											key={key}
-											className={`rounded-lg border border-[color:var(--color-border)] p-4 ${isDisabled ? "bg-[color:var(--color-bg)] opacity-60" : "bg-[color:var(--color-muted)]"}`}
-										>
-											<div className="mb-2 flex items-start justify-between">
-												<div className="flex-1">
-													<h3 className="font-semibold text-[color:var(--color-fg)]">
-														{key} {isDisabled && "(Disabled)"}
-													</h3>
-													<p className="text-sm text-[color:var(--color-muted-fg)]">
-														{description}
-													</p>
-												</div>
-												<div className="ml-4 text-right">
-													<div
-														className={`text-lg font-bold ${isDisabled ? "text-[color:var(--color-muted-fg)]" : "text-[color:var(--color-primary)]"}`}
-													>
-														{formatScore(value.weighted)}
-													</div>
-												</div>
-											</div>
-											<div className="flex items-center justify-end gap-4 text-xs text-[color:var(--color-muted-fg)]">
-												<div>Raw: {formatScore(value.raw)}</div>
-												<div>×</div>
-												<div>Weight: {formatScore(value.weight ?? 0)}</div>
-												<div>=</div>
-												<div>{formatScore(value.weighted)}</div>
-											</div>
+									{showZeroScores && (
+										<div className="mt-3 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+											{scoreEntries.zero.map(renderScoreEntry)}
 										</div>
-									);
-								},
+									)}
+								</div>
 							)}
 						</div>
 
