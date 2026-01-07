@@ -361,10 +361,7 @@ Review the following files, and add TODO items for it.
   - [ ] Consider moving label capitalization and truncation logic out of the component or using CSS for truncation.
   - [ ] Ensure unique `id` attributes for inputs to improve accessibility, especially when labels might be duplicated.
   - [ ] Review `persistentCheckbox` to ensure tooltip components are not unnecessarily duplicated in the DOM.
-- [ ] src/components/helpers/Confirmation.tsx
-  - [x] Make the confirmation dialog theme-aware (currently hardcoded to white/black).
-  - [x] Replace hardcoded colors with theme-aware Tailwind classes or CSS variables.
-  - [x] Improve accessibility by using appropriate ARIA roles and managing focus when the dialog opens.
+- [x] src/components/helpers/Confirmation.tsx
 - [ ] src/components/helpers/ErrorHandler.tsx
   - [x] Fix the misleading JSDoc comment for the `ErrorHandler` component.
   - [x] Make the error page and error modal theme-aware, replacing hardcoded background and text colors.
@@ -396,6 +393,10 @@ Review the following files, and add TODO items for it.
   - [ ] Refactor multi-image layout to use a proper CSS grid for better responsiveness.
   - [ ] Standardize rounded corners and border styling using consistent Tailwind classes.
 - [ ] src/components/status/Poll.tsx
+  - [ ] Add a "Refresh" button to fetch the latest poll results.
+  - [ ] Improve progress bar visualization with better theme-aware colors and transitions.
+  - [x] Add a "Multiple choice" label for polls that allow multiple selections.
+  - [ ] Avoid direct mutation of the `poll` object; use a proper state update or callback.
 - [ ] src/components/status/PreviewCard.tsx
 - [ ] src/components/status/Status.tsx
 - [ ] src/components/status/__tests__/StatusSeenDuringBackgroundLoad.test.tsx

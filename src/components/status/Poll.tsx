@@ -137,6 +137,11 @@ export default function Poll(props: PollProps) {
 
 	return (
 		<div className="mt-3 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] p-3">
+			{poll.multiple && (
+				<div className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[color:var(--color-muted-fg)]">
+					Multiple choice
+				</div>
+			)}
 			<ul className="space-y-2">
 				{poll.options.map((option, i) => (
 					<PollOption
