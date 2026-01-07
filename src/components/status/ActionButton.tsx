@@ -93,15 +93,20 @@ export default function ActionButton(props: ActionButtonProps) {
 	const [currentState, setCurrentState] = React.useState<boolean>(
 		post[actionInfo.booleanName],
 	);
+	const [isProcessing, setIsProcessing] = React.useState(false);
 
 	const isActive = Boolean(actionInfo.booleanName && currentState);
 
 	// Returns a function that's called when state changes for faves, bookmarks, reposts
 	const performAction = () => {
-		return () => {
+		return async () => {
+			if (isProcessing) return;
+
 			const startingCount = post[actionInfo.countName] || 0;
 			const startingState = !!post[actionInfo.booleanName];
 			const newState = !startingState;
+			
+			setIsProcessing(true);
 			logger.log(
 				`${action}() post (startingState: ${startingState}, count: ${startingCount}): `,
 				post,
@@ -112,39 +117,37 @@ export default function ActionButton(props: ActionButtonProps) {
 
 			if (newState && actionInfo.countName && action !== TootAction.Reply) {
 				post[actionInfo.countName] = startingCount + 1;
-			} else {
+			} else if (actionInfo.countName && action !== TootAction.Reply) {
 				post[actionInfo.countName] = startingCount ? startingCount - 1 : 0; // Avoid count going below 0
 			}
 
-			(async () => {
-				try {
-					const selected = api.v1.statuses.$select(await post.resolveID());
+			try {
+				const selected = api.v1.statuses.$select(await post.resolveID());
 
-					if (action === TootAction.Bookmark) {
-						await (newState ? selected.bookmark() : selected.unbookmark());
-					} else if (action === TootAction.Favourite) {
-						await (newState ? selected.favourite() : selected.unfavourite());
-					} else if (action === TootAction.Reblog) {
-						await (newState ? selected.reblog() : selected.unreblog());
-					} else {
-						throw new Error(`Unknown action: ${action}`);
-					}
-
-					logger.log(`Successfully changed ${action} bool to ${newState}`);
-				} catch (error) {
-					// If there's an error, roll back the change to the original state
-					setCurrentState(startingState);
-					post[actionInfo.booleanName as TootBoolean] = startingState;
-					let errorMsg = "";
-
-					if (actionInfo.countName) {
-						post[actionInfo.countName] = startingCount;
-						errorMsg = `Resetting count to ${startingCount}`;
-					}
-
-					logAndShowError(error, newState, errorMsg);
+				if (action === TootAction.Bookmark) {
+					await (newState ? selected.bookmark() : selected.unbookmark());
+				} else if (action === TootAction.Favourite) {
+					await (newState ? selected.favourite() : selected.unfavourite());
+				} else if (action === TootAction.Reblog) {
+					await (newState ? selected.reblog() : selected.unreblog());
+				} else {
+					throw new Error(`Unknown action: ${action}`);
 				}
-			})();
+
+				logger.log(`Successfully changed ${action} bool to ${newState}`);
+			} catch (error) {
+				// If there's an error, roll back the change to the original state
+				setCurrentState(startingState);
+				post[actionInfo.booleanName as TootBoolean] = startingState;
+
+				if (actionInfo.countName) {
+					post[actionInfo.countName] = startingCount;
+				}
+
+				logAndShowError(error, newState, `Resetting count to ${startingCount}`);
+			} finally {
+				setIsProcessing(false);
+			}
 		};
 	};
 
@@ -191,9 +194,10 @@ export default function ActionButton(props: ActionButtonProps) {
 		? actionColor.active
 		: `text-[color:var(--color-muted-fg)] ${actionColor.hover}`;
 	const buttonClassName = [
-		"inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-medium transition-colors",
+		"inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-medium transition-all",
 		"hover:bg-[color:var(--color-light-shade)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]",
 		toneClass,
+		isProcessing ? "opacity-50 cursor-wait scale-95" : "",
 		"text-xs",
 	].join(" ");
 	const iconClassName = "text-sm";
@@ -203,6 +207,7 @@ export default function ActionButton(props: ActionButtonProps) {
 			aria-hidden="false"
 			aria-label={label}
 			className={buttonClassName}
+			disabled={isProcessing}
 			onClick={onClick || performAction()}
 			title={label}
 			type="button"

@@ -382,6 +382,9 @@ Review the following files, and add TODO items for it.
   - [ ] Add a loading state while authentication status is being determined to prevent flickering.
   - [x] Implement redirect-back logic to return users to their intended page after logging in.
 - [ ] src/components/status/ActionButton.tsx
+  - [ ] Avoid direct mutation of the `post` object during optimistic updates.
+  - [x] Add loading/disabled states while an action is in flight to prevent duplicate requests.
+  - [ ] Refactor `actionColor` to use semantic theme variables or Tailwind's primary/secondary palettes.
 - [ ] src/components/status/AttachmentsModal.tsx
 - [ ] src/components/status/MultimediaNode.tsx
 - [ ] src/components/status/Poll.tsx
