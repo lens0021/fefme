@@ -386,6 +386,10 @@ Review the following files, and add TODO items for it.
   - [x] Add loading/disabled states while an action is in flight to prevent duplicate requests.
   - [ ] Refactor `actionColor` to use semantic theme variables or Tailwind's primary/secondary palettes.
 - [ ] src/components/status/AttachmentsModal.tsx
+  - [x] Make the modal theme-aware, replacing hardcoded `bg-white` and `text-black`.
+  - [ ] Add explicit navigation buttons (Previous/Next) for multi-attachment posts.
+  - [x] Implement `Escape` key listener to close the modal.
+  - [x] Standardize the backdrop overlay and transition animations using Tailwind.
 - [ ] src/components/status/MultimediaNode.tsx
 - [ ] src/components/status/Poll.tsx
 - [ ] src/components/status/PreviewCard.tsx

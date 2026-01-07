@@ -48,14 +48,19 @@ export default function AttachmentsModal(props: AttachmentsModalProps) {
 		}
 	}
 
-	// Increase mediaInspectionIdx on Right Arrow, decrease on Left Arrow.
+	// Handle keyboard navigation and closing
 	useEffect(() => {
-		if (post.imageAttachments.length <= 1) return;
+		if (mediaInspectionIdx < 0) return;
 
 		const handleKeyDown = (e: KeyboardEvent): void => {
-			if (mediaInspectionIdx < 0) return;
-			let newIndex = mediaInspectionIdx;
+			if (e.key === "Escape") {
+				setMediaInspectionIdx(-1);
+				return;
+			}
 
+			if (post.mediaAttachments.length <= 1) return;
+
+			let newIndex = mediaInspectionIdx;
 			if (e.key === "ArrowRight") {
 				newIndex += 1;
 			} else if (e.key === "ArrowLeft") {
@@ -63,44 +68,47 @@ export default function AttachmentsModal(props: AttachmentsModalProps) {
 				if (newIndex < 0) newIndex = post.mediaAttachments.length - 1;
 			}
 
-			setMediaInspectionIdx(newIndex % post.mediaAttachments.length);
+			if (newIndex !== mediaInspectionIdx) {
+				setMediaInspectionIdx(newIndex % post.mediaAttachments.length);
+			}
 		};
 
 		window.addEventListener("keydown", handleKeyDown);
 		return () => window.removeEventListener("keydown", handleKeyDown);
-	}, [
-		mediaInspectionIdx,
-		setMediaInspectionIdx,
-		post.imageAttachments.length,
-		post.mediaAttachments.length,
-	]);
+	}, [mediaInspectionIdx, setMediaInspectionIdx, post.mediaAttachments.length]);
 
 	if (!shouldShowModal) return null;
 
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90">
+		<div
+			className="fixed inset-0 z-[1100] flex items-center justify-center bg-black/90 backdrop-blur-sm animate-in fade-in duration-200"
+			role="dialog"
+			aria-modal="true"
+		>
 			<button
 				type="button"
 				aria-label="Close dialog"
 				onClick={() => setMediaInspectionIdx(-1)}
 				className="absolute inset-0 h-full w-full cursor-default"
 			/>
-			<div className="relative z-10 bg-white rounded-lg shadow-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-				<div className="p-4 border-b flex justify-between items-center">
-					<h3 className="text-lg font-semibold text-black">
+			<div className="relative z-10 bg-[color:var(--color-card-bg)] text-[color:var(--color-fg)] rounded-xl shadow-2xl max-w-5xl w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col border border-[color:var(--color-border)] animate-in zoom-in duration-200">
+				<div className="p-4 border-b border-[color:var(--color-border)] flex justify-between items-center bg-[color:var(--color-muted)]">
+					<h3 className="text-sm font-bold truncate pr-8">
 						{post.contentShortened()}
 					</h3>
 					<button
 						type="button"
 						onClick={() => setMediaInspectionIdx(-1)}
-						className="text-2xl leading-none hover:text-gray-600"
+						className="text-2xl leading-none hover:text-[color:var(--color-primary)] transition-colors p-1"
 						aria-label="Close"
 					>
 						×
 					</button>
 				</div>
 
-				<div className="p-4">{element}</div>
+				<div className="flex-1 overflow-auto flex items-center justify-center bg-black/20">
+					{element}
+				</div>
 			</div>
 		</div>
 	);
