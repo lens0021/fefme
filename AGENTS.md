@@ -387,7 +387,7 @@ Review the following files, and add TODO items for it.
   - [x] Remove the unused `HIDDEN_CANVAS` element.
   - [x] Implement a clearer "Show Content" overlay for sensitive media instead of just blur.
   - [x] Refactor multi-image layout to use a proper CSS grid for better responsiveness.
-  - [ ] Standardize rounded corners and border styling using consistent Tailwind classes.
+  - [x] Standardize rounded corners and border styling using consistent Tailwind classes.
 - [ ] src/components/status/Poll.tsx
   - [x] Add a "Refresh" button to fetch the latest poll results.
   - [x] Improve progress bar visualization with better theme-aware colors and transitions.
