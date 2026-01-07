@@ -360,9 +360,9 @@ Review the following files, and add TODO items for it.
   - [ ] Convert manual pixel-based spacing (e.g., `ml-[7px]`, `p-[7px]`, `rounded-[20px]`) to standard Tailwind spacing and rounding classes for consistency.
   - [ ] Review and potentially refine the wording of experimental feature descriptions and confirmation messages for clarity and conciseness.
 - [ ] src/components/Footer.tsx
-  - [ ] Replace hardcoded `bg-gray-900` with a theme-aware color class or CSS variable.
-  - [ ] Update or remove the misleading JSDoc comment ("The footer that appears on the login screen") as it is used globally.
-  - [ ] Consider using a FontAwesome icon or a local SVG for the GitHub logo instead of an external image link.
+  - [x] Replace hardcoded `bg-gray-900` with a theme-aware color class or CSS variable.
+  - [x] Update or remove the misleading JSDoc comment ("The footer that appears on the login screen") as it is used globally.
+  - [x] Consider using a FontAwesome icon or a local SVG for the GitHub logo instead of an external image link. (Improved current image visibility)
 - [ ] src/components/Header.tsx
   - [ ] Consolidate duplicate "delete all data" logic between `Header.tsx` and `ExperimentalFeatures.tsx`.
   - [ ] Replace direct `localStorage` manipulation with the project's Storage abstraction.
