@@ -359,10 +359,7 @@ Review the following files, and add TODO items for it.
   - [ ] Replace hardcoded colors (e.g., `bg-[#d3d3d3]`, `border-gray-300`) with theme-aware Tailwind classes or CSS variables.
   - [ ] Convert manual pixel-based spacing (e.g., `ml-[7px]`, `p-[7px]`, `rounded-[20px]`) to standard Tailwind spacing and rounding classes for consistency.
   - [ ] Review and potentially refine the wording of experimental feature descriptions and confirmation messages for clarity and conciseness.
-- [ ] src/components/Footer.tsx
-  - [x] Replace hardcoded `bg-gray-900` with a theme-aware color class or CSS variable.
-  - [x] Update or remove the misleading JSDoc comment ("The footer that appears on the login screen") as it is used globally.
-  - [x] Consider using a FontAwesome icon or a local SVG for the GitHub logo instead of an external image link. (Improved current image visibility)
+- [x] src/components/Footer.tsx
 - [ ] src/components/Header.tsx
   - [ ] Consolidate duplicate "delete all data" logic between `Header.tsx` and `ExperimentalFeatures.tsx`.
   - [ ] Replace direct `localStorage` manipulation with the project's Storage abstraction.
@@ -379,9 +376,9 @@ Review the following files, and add TODO items for it.
   - [ ] Ensure unique `id` attributes for inputs to improve accessibility, especially when labels might be duplicated.
   - [ ] Review `persistentCheckbox` to ensure tooltip components are not unnecessarily duplicated in the DOM.
 - [ ] src/components/helpers/Confirmation.tsx
-  - [ ] Make the confirmation dialog theme-aware (currently hardcoded to white/black).
-  - [ ] Replace hardcoded colors with theme-aware Tailwind classes or CSS variables.
-  - [ ] Improve accessibility by using appropriate ARIA roles and managing focus when the dialog opens.
+  - [x] Make the confirmation dialog theme-aware (currently hardcoded to white/black).
+  - [x] Replace hardcoded colors with theme-aware Tailwind classes or CSS variables.
+  - [x] Improve accessibility by using appropriate ARIA roles and managing focus when the dialog opens.
 - [ ] src/components/helpers/ErrorHandler.tsx
   - [ ] Fix the misleading JSDoc comment for the `ErrorHandler` component.
   - [ ] Make the error page and error modal theme-aware, replacing hardcoded background and text colors.

@@ -27,7 +27,12 @@ const Confirmation = (props: ConfirmationProps) => {
 	if (!show) return null;
 
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+		<div
+			className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="confirmation-title"
+		>
 			<button
 				type="button"
 				aria-label="Close dialog"
@@ -35,18 +40,20 @@ const Confirmation = (props: ConfirmationProps) => {
 				onClick={enableEscape ? () => proceed(false) : undefined}
 				className="absolute inset-0 h-full w-full cursor-default"
 			/>
-			<div className="relative z-10 bg-white text-black rounded-lg shadow-lg max-w-md w-full mx-4">
-				<div className="p-4 border-b">
-					<h3 className="text-lg font-semibold">{title}</h3>
+			<div className="relative z-10 bg-[color:var(--color-card-bg)] text-[color:var(--color-fg)] rounded-xl shadow-2xl max-w-md w-full mx-4 border border-[color:var(--color-border)] overflow-hidden animate-in fade-in zoom-in duration-200">
+				<div className="p-4 border-b border-[color:var(--color-border)] bg-[color:var(--color-muted)]">
+					<h3 id="confirmation-title" className="text-lg font-bold">
+						{title}
+					</h3>
 				</div>
 
-				<div className="p-4">{confirmation}</div>
+				<div className="p-6 text-sm leading-relaxed">{confirmation}</div>
 
-				<div className="p-4 border-t flex gap-2 justify-end">
+				<div className="p-4 border-t border-[color:var(--color-border)] flex gap-3 justify-end bg-[color:var(--color-muted)]">
 					<button
 						type="button"
 						onClick={() => proceed(false)}
-						className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 transition-colors"
+						className="px-4 py-2 border border-[color:var(--color-border)] rounded-lg hover:bg-[color:var(--color-light-shade)] transition-colors text-sm font-semibold"
 					>
 						{cancelLabel}
 					</button>
@@ -54,7 +61,8 @@ const Confirmation = (props: ConfirmationProps) => {
 					<button
 						type="button"
 						onClick={() => proceed(true)}
-						className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+						autoFocus
+						className="px-4 py-2 bg-[color:var(--color-primary)] text-[color:var(--color-primary-fg)] rounded-lg hover:opacity-90 transition-opacity text-sm font-bold shadow-sm"
 					>
 						{okLabel}
 					</button>
