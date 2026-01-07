@@ -2,6 +2,8 @@ import type React from "react";
 import { useCallback, useMemo, useState } from "react";
 
 import "react-lazy-load-image-component/src/effects/blur.css"; // For blur effect
+import { faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { mastodon } from "masto";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import { GIFV, MediaCategory, type Post } from "../../core/index";
@@ -37,14 +39,17 @@ export default function MultimediaNode(
 	const { hideSensitive } = useCoordinator();
 	const hasSpoilerText = !isEmptyStr(post?.spoilerText);
 	const [mediaInspectionIdx, setMediaInspectionIdx] = useState<number>(-1);
+	const [isContentVisible, setIsContentVisible] = useState(
+		!hideSensitive || !hasSpoilerText,
+	);
 
-	const showContent = hideSensitive ? !hasSpoilerText : true;
+	const showContent = isContentVisible;
 	const filterStyle = useMemo(
 		() => ({ filter: showContent ? "none" : "blur(1.5rem)" }),
 		[showContent],
 	);
 	const spoilerText = hasSpoilerText
-		? `Click to view sensitive content (${post.spoilerText})`
+		? `Click to view sensitive content (${post?.spoilerText})`
 		: "";
 	let audios: mastodon.v1.MediaAttachment[];
 	let images: mastodon.v1.MediaAttachment[];
@@ -67,29 +72,42 @@ export default function MultimediaNode(
 
 	const hasImageAttachments = images.length > 0;
 
-	// If there's one image try to show it full size; If there's more than one use old image handler.
-	if (images.length === 1) {
-		imageHeight = images[0].meta?.small?.height || config.posts.imageHeight;
-	} else {
-		imageHeight = Math.min(
-			config.posts.imageHeight,
-			...images.map((i) => i.meta?.small?.height || config.posts.imageHeight),
-		);
-	}
+	// Calculate grid columns/rows based on image count
+	const getGridClass = (count: number) => {
+		switch (count) {
+			case 1:
+				return "grid-cols-1";
+			case 2:
+				return "grid-cols-2";
+			case 3:
+				return "grid-cols-2 grid-rows-2";
+			case 4:
+				return "grid-cols-2 grid-rows-2";
+			default:
+				return "grid-cols-2"; // Fallback for 5+ images (though usually max 4)
+		}
+	};
+
+	const getImageClass = (index: number, count: number) => {
+		let base = "relative h-full w-full overflow-hidden";
+		if (count === 3 && index === 0) {
+			return `${base} row-span-2`; // First image takes full height on left
+		}
+		return base;
+	};
 
 	// Make a LazyLoadImage element for displaying an image within a Post.
 	const makeImage = useCallback(
 		(image: mastodon.v1.MediaAttachment, idx: number): React.ReactElement => (
 			<div
-				className="relative h-full pr-2 last:pr-0"
+				className={getImageClass(idx, images.length)}
 				key={image.previewUrl}
-				style={{ width: `${(1 / images.length) * 100}%` }}
 			>
 				{removeMediaAttachment && (
 					<button
 						type="button"
 						onClick={() => removeMediaAttachment(image.id)}
-						className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full text-black font-bold cursor-pointer border-0"
+						className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full text-black font-bold cursor-pointer border-0 z-10"
 						aria-label="Close"
 					>
 						×
@@ -100,7 +118,11 @@ export default function MultimediaNode(
 					alt={showContent ? image.description : spoilerText}
 					effect="blur"
 					onClick={() => {
-						if (removeMediaAttachment) return; // Don't open modal if removing media
+						if (removeMediaAttachment) return;
+						if (!showContent) {
+							setIsContentVisible(true);
+							return;
+						}
 						logger.debug(
 							`Opening modal for idx=${idx}, hasImageAttachments=${hasImageAttachments}`,
 						);
@@ -111,13 +133,16 @@ export default function MultimediaNode(
 						...filterStyle,
 						cursor: removeMediaAttachment ? "default" : "pointer",
 					}}
-					className={
-						images.length === 1
-							? "h-full w-full rounded-[15px] bg-[color:var(--color-card-bg)] object-contain object-center"
-							: "h-full w-full rounded-[15px] bg-black object-contain object-top"
-					}
+					className="h-full w-full bg-[color:var(--color-card-bg)] object-cover"
 					title={showContent ? image.description : spoilerText}
-					wrapperProps={{ style: { position: "static" } }} // Required to center properly with blur
+					wrapperProps={{
+						style: {
+							position: "static",
+							height: "100%",
+							width: "100%",
+							display: "block",
+						},
+					}}
 				/>
 			</div>
 		),
@@ -129,6 +154,30 @@ export default function MultimediaNode(
 			showContent,
 			spoilerText,
 		],
+	);
+
+	const SensitiveOverlay = () => (
+		<div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/40 backdrop-blur-[2px] transition-opacity duration-200">
+			<FontAwesomeIcon
+				icon={faEyeSlash}
+				className="mb-3 text-4xl text-white drop-shadow-md"
+			/>
+			<button
+				type="button"
+				onClick={(e) => {
+					e.stopPropagation();
+					setIsContentVisible(true);
+				}}
+				className="rounded-full bg-black/60 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-black/80 border border-white/20"
+			>
+				Show Content
+			</button>
+			{hasSpoilerText && (
+				<span className="mt-2 rounded bg-black/60 px-2 py-1 text-xs text-white">
+					{post?.spoilerText}
+				</span>
+			)}
+		</div>
 	);
 
 	if (images.length > 0) {
@@ -143,14 +192,14 @@ export default function MultimediaNode(
 				)}
 
 				<div
-					className="flex overflow-hidden rounded-xl border border-[color:var(--color-border)]"
+					className={`relative grid gap-[2px] overflow-hidden rounded-xl border border-[color:var(--color-border)] ${getGridClass(images.length)}`}
 					style={{
-						height:
-							images.length > 1 || imageHeight < 200
-								? "100%"
-								: `${imageHeight}px`,
+						height: images.length > 1 ? `${config.posts.imageHeight}px` : "auto",
+						maxHeight: images.length === 1 ? `${config.posts.imageHeight}px` : undefined,
+						aspectRatio: images.length === 1 ? "auto" : "16/9",
 					}}
 				>
+					{!showContent && <SensitiveOverlay />}
 					{images.map((image, i) => makeImage(image, i))}
 				</div>
 			</>
@@ -159,9 +208,10 @@ export default function MultimediaNode(
 	if (videos.length > 0) {
 		return (
 			<div
-				className="flex overflow-hidden rounded-xl border border-[color:var(--color-border)] bg-black"
+				className="relative flex overflow-hidden rounded-xl border border-[color:var(--color-border)] bg-black"
 				style={{ height: `${VIDEO_HEIGHT}px` }}
 			>
+				{!showContent && <SensitiveOverlay />}
 				{videos.map((video, i) => {
 					const sourceTag = (
 						<source src={video?.remoteUrl || video?.url} type="video/mp4" />

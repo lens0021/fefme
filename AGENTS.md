@@ -385,8 +385,8 @@ Review the following files, and add TODO items for it.
   - [x] Standardize the backdrop overlay and transition animations using Tailwind.
 - [ ] src/components/status/MultimediaNode.tsx
   - [x] Remove the unused `HIDDEN_CANVAS` element.
-  - [ ] Implement a clearer "Show Content" overlay for sensitive media instead of just blur.
-  - [ ] Refactor multi-image layout to use a proper CSS grid for better responsiveness.
+  - [x] Implement a clearer "Show Content" overlay for sensitive media instead of just blur.
+  - [x] Refactor multi-image layout to use a proper CSS grid for better responsiveness.
   - [ ] Standardize rounded corners and border styling using consistent Tailwind classes.
 - [ ] src/components/status/Poll.tsx
   - [ ] Add a "Refresh" button to fetch the latest poll results.
