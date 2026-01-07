@@ -389,8 +389,8 @@ Review the following files, and add TODO items for it.
   - [x] Refactor multi-image layout to use a proper CSS grid for better responsiveness.
   - [ ] Standardize rounded corners and border styling using consistent Tailwind classes.
 - [ ] src/components/status/Poll.tsx
-  - [ ] Add a "Refresh" button to fetch the latest poll results.
-  - [ ] Improve progress bar visualization with better theme-aware colors and transitions.
+  - [x] Add a "Refresh" button to fetch the latest poll results.
+  - [x] Improve progress bar visualization with better theme-aware colors and transitions.
   - [x] Add a "Multiple choice" label for polls that allow multiple selections.
   - [ ] Avoid direct mutation of the `poll` object; use a proper state update or callback.
 - [ ] src/components/status/PreviewCard.tsx

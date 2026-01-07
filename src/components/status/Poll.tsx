@@ -8,7 +8,7 @@ import React, {
 	useState,
 } from "react";
 
-import { faCheck } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faRotateRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { mastodon } from "masto";
 import { isAccessTokenRevokedError, timeString } from "../../core/index";
@@ -26,13 +26,15 @@ interface PollProps {
 }
 
 export default function Poll(props: PollProps) {
-	const { poll } = props;
+	const { poll: initialPoll } = props;
+	const [poll, setPoll] = useState(initialPoll);
 	const { api } = useCoordinator();
 	const { logAndSetFormattedError } = useError();
 
 	const [hasVoted, setHasVoted] = useState(poll.ownVotes?.length > 0);
 	const [revealed, setRevealed] = useState(false);
 	const [selected, setSelected] = useState<Record<string, boolean>>({});
+	const [isRefreshing, setIsRefreshing] = useState(false);
 
 	const expired = useMemo(() => {
 		const expiresAt = poll.expiresAt;
@@ -72,6 +74,20 @@ export default function Poll(props: PollProps) {
 		}
 	};
 
+	const refreshPoll = async () => {
+		if (isRefreshing) return;
+		setIsRefreshing(true);
+		try {
+			const freshPoll = await api.v1.polls.$select(poll.id).fetch();
+			setPoll(freshPoll);
+			setHasVoted(freshPoll.ownVotes?.length > 0 || freshPoll.voted);
+		} catch (error) {
+			logger.error("Error refreshing poll:", error);
+		} finally {
+			setIsRefreshing(false);
+		}
+	};
+
 	/** Submit a vote. */
 	const vote = async () => {
 		const choiceIndexes = Object.keys(selected)
@@ -85,24 +101,20 @@ export default function Poll(props: PollProps) {
 		);
 
 		try {
-			await api.v1.polls
+			const updatedPoll = await api.v1.polls
 				.$select(poll.id)
 				.votes.create({ choices: choiceIndexes });
+			
+			setPoll(updatedPoll);
+			setHasVoted(true);
+			setRevealed(true);
+			
 			logger.debug(
 				"Vote successful, selected:",
 				selected,
 				"\nchoiceIndexes:",
 				choiceIndexes,
 			);
-			for (const i of choiceIndexes) {
-				poll.options[i].votesCount = (poll.options[i].votesCount || 0) + 1;
-			}
-			poll.voted = true;
-			poll.ownVotes = choiceIndexes;
-			poll.votersCount = (poll.votersCount || 0) + 1;
-			poll.votesCount = (poll.votesCount || 0) + choiceIndexes.length;
-			setRevealed(true);
-			setHasVoted(true);
 		} catch (error) {
 			console.error("Error voting:", error);
 
@@ -137,11 +149,25 @@ export default function Poll(props: PollProps) {
 
 	return (
 		<div className="mt-3 rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] p-3">
-			{poll.multiple && (
-				<div className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[color:var(--color-muted-fg)]">
-					Multiple choice
-				</div>
-			)}
+			<div className="mb-2 flex items-center justify-between">
+				{poll.multiple ? (
+					<div className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--color-muted-fg)]">
+						Multiple choice
+					</div>
+				) : (
+					<div /> // Spacer
+				)}
+				<button
+					type="button"
+					onClick={refreshPoll}
+					className={`text-[color:var(--color-muted-fg)] hover:text-[color:var(--color-primary)] transition-colors ${isRefreshing ? "animate-spin" : ""}`}
+					title="Refresh poll results"
+					aria-label="Refresh poll results"
+				>
+					<FontAwesomeIcon icon={faRotateRight} />
+				</button>
+			</div>
+
 			<ul className="space-y-2">
 				{poll.options.map((option, i) => (
 					<PollOption
@@ -238,11 +264,11 @@ function PollOption(props) {
 			<div className="relative">
 				{showResults && (
 					<span
-						className={`absolute inset-y-0 left-0 rounded-lg ${isLeading ? "bg-[color:var(--color-success)]/20" : "bg-[color:var(--color-primary)]/15"}`}
+						className={`absolute inset-y-0 left-0 rounded-lg transition-all duration-500 ease-out ${isLeading ? "bg-[color:var(--color-primary)] opacity-20" : "bg-[color:var(--color-muted-fg)] opacity-10"}`}
 						style={{ width: `${percent}%` }}
 					/>
 				)}
-				<label className="relative z-10 flex items-center gap-3 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-muted)] px-3 py-2">
+				<label className="relative z-10 flex items-center gap-3 rounded-lg border border-[color:var(--color-border)] bg-transparent px-3 py-2 cursor-pointer hover:bg-[color:var(--color-muted)]/50 transition-colors">
 					<input
 						checked={active}
 						disabled={disabled}
@@ -267,7 +293,7 @@ function PollOption(props) {
 
 					{showResults && (
 						<span
-							className="ml-auto text-xs text-[color:var(--color-muted-fg)]"
+							className="ml-auto text-xs font-medium text-[color:var(--color-fg)]"
 							title={`${option.votesCount} votes`}
 						>
 							{Math.round(percent)}%
@@ -275,14 +301,11 @@ function PollOption(props) {
 					)}
 
 					{!!voted && (
-						<span className="text-xs text-[color:var(--color-muted-fg)]">
-							{"("}
+						<span className="text-xs text-[color:var(--color-success)] ml-1">
 							<FontAwesomeIcon
 								icon={faCheck}
-								className="mx-1 text-cyan-400"
 								title={"You voted for this answer"}
 							/>
-							{")"}
 						</span>
 					)}
 				</label>
