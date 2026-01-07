@@ -265,16 +265,18 @@ export default function StatusComponent(props: StatusComponentProps) {
 			{/* Score Modal */}
 			{showScoreModal && (
 				<div
-					className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50"
+					className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
 					onClick={() => setShowScoreModal(false)}
+					role="dialog"
+					aria-modal="true"
 				>
 					<div
-						className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] p-6 shadow-xl"
+						className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card-bg)] p-6 shadow-2xl animate-in zoom-in duration-200"
 						onClick={(e) => e.stopPropagation()}
 					>
-						<div className="mb-4 flex items-start justify-between">
+						<div className="mb-4 flex items-start justify-between border-b border-[color:var(--color-border)] pb-4">
 							<div>
-								<h2 className="text-2xl font-bold text-[color:var(--color-fg)]">
+								<h2 className="text-xl font-bold text-[color:var(--color-fg)]">
 									Post Score Breakdown
 								</h2>
 								<div className="mt-2 space-y-1 text-sm text-[color:var(--color-muted-fg)]">
@@ -283,7 +285,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 									</div>
 									<div>
 										<strong>Final Score:</strong>{" "}
-										<code className="rounded bg-[color:var(--color-muted)] px-2 py-1 text-[color:var(--color-fg)]">
+										<code className="rounded bg-[color:var(--color-muted)] px-2 py-1 text-[color:var(--color-fg)] border border-[color:var(--color-border)]">
 											{formatScore(post.scoreInfo.score)}
 										</code>
 									</div>
@@ -292,7 +294,8 @@ export default function StatusComponent(props: StatusComponentProps) {
 							<button
 								type="button"
 								onClick={() => setShowScoreModal(false)}
-								className="text-2xl text-[color:var(--color-muted-fg)] hover:text-[color:var(--color-fg)]"
+								className="text-2xl text-[color:var(--color-muted-fg)] hover:text-[color:var(--color-fg)] transition-colors p-1"
+								aria-label="Close"
 							>
 								×
 							</button>
@@ -458,7 +461,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 											.filter((f) => f.verifiedAt)
 											.map((f, i) => (
 												<span
-													className="verified-badge text-sky-300 px-[5px]"
+													className="verified-badge text-[color:var(--color-primary)] px-[5px]"
 													key={`${f.name}_${i}`}
 													title={f.value.replace(/<[^>]*>?/gm, "")}
 												>
@@ -501,7 +504,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 					{post.contentTagsParagraph && (
 						<div className={`${contentClass} pt-[12px]`}>
 							<span
-								className="text-[#636f7a]"
+								className="text-[color:var(--color-muted-fg)]"
 								style={{ fontSize: config.theme.footerHashtagsFontSize }}
 							>
 								{parse(post.contentTagsParagraph)}
@@ -522,7 +525,7 @@ export default function StatusComponent(props: StatusComponentProps) {
 										window.open(post.url, "_blank");
 									});
 								}}
-								className="text-gray-500 text-[11px] p-0 border-0 bg-transparent cursor-pointer"
+								className="text-[color:var(--color-muted-fg)] text-[11px] p-0 border-0 bg-transparent cursor-pointer hover:text-[color:var(--color-fg)] hover:underline transition-colors"
 							>
 								↗ Open Thread
 							</button>
