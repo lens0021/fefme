@@ -478,7 +478,7 @@ Review the following files, and add TODO items for it.
   - [ ] Avoid rebuilding tag list on every create() call when cache is fresh (consider Storage-backed list)
   - [ ] Ensure getOlderPosts() does not bypass removeUnwantedTags filtering for newly fetched tags
 - [ ] src/core/api/user_data_poller.ts
-  - [ ] Prevent overlapping getMoarData runs when the interval fires faster than completion
+  - [x] Prevent overlapping getMoarData runs when the interval fires faster than completion
   - [ ] Make `pollers` configurable to skip endpoints that are rate-limited or disabled
 - [ ] src/core/api/user_data.ts
   - [ ] Prefer non-mutating postLanguageOption() (avoid writing to `post.language`)

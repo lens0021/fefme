@@ -39,6 +39,14 @@ export default class UserDataPoller {
 
 		this.intervalRunner = setInterval(
 			async () => {
+				// Skip this interval if previous run is still in progress
+				if (MOAR_MUTEX.isLocked()) {
+					this.logger.debug(
+						`Previous data fetch still in progress, skipping this interval`,
+					);
+					return;
+				}
+
 				const shouldContinue = await this.getMoarData();
 				await ScorerCache.prepareScorers(true); // Update Scorers but don't rescore to avoid shuffling feed
 
