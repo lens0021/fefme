@@ -438,7 +438,7 @@ Review the following files, and add TODO items for it.
   - [ ] Replace the inline post stub with a shared test fixture or factory to avoid the heavy cast and duplicated fields
   - [ ] Avoid using global mutable `isOnScreen`; use a per-test mock or helper for clearer isolation
 - [ ] src/components/TrendingSection.tsx
-  - [ ] Handle non-string link labels when computing label lengths (React elements currently stringify to "[object Object]")
+  - [x] Handle non-string link labels when computing label lengths (React elements currently stringify to "[object Object]")
   - [ ] Sync `minPostsState` with tagList changes (state is seeded once and can go stale on new data)
   - [ ] Replace hardcoded colors/font stack with theme-aware classes or config
 - [ ] src/config.ts

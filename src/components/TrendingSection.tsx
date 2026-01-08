@@ -1,5 +1,5 @@
 import type React from "react";
-import { useMemo, useState } from "react";
+import { isValidElement, useMemo, useState } from "react";
 
 import { capitalCase } from "change-case";
 import { Tooltip } from "react-tooltip";
@@ -180,9 +180,17 @@ export default function TrendingSection(props: TrendingProps) {
 			`Sliced trendObjs to ${objs.length} items (minPostsState=${minPostsState[0]}, numShown=${numShown})`,
 		);
 		const { infoTxt, linkLabel, linkUrl, onClick } = linkRenderer;
-		const labels = objs.map(
-			(o) => `${linkLabel(o)}${optionalSuffix(infoTxt, infoTxt(o))}`,
-		);
+		const labels = objs.map((o) => {
+			const label = linkLabel(o);
+			// Handle React elements by using empty string for length calculation
+			const labelStr =
+				typeof label === "string"
+					? label
+					: isValidElement(label)
+						? ""
+						: String(label);
+			return `${labelStr}${optionalSuffix(infoTxt, infoTxt(o))}`;
+		});
 		const maxLength = Math.max(...labels.map((label) => label.length));
 		const longestLabel =
 			labels.find((label) => label.length === maxLength) || "";
