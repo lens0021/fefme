@@ -1,8 +1,10 @@
 pre-commit:
   commands:
+    rumdl:
+      run: rumdl fmt
     format:
       glob: "*.{js,ts,jsx,tsx,json,css,md}"
-      run: npx biome format --write {staged_files}
+      run: npx biome format --write
       stage_fixed: true
     tsc:
       run: npm run tsc
