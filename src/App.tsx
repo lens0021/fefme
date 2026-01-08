@@ -67,6 +67,30 @@ export default function App(): React.ReactElement {
 		}
 	}, []);
 
+	// Mobile back button handler - scroll to top instead of closing app
+	useEffect(() => {
+		// Add initial history entry to enable back button interception
+		window.history.pushState(null, "", window.location.href);
+
+		const handlePopState = (event: PopStateEvent) => {
+			event.preventDefault();
+
+			// Scroll to top
+			window.scrollTo({ top: 0, behavior: "smooth" });
+
+			// Push a new state to keep the app from closing on next back press
+			window.history.pushState(null, "", window.location.href);
+
+			logger.trace("Mobile back button pressed, scrolled to top");
+		};
+
+		window.addEventListener("popstate", handlePopState);
+
+		return () => {
+			window.removeEventListener("popstate", handlePopState);
+		};
+	}, []);
+
 	return (
 		<HashRouter>
 			<div
