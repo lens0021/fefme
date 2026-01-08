@@ -6,11 +6,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Fefme** (Fediverse timeline for ME) is a client-side algorithmic timeline for Mastodon. It's a fork of fedialgo_demo_app_foryoufeed that implements a multi-factor weighted scoring system to rank and filter Mastodon posts. All computation happens in the browser with zero backend—a privacy-first architecture.
 
-**Demo:** https://lens0021.github.io/fefme/
+**Demo:** <https://lens0021.github.io/fefme/>
 
 ## Commands
 
 ### Development
+
 ```bash
 npm run dev      # Start dev server (opens http://localhost:3000)
 npm run build    # TypeScript + Vite production build → docs/
@@ -18,9 +19,11 @@ npm run preview  # Preview production build
 npm run tsc      # Type check only (no emit)
 npm test         # Run component tests with Vitest
 ```
+
 Pre-commit hooks run the required checks automatically, so you generally don't need to run them manually.
 
 ### Code Quality
+
 ```bash
 npm run lint      # Check with Biome
 npm run lint:fix  # Auto-fix issues
@@ -28,12 +31,14 @@ npm run format    # Format code
 ```
 
 ### Deployment
+
 - Auto-deploys to GitHub Pages on push to `main` via `.github/workflows/deploy.yaml`
 - Build output goes to `docs/` directory (not `dist/`)
 
 ## Architecture
 
 ### Technology Stack
+
 - **Frontend:** React 18.2 + TypeScript, built with Vite 6.0
 - **Routing:** React Router DOM 7.5 with HashRouter (for GitHub Pages)
 - **Styling:** Tailwind CSS 4.1
@@ -43,7 +48,8 @@ npm run format    # Format code
 - **Code Quality:** Biome (replaces ESLint/Prettier)
 
 ### Data Flow (Client-Side Only)
-```
+
+```text
 User Login (OAuth)
   ↓
 Mastodon API ← MastoApi singleton (src/core/api/api.ts)
@@ -61,13 +67,14 @@ Feed.tsx → StatusComponent → Rendered Posts
 ```
 
 ### Loading Behavior (Blue/Green)
+
 - The visible timeline cache (blue) is intentionally stable for a session; seen markers update per post without reshuffling the list.
 - Background refreshes populate a next cache (green). The UI switches to it only on an explicit refresh (bubble click or page reload).
 - Cache promotion is handled in `src/core/coordinator/cache.ts` using `VISIBLE_TIMELINE_POSTS`, `NEXT_VISIBLE_TIMELINE_POSTS`, and `VISIBLE_TIMELINE_STALE`.
 
 ### Core Directory Structure
 
-```
+```text
 /src
 ├── core/                    # THE HEART OF THE APP
 │   ├── index.ts            # FeedCoordinator class (orchestrator)
@@ -95,6 +102,7 @@ Feed.tsx → StatusComponent → Rendered Posts
 ```
 
 ### Component Roles
+
 - **Algorithm Orchestrator:** `src/core/index.ts` (FeedCoordinator public API and coordination)
 - **Coordinator State:** `src/core/coordinator/state.ts` (timeline, weights, scorers, loading state)
 - **Scoring Engine:** `src/core/coordinator/scoring.ts`, `src/core/coordinator/scorers.ts`, `src/core/scorer/` (score + sort)
@@ -110,11 +118,12 @@ Feed.tsx → StatusComponent → Rendered Posts
 
 The app implements a **multi-factor weighted scoring** pipeline:
 
-```
+```text
 Raw Posts → Individual Scorers → Weighted Scores → Time Decay → Diversity Penalty → Final Sorted Feed
 ```
 
 **15+ Scoring Factors** (all in `/src/core/scorer/post/`):
+
 - **Social Graph:** FollowedAccountsScorer, FollowersScorer, InteractionsScorer
 - **Engagement:** NumFavourites, NumReplies, NumBoosts, MentionsFollowedScorer
 - **Trending:** TrendingPostsScorer, TrendingTagsScorer
@@ -125,6 +134,7 @@ Raw Posts → Individual Scorers → Weighted Scores → Time Decay → Diversit
 - **Diversity:** DiversityFeedScorer (prevents topic clustering)
 
 Each scorer extends the `Scorer` base class:
+
 ```typescript
 class XyzScorer extends Scorer {
   async _score(post: Post): Promise<number>  // Return 0-1 normalized score
@@ -134,6 +144,7 @@ class XyzScorer extends Scorer {
 ### State Management
 
 Uses **React Context + Custom Hooks** (no Redux):
+
 - **AuthProvider** (`useAuth`) - OAuth state, credentials, logout
 - **CoordinatorProvider** (`useCoordinator`) - Algorithm instance, timeline, filters, loading
 - **ErrorHandler** (`useError`) - Centralized error boundary
@@ -142,12 +153,14 @@ Uses **React Context + Custom Hooks** (no Redux):
 ### Storage Strategy (Dual-Layer)
 
 **IndexedDB (via localForage):**
+
 - Cached posts (home timeline, trending, tags)
 - User data (followers, followed accounts, favorites)
 - Algorithm weights and filters
 - Instance info, trending data
 
 **localStorage:**
+
 - OAuth tokens and server URLs
 - User identity
 - UI preferences (show previews, hide sensitive)
@@ -157,6 +170,7 @@ Uses **React Context + Custom Hooks** (no Redux):
 ### OAuth Flow (GitHub Pages Workaround)
 
 GitHub Pages only supports GET params. OAuth uses query strings without hashes, so App.tsx includes:
+
 ```typescript
 // Redirects: /?code=xyz → /#/callback?code=xyz
 if (window.location.href.includes("?code=")) {
@@ -168,6 +182,7 @@ if (window.location.href.includes("?code=")) {
 ### API Integration
 
 **MastoApi singleton** (`src/core/api/api.ts`):
+
 - Wraps masto.js client
 - Implements caching, pagination, rate limiting
 - Uses async-mutex for concurrency control
@@ -193,6 +208,7 @@ if (window.location.href.includes("?code=")) {
 ### FeedCoordinator Class (`/src/core/index.ts`)
 
 Main entry points:
+
 - `triggerFeedUpdate()` - Fetch new posts since last update
 - `triggerMoarData()` - Pull extra user data for scoring
 - `triggerTimelineBackfill()` - Fetch older posts
@@ -217,7 +233,8 @@ Main entry points:
 ## Environment Variables
 
 Create `.env.development.local` or `.env.production.local`:
-```
+
+```text
 FEDIALGO_DEBUG=true          # Verbose console logging
 FEDIALGO_DEEP_DEBUG=false    # Extra verbose logging
 QUICK_MODE=true              # Skip some data for faster dev
@@ -227,16 +244,19 @@ LOAD_TEST=false              # Load testing mode
 ## Development Notes
 
 ### Biome Configuration
+
 - Tabs for indentation
 - Double quotes for strings
 - Ignores `src/default.css`
 
 ### TypeScript Configuration
+
 - **Decorators enabled** (required for class-transformer)
 - **Strict mode OFF**
 - **No emit** (Vite handles compilation)
 
 ### Key Files to Understand First
+
 1. `src/App.tsx` - Entry point, routing, providers
 2. `src/pages/Feed.tsx` - Main feed UI
 3. `src/core/index.ts` - FeedCoordinator class
@@ -245,6 +265,7 @@ LOAD_TEST=false              # Load testing mode
 6. `src/core/Storage.ts` - Persistence layer
 
 ### Common Gotchas
+
 - **Buffer polyfill required:** App.tsx imports buffer for class-transformer
 - **HashRouter quirk:** All routes prefixed with `/#/`
 - **OAuth redirect:** Custom handling in App.tsx for GitHub Pages
@@ -252,6 +273,7 @@ LOAD_TEST=false              # Load testing mode
 - **Mutex/Concurrency:** Uses async-mutex to prevent race conditions in API calls and scoring
 
 ### Performance Considerations
+
 - IndexedDB can store thousands of posts (grows large)
 - Scoring is CPU-intensive (batched, uses mutex)
 - Initial load can take 30+ seconds (fetches lots of data)
@@ -261,17 +283,20 @@ LOAD_TEST=false              # Load testing mode
 ### Storage Keys
 
 Defined in `/src/core/enums.ts`:
+
 - `CacheKey` - API data (home timeline, favorites, followers)
 - `CoordinatorStorageKey` - App state (weights, filters, timeline)
 - `FediverseCacheKey` - Fediverse-wide trending data
 
 ### Timeline Cache Behavior
+
 - `VisibleTimelinePosts` is the filtered timeline used for fast initial render.
 - `NextVisibleTimelinePosts` stores the next filtered timeline after background updates.
 - `VisibleTimelineStale` marks the visible timeline as stale when new posts are queued.
 - On page load, `loadCachedData()` promotes `NextVisibleTimelinePosts` to `VisibleTimelinePosts` only if `VisibleTimelineStale` is set (or missing) and then clears the stale flag.
 
 ## TODO
+
 - Decide whether to rename `CoordinatorProvider`/`useCoordinator` to match `FeedCoordinator` for naming consistency.
 - Further split large algorithm modules (e.g., `src/core/coordinator/feed.ts`, `src/core/coordinator/state.ts`) into smaller role-focused units.
 - Align code boundaries with the Component Roles list (enforce module responsibilities and remove cross-role coupling).
@@ -284,6 +309,7 @@ Review the following files, and add TODO items for it.
 - biome.json
   - ~~Consider customizing linter rules beyond "recommended": true for project-specific needs~~
   - [ ] Evaluate if additional files should be ignored beyond src/default.css
+  - [ ] Consider setting files.ignoreUnknown to true to avoid formatting/linting non-source artifacts
 - e2e/seen-refresh.spec.ts
   - [ ] Extract API route mocking logic into shared helper functions to reduce duplication across all 3 tests
   - [ ] Move makeAccount, makeStatus, makeStatuses test helpers to separate fixture file (e.g., e2e/fixtures/mockData.ts)
@@ -294,11 +320,13 @@ Review the following files, and add TODO items for it.
 - [x] src/App.tsx
 - lefthook.yml
   - [ ] Consider adding glob patterns to run hooks only on relevant file changes (e.g., skip tsc for markdown-only changes)
+  - [ ] Consider making pre-push build/test:e2e conditional to avoid heavy runs on docs-only changes
 - package.json
   - [ ] Consider upgrading React from 18.2 to 18.3 (latest stable)
   - [x] Verify if "private": false is intentional - package doesn't seem meant for npm publishing
   - [ ] Replace lodash with lodash-es or individual imports to reduce bundle size
   - [x] Remove or document browserslist config - Vite doesn't use it without @vitejs/plugin-legacy
+  - [ ] Consider removing "predeploy" if deployment is only via GitHub Pages workflow
 - playwright.config.ts
   - [ ] Fix port mismatch: webServer uses "npm run dev" but specifies port 4173 (preview port) - should use dev port 3000 or use "npm run preview"
   - [ ] Add workers configuration for parallel test execution control
@@ -320,12 +348,12 @@ Review the following files, and add TODO items for it.
   - [ ] Consider extracting gradient calculation logic to separate module
 - [x] src/components/coordinator/filters/HeaderSwitch.tsx
 - [x] src/components/coordinator/filters/NumericFilters.tsx
-- [ ] src/components/coordinator/filters/__tests__/FilterCheckboxGrid.test.tsx
+- [ ] src/components/coordinator/filters/**tests**/FilterCheckboxGrid.test.tsx
   - [ ] Add tests for "Exclude" and "Any" filter states.
   - [ ] Add tests for multiple filter options being selected.
   - [ ] Add tests for other filter types (e.g., user, tag).
   - [ ] Consider refactoring mock setup for simplicity.
-- [ ] src/components/coordinator/filters/__tests__/NumericFilters.test.tsx
+- [ ] src/components/coordinator/filters/**tests**/NumericFilters.test.tsx
   - [ ] Add tests for multiple numeric filters.
   - [ ] Use @testing-library/user-event for more realistic slider interaction simulation.
   - [ ] Add assertions for the rendered output, such as the slider's value.
@@ -406,27 +434,64 @@ Review the following files, and add TODO items for it.
   - [x] Improve the top bar layout to reduce clutter, potentially using icons for sources.
   - [x] Replace hardcoded colors (e.g., `text-[#636f7a]`, `text-sky-300`) with theme variables.
   - [x] Standardize the "Open Thread" button with consistent Tailwind styling.
-- [ ] src/components/status/__tests__/StatusSeenDuringBackgroundLoad.test.tsx
+- [ ] src/components/status/**tests**/StatusSeenDuringBackgroundLoad.test.tsx
+  - [ ] Replace the inline post stub with a shared test fixture or factory to avoid the heavy cast and duplicated fields
+  - [ ] Avoid using global mutable `isOnScreen`; use a per-test mock or helper for clearer isolation
 - [ ] src/components/TrendingSection.tsx
+  - [ ] Handle non-string link labels when computing label lengths (React elements currently stringify to "[object Object]")
+  - [ ] Sync `minPostsState` with tagList changes (state is seeded once and can go stale on new data)
+  - [ ] Replace hardcoded colors/font stack with theme-aware classes or config
 - [ ] src/config.ts
+  - [ ] Rename `loadingErroMsg` to `loadingErrorMsg` (and keep a backward-compatible alias if needed)
+  - [ ] Allow overriding repo/issues URLs via env to avoid incorrect inference from `HOMEPAGE`
 - [ ] src/core/api/api.ts
   - [ ] Avoid returning an empty array when apiMutex is locked for a foreground fetch; consider awaiting the mutex or returning cached rows to prevent accidental data loss.
   - [ ] Remove the cacheKey fallback hack in handleApiError() by guaranteeing cacheKey in params or throwing when missing.
 - [ ] src/core/api/counted_list.ts
+  - [ ] Normalize name input in incrementCount() (currently bypasses lowercasing used by getObj/completeObjProperties)
+  - [ ] Avoid mutating the original object in completeObjProperties() or document the mutation side effect
 - [ ] src/core/api/errors.ts
+  - [ ] Consider accepting unknown error shapes (Axios errors) and extracting status/message more robustly
+  - [ ] Ensure throwSanitizedRateLimitError preserves original error as cause for debugging
 - [ ] src/core/api/mastodon_server.ts
+  - [ ] Add retry/backoff or explicit error classification for axios failures (network vs 4xx/5xx)
+  - [ ] Avoid throwing raw axios responses in fetch(); normalize error handling for callers
 - [ ] src/core/api/objects/account.ts
+  - [ ] Avoid defaulting boolean flags with `|| false` when the API can return `false` vs `undefined` (use nullish coalescing)
+  - [ ] Handle missing `url`/`acct` gracefully when building `webfingerURI` and `homeserver`
 - [ ] src/core/api/objects/filter.ts
+  - [ ] Simplify extractMutedKeywords() by removing redundant flat() calls
+  - [ ] Consider de-duplicating keywords to avoid repeated regex terms
 - [ ] src/core/api/objects/post.ts
+  - [ ] Avoid importing QuoteApproval from a deep `masto` path; prefer a stable public type export
+  - [ ] Expand hashtag regex to support non-ASCII tag characters (current `\\w` misses many tags)
 - [ ] src/core/api/objects/tag.ts
+  - [ ] Replace random tag IDs in buildTag() with deterministic IDs to improve caching and comparisons
+  - [ ] Avoid mutating the input tag in repairTag() or clearly document the mutation
 - [ ] src/core/api/objects/trending_with_history.ts
+  - [ ] Avoid mutating incoming objects in decorateHistoryScores() (lowercases url in-place)
+  - [ ] Guard against NaN in history parsing when `uses`/`accounts` are missing or non-numeric
 - [ ] src/core/api/tag_list.ts
+  - [ ] Cache or reuse followed tags/muted keywords when removing unwanted tags to avoid repeated API calls
+  - [ ] Consider passing `includeBoosts` explicitly with a default to avoid accidental falsey bugs
 - [ ] src/core/api/tags_for_fetching_posts.ts
+  - [ ] Avoid rebuilding tag list on every create() call when cache is fresh (consider Storage-backed list)
+  - [ ] Ensure getOlderPosts() does not bypass removeUnwantedTags filtering for newly fetched tags
 - [ ] src/core/api/user_data_poller.ts
+  - [ ] Prevent overlapping getMoarData runs when the interval fires faster than completion
+  - [ ] Make `pollers` configurable to skip endpoints that are rate-limited or disabled
 - [ ] src/core/api/user_data.ts
+  - [ ] Prefer non-mutating postLanguageOption() (avoid writing to `post.language`)
+  - [ ] Expose lastUpdatedAt via getter for easier freshness checks/testing
 - [ ] src/core/config.ts
+  - [ ] Keep config locale defaults in one place (avoid separate DEFAULT_LOCALE string + config.locale)
+  - [ ] Consider typing load status messages to prevent missing/extra keys
 - [ ] src/core/coordinator/actions.ts
+  - [ ] Ensure releaseLoadingMutex() resets loadStartedAt/releaseLoadingMutex to prevent reuse
+  - [ ] Consider using finally guards so exceptions in startAction callers always release mutex
 - [ ] src/core/coordinator/background.ts
+  - [ ] Ensure cacheUpdater interval is cleared when saveTimelineToCache throws
+  - [ ] Add optional immediate save on stop to avoid losing last-minute changes
   - [x] Consider adding stopBackgroundPollers() function to properly cleanup intervals
   - [ ] When cacheUpdater already exists, consider whether to restart it or keep the existing one (currently just logs and ignores)
   - [ ] File only contains one 12-line function - consider merging into another module or expanding with related background task management
@@ -441,82 +506,171 @@ Review the following files, and add TODO items for it.
   - [x] Simplify verbose log message (line 124-126) using template literals
   - [ ] Unify error handling strategy across cache functions (saveTimelineToCache catches but doesn't throw, resetSeenState has no try-catch)
 - [ ] src/core/coordinator/constants.ts
+  - [ ] Avoid constructing TagList in a constants module to keep side effects minimal
 - [ ] src/core/coordinator/feed_stats.ts
+  - [ ] Avoid recomputing date arrays on every call; consider caching or incremental stats
+  - [ ] Clarify when fallbacks to full feed happen (add docs or log level tweak)
 - [ ] src/core/coordinator/feed.ts
   - [ ] Remove hardcoded CacheKey.HOME_TIMELINE_POSTS from log message (line 30) - function handles multiple sources
   - [ ] Add comment or extract shouldUpdateFilters() helper to clarify complex filter update condition (line 83-93)
   - [ ] Add comment explaining why loadingStatus update is skipped for TIMELINE_BACKFILL (line 96-99)
   - [ ] Split finishFeedUpdate() into smaller functions: finalizeTimeline(), cleanupLoadingState() - too many responsibilities (line 106-133)
+  - [ ] Ensure loadStartedAt is cleared in failure paths (currently only in finishFeedUpdate)
 - [ ] src/core/coordinator/filters.ts
   - [ ] filterFeedAndSetInApp() has multiple responsibilities: filtering + defer handling + first-post telemetry
   - [ ] Consider extracting hasProvidedAnyPostsToClient flag management to separate concern
   - [x] updateFilters() calls Storage.setFilters without await - Promise is ignored, may cause race conditions
+  - [ ] Avoid setting state.deferredTimeline to a reference that can be mutated later (copy array)
 - [ ] src/core/coordinator/loaders.ts
+  - [ ] Document that getHomeTimeline delegates merging via callback and why it returns posts too
+  - [ ] Handle empty federated timeline bounds (minId/maxId) to avoid fetching with null/undefined
 - [ ] src/core/coordinator/loggers.ts
+  - [ ] Prefer a single logger factory to avoid building two separate logger maps
 - [ ] src/core/coordinator/scorers.ts
+  - [ ] Keep scorer registration in sorted order or documented grouping for easier diff review
+  - [ ] Consider lazy-loading heavy scorers in quick mode to reduce startup time
 - [ ] src/core/coordinator/scoring.ts
   - [ ] scoreAndFilterFeed() does 4 things: scoring + truncate + storage + filtering - consider splitting responsibilities
   - [x] Duplicate truncate logic with cache.ts - consolidate into single location
   - [ ] Function name "scoreAndFilter" doesn't indicate it also saves to storage - rename or split
 - [ ] src/core/coordinator/source_stats.ts
+  - [ ] Avoid double-iterating over posts for date bounds; reuse min/max from getSourceBounds or compute once
+  - [ ] Include trending tag sources in sourcesToTrack if they should be surfaced in stats
 - [ ] src/core/coordinator/state.ts
   - [ ] Review completed - minimal improvements needed, class structure is clean
 - [ ] src/core/coordinator/stats.ts
-- [ ] src/core/coordinator/__tests__/cache.test.ts
+  - [ ] Consider re-exporting SourceStats from a single module to avoid circular usage patterns
+- [ ] src/core/coordinator/**tests**/cache.test.ts
+  - [ ] Add assertions for loadCachedData when visible cache is missing or stale flag is unset
+  - [ ] Verify behavior when filters are missing or Storage.getFilters returns null
 - [ ] src/core/enums.ts
+  - [ ] Add unit tests to ensure STORAGE_KEYS_WITH_POSTS stays in sync with CacheKey values
+  - [ ] Consider freezing ALL_CACHE_KEYS/ALL_ACTIONS as readonly tuples to prevent mutation
 - [ ] src/core/filters/boolean_filter.ts
+  - [ ] Avoid mutating options arrays in addMissingActiveOptions; return a new list instead
+  - [ ] Normalize option names (case/trim) when updating or checking option states
 - [ ] src/core/filters/feed_filters.ts
+  - [ ] Guard against posts missing application/language fields when incrementing counts
+  - [ ] Avoid mutating post.sources when adding UNKNOWN_SOURCE (copy or handle in filter matching)
 - [ ] src/core/filters/numeric_filter.ts
+  - [ ] Handle NaN/undefined `value` gracefully in updateValue and serialization
+  - [ ] Consider memoizing warning for missing property values to avoid noisy logs
 - [ ] src/core/filters/post_filter.ts
-- [ ] src/core/filters/__tests__/SeenFilter.test.ts
+  - [ ] Consider making logger optional or lazy to reduce construction overhead
+  - [ ] Include description in toArgs for clarity when serializing filters
+- [ ] src/core/filters/**tests**/SeenFilter.test.ts
+  - [ ] Add tests for numTimesShown > 0 without favourites/reblogs to cover seen tracking
+  - [ ] Add tests for realToot.numTimesShown to confirm nested handling
 - [ ] src/core/helpers/collection_helpers.ts
+  - [ ] Fix computeMinMax to include zero values (current truthy check skips 0)
+  - [ ] Ensure batchMap preserves result order when filtering nulls
 - [ ] src/core/helpers/environment_helpers.ts
+  - [ ] Gate console debug logging behind isDebugMode to avoid noisy production logs
+  - [ ] Switch to import.meta.env for Vite instead of process.env to avoid bundler assumptions
 - [ ] src/core/helpers/language_helper.ts
+  - [ ] Consider narrowing LANGUAGE_NAMES to ISO 639-1 codes or document mixed sources (custom names like pidgin)
+  - [ ] Validate tinyld/languagedetect outputs against LANGUAGE_CODES to avoid unknown mappings
 - [ ] src/core/helpers/logger.ts
+  - [ ] Avoid logging full args twice in error() (currently passes allArgs to console.error along with msg)
+  - [ ] Ensure warn() preserves additional args instead of dropping them (currently only logs string)
 - [ ] src/core/helpers/math_helper.ts
+  - [ ] Replace Buffer usage in sizeFromBufferByteLength with TextEncoder for browser compatibility
+  - [ ] Fix strBytes to account for UTF-8 byte length instead of string length
 - [ ] src/core/helpers/mutex_helpers.ts
+  - [ ] Log when a mutex is released to improve debugging of lock contention
+  - [ ] Add timeout or cancellation handling for stuck locks
 - [ ] src/core/helpers/string_helpers.ts
+  - [ ] Fix extractDomain to use normalized `url` consistently (currently uses original inUrl for http check)
+  - [ ] Expand hashtag regex to cover non-ASCII word characters
 - [ ] src/core/helpers/suppressed_hashtags.ts
+  - [ ] Avoid rebuilding Sets in allTootURIs(); accumulate into a single Set via mutation
+  - [ ] Consider exposing a reset() to clear state between sessions/tests
 - [ ] src/core/helpers/time_helpers.ts
+  - [ ] Clarify AgeIn.ms behavior for invalid inputs (currently returns -1 but other helpers assume non-negative)
+  - [ ] Normalize timeString() to use locale-safe date comparisons (today check can fail across timezones)
 - [ ] src/core/index.ts
   - [ ] Remove the unused Buffer import (or document why it is still required for class-transformer).
   - [x] Await startAction() in triggerPullAllUserData() so the loading mutex is reliably acquired before work starts.
+  - [ ] Consider removing default setTimelineInApp console.debug or guard it behind isDebugMode
 - [ ] src/core/scorer/feed/diversity_feed_scorer.ts
+  - [ ] Guard against division by zero in penaltyIncrement when numPosts is undefined
+  - [ ] Consider clamping penalties to avoid large negative scores when numPosts is high
 - [ ] src/core/scorer/feed_scorer.ts
+  - [ ] Consider making extractScoreDataFromFeed async to support scorers that need async preprocessing
+  - [ ] Ensure extractScoringData handles empty feeds consistently (return empty dict)
 - [ ] src/core/scorer/post/acccount_scorer.ts
+  - [ ] Fix filename typo (acccount_scorer.ts) to avoid import confusion
+  - [ ] Guard against missing scoreData entries (sumArray of undefined)
 - [ ] src/core/scorer/post/already_shown_scorer.ts
+  - [ ] Default missing numTimesShown to 0 to avoid NaN in sumArray
+  - [ ] Consider capping the score to avoid overweighting heavy re-viewed posts
 - [ ] src/core/scorer/post/author_followers_scorer.ts
+  - [ ] Handle undefined followersCount (fallback to 0) to avoid NaN
+  - [ ] Consider log-scaling with +1 to avoid log10(0) branches
 - [ ] src/core/scorer/post/boosts_in_feed_scorer.ts
+  - [ ] Guard against missing reblog.reblogsBy to avoid runtime errors
+  - [ ] Consider weighting boosts by follower status rather than raw count
 - [ ] src/core/scorer/post/chaos_scorer.ts
+  - [ ] Clamp decimalHash to [0,1] range; current hash can be negative
+  - [ ] Prefer a stable hash util for deterministic scores across environments
 - [ ] src/core/scorer/post/followed_accounts_scorer.ts
+  - [ ] Normalize webfingerURI casing before lookup to avoid misses
+  - [ ] Avoid re-fetching followed accounts on every rebuild; reuse cached data
 - [ ] src/core/scorer/post/followed_tags_scorer.ts
+  - [ ] Ensure followedTags is populated when missing (post.realToot.followedTags can be undefined)
+  - [ ] Consider de-duping followed tags before counting length
 - [ ] src/core/scorer/post/followers_scorer.ts
+  - [ ] Avoid hitting followers endpoint in quick mode if not needed
+  - [ ] Add error handling when API returns partial follower lists
 - [ ] src/core/scorer/post/interactions_scorer.ts
+  - [ ] Add dedupe for notification accounts to avoid inflating counts
+  - [ ] Consider filtering out self-notifications to avoid skew
 - [ ] src/core/scorer/post/mentions_followed_scorer.ts
+  - [ ] Normalize mention acct casing before lookup to avoid missing followed accounts
 - [ ] src/core/scorer/post/most_boosted_accounts_scorer.ts
+  - [ ] Consider reusing cached recent posts instead of fetching every time
 - [ ] src/core/scorer/post/most_favourited_accounts_scorer.ts
+  - [ ] Decide whether to count favourites for boosted posts by booster or original author
 - [ ] src/core/scorer/post/most_replied_accounts_scorer.ts
-- [ ] src/core/scorer/post/property_scorer_factory.ts
-- [ ] src/core/scorer/post_scorer.ts
+  - [ ] Account IDs are not globally unique; consider using webfinger when available
+- [x] src/core/scorer/post/property_scorer_factory.ts
+- [x] src/core/scorer/post_scorer.ts
 - [ ] src/core/scorer/post/tag_scorer_factory.ts
-- [ ] src/core/scorer/post/trending_tags_scorer.ts
-- [ ] src/core/scorer/scorer_cache.ts
+  - [ ] Normalize tag names before lookup to avoid case/diacritic mismatches
+- [x] src/core/scorer/post/trending_tags_scorer.ts
+- [x] src/core/scorer/scorer_cache.ts
 - [ ] src/core/scorer/scorer.ts
+  - [ ] Cache weights once per scoring batch to avoid repeated Storage.getWeights calls
 - [ ] src/core/scorer/weight_presets.ts
+  - [ ] Consider documenting preset intent (short description) for UI display
 - [ ] src/core/Storage.ts
+  - [ ] Centralize storage key serialization/deserialization to avoid scattered logic
+  - [ ] Consider handling localForage config errors or fallback drivers
 - [ ] src/core/types.ts
+  - [ ] Tighten ApiObj union to avoid string-only entries if possible
+  - [ ] Consider removing TODOs or converting them into tracked issues
 - [ ] src/helpers/async_helpers.ts
+  - [ ] Consider exposing a hook-friendly variant for React to avoid repeated state closures
 - [ ] src/helpers/log_helpers.ts
+  - [ ] Avoid importing Logger from core/index to reduce circular deps; import directly from core/helpers/logger
 - [ ] src/helpers/mastodon_helpers.ts
+  - [ ] Guard against missing server configuration/mediaAttachments when building MIME extensions
 - [ ] src/helpers/min_posts.ts
-- [ ] src/helpers/navigation.ts
+  - [ ] Use a single source of truth for the list length (objList.length vs objList.objs.length) to avoid drift
+- [x] src/helpers/navigation.ts
 - [ ] src/helpers/number_helpers.ts
-- [ ] src/helpers/source_labels.ts
+  - [ ] Avoid assuming non-null objects in formatScores; guard null before accessing raw
+- [x] src/helpers/source_labels.ts
 - [ ] src/helpers/string_helpers.ts
-- [ ] src/helpers/styles/index.ts
+  - [ ] isToday should compare full date (year/month/day) to avoid false positives across months
+- [x] src/helpers/styles/index.ts
 - [ ] src/helpers/styles/theme.ts
+  - [ ] Fix feedBackgrounGradient typo to feedBackgroundGradient and align references
 - [ ] src/helpers/ui.tsx
+  - [ ] booleanIcon should handle null/undefined without calling toString()
+  - [ ] followUri should open with noopener/noreferrer for security
 - [ ] src/hooks/useAuth.tsx
+  - [ ] Type AuthContext explicitly and throw when useAuthContext is used outside provider
 - [ ] src/hooks/useCoordinator.tsx
   - [ ] File is too large (724 lines) - consider splitting into multiple hooks (useTimeline, useBackgroundSync, usePendingTimeline)
   - [ ] Initial load useEffect (512-667) is 156 lines - extract constructFeed and finalizeInitialLoad as separate functions outside useEffect
@@ -527,20 +681,29 @@ Review the following files, and add TODO items for it.
   - [ ] Too many refs (7) - evaluate if some can be converted to state or removed
   - [ ] Consider extracting pending timeline promotion logic to a custom hook
 - [ ] src/hooks/useLocalStorage.tsx
+  - [ ] Avoid mutating serverUsers in place; clone state before setServerUsers to prevent stale renders
+  - [ ] Parse stored server value in getServer() to stay consistent with JSON.stringify usage
 - [ ] src/hooks/useOnScreen.tsx
+  - [ ] Disconnect IntersectionObserver on cleanup to avoid leaks when ref changes
 - [ ] src/hooks/useTheme.ts
-- [ ] src/index.css
-- [ ] src/index.tsx
+  - [ ] Add fallback for browsers without matchMedia addEventListener (use addListener/removeListener)
+- [x] src/index.css
+- [x] src/index.tsx
 - [ ] src/pages/CallbackPage.tsx
+  - [ ] Handle non-OK token responses or missing access_token before continuing
 - [x] src/pages/Feed.tsx
 - [ ] src/pages/LoginPage.tsx
-- [ ] src/pages/__tests__/FeedInitialLoadingFilters.test.tsx
-- [ ] src/pages/__tests__/FeedLoadingOnce.test.tsx
-- [ ] src/react-app-env.d.ts
-- [ ] src/test/mastoMock.ts
+  - [ ] Type location.state instead of using any for redirect persistence
+- [x] src/pages/**tests**/FeedInitialLoadingFilters.test.tsx
+- [ ] src/pages/**tests**/FeedLoadingOnce.test.tsx
+  - [ ] Prefer user-event for refresh bubble click to simulate real interaction
+- [x] src/react-app-env.d.ts
+- [x] src/test/mastoMock.ts
 - [ ] src/test/setup.ts
+  - [ ] Consider clearing localStorage in afterEach to avoid cross-test leakage
 - [ ] src/theme.css
-- [ ] src/types.ts
-- [ ] src/version.ts
-- [ ] tsconfig.json
-- [ ] vite.config.ts
+  - [ ] Keep CSS theme variables in sync with src/helpers/styles/theme.ts palettes
+- [x] src/types.ts
+- [x] src/version.ts
+- [x] tsconfig.json
+- [x] vite.config.ts
