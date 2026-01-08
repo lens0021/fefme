@@ -328,7 +328,7 @@ Review the following files, and add TODO items for it.
   - [x] Remove or document browserslist config - Vite doesn't use it without @vitejs/plugin-legacy
   - [ ] Consider removing "predeploy" if deployment is only via GitHub Pages workflow
 - playwright.config.ts
-  - [ ] Fix port mismatch: webServer uses "npm run dev" but specifies port 4173 (preview port) - should use dev port 3000 or use "npm run preview"
+  - [x] Fix port mismatch: webServer uses "npm run dev" but specifies port 4173 (preview port) - should use dev port 3000 or use "npm run preview"
   - [ ] Add workers configuration for parallel test execution control
   - [ ] Add retries configuration for handling flaky tests
   - ~~Consider adding reporter configuration for better test output~~
