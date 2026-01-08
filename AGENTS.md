@@ -18,6 +18,7 @@ npm run preview  # Preview production build
 npm run tsc      # Type check only (no emit)
 npm test         # Run component tests with Vitest
 ```
+Pre-commit hooks run the required checks automatically, so you generally don't need to run them manually.
 
 ### Code Quality
 ```bash
@@ -479,7 +480,7 @@ Review the following files, and add TODO items for it.
 - [ ] src/core/helpers/time_helpers.ts
 - [ ] src/core/index.ts
   - [ ] Remove the unused Buffer import (or document why it is still required for class-transformer).
-  - [ ] Await startAction() in triggerPullAllUserData() so the loading mutex is reliably acquired before work starts.
+  - [x] Await startAction() in triggerPullAllUserData() so the loading mutex is reliably acquired before work starts.
 - [ ] src/core/scorer/feed/diversity_feed_scorer.ts
 - [ ] src/core/scorer/feed_scorer.ts
 - [ ] src/core/scorer/post/acccount_scorer.ts

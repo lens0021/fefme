@@ -392,7 +392,7 @@ export default class FeedCoordinator {
 	async triggerPullAllUserData(): Promise<void> {
 		const action = LoadAction.PULL_ALL_USER_DATA;
 		const hereLogger = loggers[action];
-		startAction(this.state, action);
+		await startAction(this.state, action);
 
 		try {
 			this.state.userDataPoller.stop(); // Stop the dataPoller if it's running
