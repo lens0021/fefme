@@ -9,10 +9,20 @@ export function launchBackgroundPollers(state: CoordinatorState): void {
 	if (state.cacheUpdater) {
 		logger.trace(`cacheUpdater already exists, not starting another one`);
 	} else {
-		state.cacheUpdater = setInterval(
-			async () => await saveTimelineToCache(state),
-			config.posts.saveChangesIntervalSeconds * 1000,
-		);
+		state.cacheUpdater = setInterval(async () => {
+			try {
+				await saveTimelineToCache(state);
+			} catch (error) {
+				logger.error(
+					`Critical error in cacheUpdater, stopping interval:`,
+					error,
+				);
+				if (state.cacheUpdater) {
+					clearInterval(state.cacheUpdater);
+					state.cacheUpdater = undefined;
+				}
+			}
+		}, config.posts.saveChangesIntervalSeconds * 1000);
 	}
 }
 

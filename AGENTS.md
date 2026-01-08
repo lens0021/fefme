@@ -490,7 +490,7 @@ Review the following files, and add TODO items for it.
   - [ ] Ensure releaseLoadingMutex() resets loadStartedAt/releaseLoadingMutex to prevent reuse
   - [ ] Consider using finally guards so exceptions in startAction callers always release mutex
 - [ ] src/core/coordinator/background.ts
-  - [ ] Ensure cacheUpdater interval is cleared when saveTimelineToCache throws
+  - [x] Ensure cacheUpdater interval is cleared when saveTimelineToCache throws
   - [ ] Add optional immediate save on stop to avoid losing last-minute changes
   - [x] Consider adding stopBackgroundPollers() function to properly cleanup intervals
   - [ ] When cacheUpdater already exists, consider whether to restart it or keep the existing one (currently just logs and ignores)
