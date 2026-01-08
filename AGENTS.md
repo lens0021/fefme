@@ -470,7 +470,7 @@ Review the following files, and add TODO items for it.
   - [ ] Avoid mutating the input tag in repairTag() or clearly document the mutation
 - [ ] src/core/api/objects/trending_with_history.ts
   - [ ] Avoid mutating incoming objects in decorateHistoryScores() (lowercases url in-place)
-  - [ ] Guard against NaN in history parsing when `uses`/`accounts` are missing or non-numeric
+  - [x] Guard against NaN in history parsing when `uses`/`accounts` are missing or non-numeric
 - [ ] src/core/api/tag_list.ts
   - [ ] Cache or reuse followed tags/muted keywords when removing unwanted tags to avoid repeated API calls
   - [ ] Consider passing `includeBoosts` explicitly with a default to avoid accidental falsey bugs

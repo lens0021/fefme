@@ -99,13 +99,13 @@ function decorateHistoryScores<T extends TrendingWithHistory>(obj: T): T {
 		0,
 		config.trending.daysToCountTrendingData,
 	);
-	obj.numPosts = recentHistory.reduce(
-		(total, h) => total + Number.parseInt(h.uses),
-		0,
-	);
-	obj.numAccounts = recentHistory.reduce(
-		(total, h) => total + Number.parseInt(h.accounts),
-		0,
-	);
+	obj.numPosts = recentHistory.reduce((total, h) => {
+		const uses = Number.parseInt(h.uses);
+		return total + (Number.isNaN(uses) ? 0 : uses);
+	}, 0);
+	obj.numAccounts = recentHistory.reduce((total, h) => {
+		const accounts = Number.parseInt(h.accounts);
+		return total + (Number.isNaN(accounts) ? 0 : accounts);
+	}, 0);
 	return obj;
 }
