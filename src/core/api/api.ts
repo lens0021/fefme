@@ -1186,13 +1186,22 @@ export default class MastoApi {
 				logger.trace(
 					`Called but mutex already locked (background load in progress, nothing to do)`,
 				);
-			} else {
-				logger.error(
-					`ApiMutex is already locked but shouldn't be! Returning empty array...`,
-				);
+				return [];
 			}
 
-			return [];
+			// For foreground fetches, return cached data if available to avoid data loss
+			const cachedRows = params.cacheResult?.rows || [];
+			if (cachedRows.length > 0) {
+				logger.debug(
+					`Mutex locked during foreground fetch, returning ${cachedRows.length} cached rows to avoid data loss`,
+				);
+				return cachedRows;
+			}
+
+			// If no cached data, wait for the mutex to avoid returning empty array
+			logger.debug(
+				`Mutex locked during foreground fetch with no cached data, waiting for mutex to avoid data loss`,
+			);
 		}
 
 		const releaseMutex = skipMutex

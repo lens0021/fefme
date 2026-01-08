@@ -445,7 +445,7 @@ Review the following files, and add TODO items for it.
   - [ ] Rename `loadingErroMsg` to `loadingErrorMsg` (and keep a backward-compatible alias if needed)
   - [ ] Allow overriding repo/issues URLs via env to avoid incorrect inference from `HOMEPAGE`
 - [ ] src/core/api/api.ts
-  - [ ] Avoid returning an empty array when apiMutex is locked for a foreground fetch; consider awaiting the mutex or returning cached rows to prevent accidental data loss.
+  - [x] Avoid returning an empty array when apiMutex is locked for a foreground fetch; consider awaiting the mutex or returning cached rows to prevent accidental data loss.
   - [ ] Remove the cacheKey fallback hack in handleApiError() by guaranteeing cacheKey in params or throwing when missing.
 - [ ] src/core/api/counted_list.ts
   - [ ] Normalize name input in incrementCount() (currently bypasses lowercasing used by getObj/completeObjProperties)
