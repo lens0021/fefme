@@ -180,7 +180,8 @@ export function computeMinMax<T>(
 		(minMax: MinMax, obj: T) => {
 			const value = valueFxn(obj);
 
-			if (value) {
+			// Use isFinite to check for valid numbers, including 0
+			if (isFinite(value)) {
 				if (value < minMax.min) minMax.min = value;
 				if (value > minMax.max) minMax.max = value;
 			}

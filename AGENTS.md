@@ -562,7 +562,7 @@ Review the following files, and add TODO items for it.
   - [ ] Add tests for numTimesShown > 0 without favourites/reblogs to cover seen tracking
   - [ ] Add tests for realToot.numTimesShown to confirm nested handling
 - [ ] src/core/helpers/collection_helpers.ts
-  - [ ] Fix computeMinMax to include zero values (current truthy check skips 0)
+  - [x] Fix computeMinMax to include zero values (current truthy check skips 0)
   - [ ] Ensure batchMap preserves result order when filtering nulls
 - [ ] src/core/helpers/environment_helpers.ts
   - [ ] Gate console debug logging behind isDebugMode to avoid noisy production logs
