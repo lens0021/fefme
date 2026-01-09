@@ -209,16 +209,11 @@ export async function updateBooleanFilterOptions(
 			post.realToot.language!,
 			decorateLanguage,
 		);
-		const sourceSet = new Set(post.sources ?? []);
-		if (sourceSet.size === 0) {
-			// Add "Unknown" as a source when the post has no sources
-			sourceSet.add(UNKNOWN_SOURCE);
-			// Also update the post's sources array so filters work correctly
-			post.sources = [UNKNOWN_SOURCE];
-			if (post.realToot && post.realToot !== post) {
-				post.realToot.sources = [UNKNOWN_SOURCE];
-			}
-		}
+		// Create a Set of sources, using UNKNOWN_SOURCE if the post has no sources
+		// Note: We don't mutate post.sources here - that's handled elsewhere in the pipeline
+		const sourceSet = new Set(
+			post.sources && post.sources.length > 0 ? post.sources : [UNKNOWN_SOURCE],
+		);
 		sourceSet.forEach((source) => {
 			optionLists[BooleanFilterName.SOURCE].incrementCount(source);
 		});
