@@ -14,7 +14,8 @@ export function filterFeedAndSetInApp(state: CoordinatorState): Post[] {
 	);
 
 	if (state.deferTimelineUpdates) {
-		state.deferredTimeline = state.filteredTimeline;
+		// Copy array to avoid shared reference mutations
+		state.deferredTimeline = [...state.filteredTimeline];
 	} else {
 		state.setTimelineInApp(state.filteredTimeline);
 	}
