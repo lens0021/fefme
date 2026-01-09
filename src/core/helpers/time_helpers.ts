@@ -14,18 +14,21 @@ type DateArg = Date | OptionalString | number;
 
 const PARSEABLE_DATE_TYPES = new Set(["string", "number"]);
 
-/** Helper class for computing age differences in various units. */
+/**
+ * Helper class for computing age differences in various units.
+ * All methods return 0 for invalid inputs to avoid negative value propagation.
+ */
 export class AgeIn {
 	/**
 	 * Milliseconds of difference between a given time and either now or an optional end time.
 	 * @param {DateArg} startTime - The time to calculate the age from.
 	 * @param {DateArg} [endTime] - Optional end time to calculate the age to (defaults to now)
-	 * @returns {number} The age in milliseconds, or -1 if the start time is invalid.
+	 * @returns {number} The age in milliseconds, or 0 if the start time is invalid.
 	 */
 	static ms(startTime: DateArg, endTime?: DateArg): number {
 		if (!startTime) {
 			console.warn("Invalid date passed to AgeIn.ms():", startTime);
-			return -1;
+			return 0;
 		}
 
 		endTime = coerceDate(endTime || new Date());
@@ -36,7 +39,7 @@ export class AgeIn {
 	 * Hours of difference between a given time and either now or an optional end time.
 	 * @param {DateArg} startTime - The time to calculate the age from.
 	 * @param {DateArg} [endTime] - Optional end time to calculate the age to (defaults to now)
-	 * @returns {number} The age in hours, or a negative number if the start time is invalid.
+	 * @returns {number} The age in hours, or 0 if the start time is invalid.
 	 */
 	static hours(startTime: DateArg, endTime?: DateArg) {
 		return this.minutes(startTime, endTime) / 60.0;
@@ -46,7 +49,7 @@ export class AgeIn {
 	 * Minutes of difference between a given time and either now or an optional end time.
 	 * @param {DateArg} startTime - The time to calculate the age from.
 	 * @param {DateArg} [endTime] - Optional end time to calculate the age to (defaults to now)
-	 * @returns {number} The age in milliseconds, or a negative number if the start time is invalid.
+	 * @returns {number} The age in minutes, or 0 if the start time is invalid.
 	 */
 	static minutes(startTime: DateArg, endTime?: DateArg) {
 		return this.seconds(startTime, endTime) / 60.0;
@@ -56,7 +59,7 @@ export class AgeIn {
 	 * Seconds of difference between a given time and either now or an optional end time.
 	 * @param {DateArg} startTime - The time to calculate the age from.
 	 * @param {DateArg} [endTime] - Optional end time to calculate the age to (defaults to now)
-	 * @returns {number} The age in seconds, or a negative number if the start time is invalid.
+	 * @returns {number} The age in seconds, or 0 if the start time is invalid.
 	 */
 	static seconds(startTime: DateArg, endTime?: DateArg) {
 		return this.ms(startTime, endTime) / 1000.0;

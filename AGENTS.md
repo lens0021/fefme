@@ -586,7 +586,7 @@ Review the following files, and add TODO items for it.
   - [ ] Avoid rebuilding Sets in allTootURIs(); accumulate into a single Set via mutation
   - [ ] Consider exposing a reset() to clear state between sessions/tests
 - [ ] src/core/helpers/time_helpers.ts
-  - [ ] Clarify AgeIn.ms behavior for invalid inputs (currently returns -1 but other helpers assume non-negative)
+  - [x] Clarify AgeIn.ms behavior for invalid inputs (currently returns -1 but other helpers assume non-negative)
   - [ ] Normalize timeString() to use locale-safe date comparisons (today check can fail across timezones)
 - [ ] src/core/index.ts
   - [ ] Remove the unused Buffer import (or document why it is still required for class-transformer).
