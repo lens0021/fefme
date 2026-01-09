@@ -22,10 +22,12 @@ export async function mergeFederatedTimeline(
 	limit = 40,
 ): Promise<void> {
 	const { minId, maxId } = getSourceBounds(state, FEDERATED_TIMELINE_SOURCE);
+	// Convert undefined to null for API parameters - when no posts exist yet,
+	// we want to fetch from the beginning (null) rather than pass undefined
 	const statuses = await MastoApi.instance.getFederatedTimelineStatuses({
 		limit,
-		minId: direction === "newer" ? maxId : null,
-		maxId: direction === "older" ? minId : null,
+		minId: direction === "newer" ? (maxId ?? null) : null,
+		maxId: direction === "older" ? (minId ?? null) : null,
 	});
 	await mergeExternalStatuses(state, statuses, FEDERATED_TIMELINE_SOURCE);
 }

@@ -523,7 +523,7 @@ Review the following files, and add TODO items for it.
   - [x] Avoid setting state.deferredTimeline to a reference that can be mutated later (copy array)
 - [ ] src/core/coordinator/loaders.ts
   - [ ] Document that getHomeTimeline delegates merging via callback and why it returns posts too
-  - [ ] Handle empty federated timeline bounds (minId/maxId) to avoid fetching with null/undefined
+  - [x] Handle empty federated timeline bounds (minId/maxId) to avoid fetching with null/undefined
 - [ ] src/core/coordinator/loggers.ts
   - [ ] Prefer a single logger factory to avoid building two separate logger maps
 - [ ] src/core/coordinator/scorers.ts
