@@ -550,7 +550,7 @@ Review the following files, and add TODO items for it.
   - [ ] Avoid mutating options arrays in addMissingActiveOptions; return a new list instead
   - [ ] Normalize option names (case/trim) when updating or checking option states
 - [ ] src/core/filters/feed_filters.ts
-  - [ ] Guard against posts missing application/language fields when incrementing counts
+  - [x] Guard against posts missing application/language fields when incrementing counts
   - [x] Avoid mutating post.sources when adding UNKNOWN_SOURCE (copy or handle in filter matching)
 - [ ] src/core/filters/numeric_filter.ts
   - [x] Handle NaN/undefined `value` gracefully in updateValue and serialization

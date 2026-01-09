@@ -201,14 +201,20 @@ export async function updateBooleanFilterOptions(
 			post.author.webfingerURI,
 			decorateThisAccount,
 		);
-		optionLists[BooleanFilterName.APP].incrementCount(
-			post.realToot.application.name,
-		);
+		// Guard against missing application field (can happen with some external posts)
+		if (post.realToot.application?.name) {
+			optionLists[BooleanFilterName.APP].incrementCount(
+				post.realToot.application.name,
+			);
+		}
 		optionLists[BooleanFilterName.SERVER].incrementCount(post.homeserver);
-		optionLists[BooleanFilterName.LANGUAGE].incrementCount(
-			post.realToot.language!,
-			decorateLanguage,
-		);
+		// Guard against missing/null language field (can be null for some posts)
+		if (post.realToot.language) {
+			optionLists[BooleanFilterName.LANGUAGE].incrementCount(
+				post.realToot.language,
+				decorateLanguage,
+			);
+		}
 		// Create a Set of sources, using UNKNOWN_SOURCE if the post has no sources
 		// Note: We don't mutate post.sources here - that's handled elsewhere in the pipeline
 		const sourceSet = new Set(
