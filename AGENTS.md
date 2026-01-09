@@ -515,7 +515,7 @@ Review the following files, and add TODO items for it.
   - [ ] Add comment or extract shouldUpdateFilters() helper to clarify complex filter update condition (line 83-93)
   - [ ] Add comment explaining why loadingStatus update is skipped for TIMELINE_BACKFILL (line 96-99)
   - [ ] Split finishFeedUpdate() into smaller functions: finalizeTimeline(), cleanupLoadingState() - too many responsibilities (line 106-133)
-  - [ ] Ensure loadStartedAt is cleared in failure paths (currently only in finishFeedUpdate)
+  - [x] Ensure loadStartedAt is cleared in failure paths (currently only in finishFeedUpdate)
 - [ ] src/core/coordinator/filters.ts
   - [ ] filterFeedAndSetInApp() has multiple responsibilities: filtering + defer handling + first-post telemetry
   - [ ] Consider extracting hasProvidedAnyPostsToClient flag management to separate concern

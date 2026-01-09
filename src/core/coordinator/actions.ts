@@ -46,6 +46,7 @@ export function releaseLoadingMutex(
 	state.currentAction = undefined;
 	state.deferTimelineUpdates = false;
 	state.deferredTimeline = null;
+	state.loadStartedAt = undefined;
 
 	if (state.releaseLoadingMutex) {
 		loggers[logPrefix].info(`Finished, releasing mutex...`);
