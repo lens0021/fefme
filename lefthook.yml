@@ -1,18 +1,27 @@
+output:
+  - summary
+
 pre-commit:
   commands:
     rumdl:
       run: rumdl fmt
+      output: false
     format:
       glob: "*.{js,ts,jsx,tsx,json,css,md}"
       run: npx biome format --write
       stage_fixed: true
+      output: false
     tsc:
       run: npm run tsc
+      output: false
     test:
       run: npm test -- --run
+      output: false
 pre-push:
   commands:
     build:
       run: npm run build
+      output: false
     test:e2e:
       run: npm run test:e2e
+      output: false
