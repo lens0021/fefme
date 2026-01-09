@@ -128,5 +128,6 @@ export function sizeOf(obj: unknown, sizes: BytesDict): number {
 	return bytes;
 }
 
-// Roughly, assuming UTF-8 encoding. UTF-16 would be 2x this, emojis are 4 bytes, etc.
-const strBytes = (str: string): number => str.length;
+// Use TextEncoder to get accurate UTF-8 byte length
+// Handles multi-byte characters (emojis, Unicode, etc.) correctly
+const strBytes = (str: string): number => new TextEncoder().encode(str).length;

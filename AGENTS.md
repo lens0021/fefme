@@ -575,7 +575,7 @@ Review the following files, and add TODO items for it.
   - [ ] Ensure warn() preserves additional args instead of dropping them (currently only logs string)
 - [ ] src/core/helpers/math_helper.ts
   - [ ] Replace Buffer usage in sizeFromBufferByteLength with TextEncoder for browser compatibility
-  - [ ] Fix strBytes to account for UTF-8 byte length instead of string length
+  - [x] Fix strBytes to account for UTF-8 byte length instead of string length
 - [ ] src/core/helpers/mutex_helpers.ts
   - [ ] Log when a mutex is released to improve debugging of lock contention
   - [ ] Add timeout or cancellation handling for stuck locks
