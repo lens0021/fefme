@@ -77,7 +77,8 @@ export default class NumericFilter extends PostFilter {
 	 */
 	toArgs(): NumericFilterArgs {
 		const filterArgs = super.toArgs() as NumericFilterArgs;
-		filterArgs.value = this.value;
+		// Ensure we don't serialize NaN/undefined - use 0 as fallback
+		filterArgs.value = isFinite(this.value) ? this.value : 0;
 		return filterArgs;
 	}
 
@@ -86,7 +87,15 @@ export default class NumericFilter extends PostFilter {
 	 * @param {number} newValue - The new minimum value for the filter.
 	 */
 	updateValue(newValue: number): void {
-		this.value = newValue;
+		// Validate that newValue is a finite number, default to 0 if not
+		if (!isFinite(newValue)) {
+			this.logger.warn(
+				`Invalid value ${newValue} for ${this.propertyName}, defaulting to 0`,
+			);
+			this.value = 0;
+		} else {
+			this.value = newValue;
+		}
 	}
 
 	/**

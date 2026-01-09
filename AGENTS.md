@@ -553,7 +553,7 @@ Review the following files, and add TODO items for it.
   - [ ] Guard against posts missing application/language fields when incrementing counts
   - [x] Avoid mutating post.sources when adding UNKNOWN_SOURCE (copy or handle in filter matching)
 - [ ] src/core/filters/numeric_filter.ts
-  - [ ] Handle NaN/undefined `value` gracefully in updateValue and serialization
+  - [x] Handle NaN/undefined `value` gracefully in updateValue and serialization
   - [ ] Consider memoizing warning for missing property values to avoid noisy logs
 - [ ] src/core/filters/post_filter.ts
   - [ ] Consider making logger optional or lazy to reduce construction overhead
