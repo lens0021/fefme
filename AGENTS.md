@@ -593,7 +593,7 @@ Review the following files, and add TODO items for it.
   - [x] Await startAction() in triggerPullAllUserData() so the loading mutex is reliably acquired before work starts.
   - [ ] Consider removing default setTimelineInApp console.debug or guard it behind isDebugMode
 - [ ] src/core/scorer/feed/diversity_feed_scorer.ts
-  - [ ] Guard against division by zero in penaltyIncrement when numPosts is undefined
+  - [x] Guard against division by zero in penaltyIncrement when numPosts is undefined
   - [ ] Consider clamping penalties to avoid large negative scores when numPosts is high
 - [ ] src/core/scorer/feed_scorer.ts
   - [ ] Consider making extractScoreDataFromFeed async to support scorers that need async preprocessing

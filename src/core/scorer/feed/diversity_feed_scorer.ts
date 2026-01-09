@@ -63,10 +63,11 @@ export default class DiversityFeedScorer extends FeedScorer {
 					tag.numAccounts || 0,
 					penalizedTag.numAccounts || 0,
 				);
-				penalizedTag.penaltyIncrement =
-					penalizedTag.numAccounts / penalizedTag.numPosts!;
+				// Guard against division by zero or undefined
+				const numPosts = penalizedTag.numPosts || 1;
+				penalizedTag.penaltyIncrement = penalizedTag.numAccounts / numPosts;
 				penalizedTag.numToPenalize =
-					penalizedTag.numPosts! -
+					numPosts -
 					config.scoring.diversityScorerMinTrendingTagPostsForPenalty;
 			});
 		});
