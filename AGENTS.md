@@ -580,7 +580,7 @@ Review the following files, and add TODO items for it.
   - [ ] Log when a mutex is released to improve debugging of lock contention
   - [ ] Add timeout or cancellation handling for stuck locks
 - [ ] src/core/helpers/string_helpers.ts
-  - [ ] Fix extractDomain to use normalized `url` consistently (currently uses original inUrl for http check)
+  - [x] Fix extractDomain to use normalized `url` consistently (currently uses original inUrl for http check)
   - [ ] Expand hashtag regex to cover non-ASCII word characters
 - [ ] src/core/helpers/suppressed_hashtags.ts
   - [ ] Avoid rebuilding Sets in allTootURIs(); accumulate into a single Set via mutation

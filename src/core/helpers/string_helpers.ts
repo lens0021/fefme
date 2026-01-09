@@ -169,9 +169,12 @@ export function determineMediaCategory(
  * @example "localhost:3000" => "localhost"*
  */
 export function extractDomain(inUrl: string): string {
+	// Normalize URL first (lowercase and trim)
+	const normalized = inUrl.toLowerCase().trim();
 	// Add protocol if missing for URL parsing
-	let url = inUrl.toLowerCase().trim();
-	url = inUrl.startsWith("http") ? inUrl : `http://${inUrl}`;
+	const url = normalized.startsWith("http")
+		? normalized
+		: `http://${normalized}`;
 
 	try {
 		const { hostname } = new URL(url);
