@@ -20,7 +20,8 @@ export default class AuthorFollowersScorer extends PostScorer {
 
 	// Use log base 10 of the number of followers as the score
 	async _score(post: Post): Promise<number> {
-		const followerCount = post.author.followersCount;
+		// Default to 0 if followersCount is undefined/null to avoid NaN
+		const followerCount = post.author.followersCount ?? 0;
 		return followerCount > 0 ? Math.log10(followerCount) : 0;
 	}
 }

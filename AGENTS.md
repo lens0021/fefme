@@ -605,7 +605,7 @@ Review the following files, and add TODO items for it.
   - [x] Default missing numTimesShown to 0 to avoid NaN in sumArray
   - [ ] Consider capping the score to avoid overweighting heavy re-viewed posts
 - [ ] src/core/scorer/post/author_followers_scorer.ts
-  - [ ] Handle undefined followersCount (fallback to 0) to avoid NaN
+  - [x] Handle undefined followersCount (fallback to 0) to avoid NaN
   - [ ] Consider log-scaling with +1 to avoid log10(0) branches
 - [ ] src/core/scorer/post/boosts_in_feed_scorer.ts
   - [ ] Guard against missing reblog.reblogsBy to avoid runtime errors
