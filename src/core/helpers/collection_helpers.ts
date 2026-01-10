@@ -130,8 +130,11 @@ export async function batchMap<T, U>(
 	for (let i = 0; i < chunks.length; i++) {
 		const chunk = chunks[i];
 		const newResults = await Promise.all(chunk.map(fxn));
-		if (newResults.filter(Boolean).length)
-			results = [...results, ...newResults]; // Only append non-null results
+		// Filter out null/undefined/falsy results and append
+		const filteredResults = newResults.filter(Boolean);
+		if (filteredResults.length) {
+			results = [...results, ...filteredResults];
+		}
 
 		if (sleepBetweenMS && i < chunks.length - 1) {
 			logger.debug(

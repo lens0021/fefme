@@ -563,7 +563,7 @@ Review the following files, and add TODO items for it.
   - [ ] Add tests for realToot.numTimesShown to confirm nested handling
 - [ ] src/core/helpers/collection_helpers.ts
   - [x] Fix computeMinMax to include zero values (current truthy check skips 0)
-  - [ ] Ensure batchMap preserves result order when filtering nulls
+  - [x] Ensure batchMap preserves result order when filtering nulls
 - [ ] src/core/helpers/environment_helpers.ts
   - [ ] Gate console debug logging behind isDebugMode to avoid noisy production logs
   - [ ] Switch to import.meta.env for Vite instead of process.env to avoid bundler assumptions
