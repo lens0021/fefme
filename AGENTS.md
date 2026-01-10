@@ -611,7 +611,7 @@ Review the following files, and add TODO items for it.
   - [ ] Guard against missing reblog.reblogsBy to avoid runtime errors
   - [ ] Consider weighting boosts by follower status rather than raw count
 - [ ] src/core/scorer/post/chaos_scorer.ts
-  - [ ] Clamp decimalHash to [0,1] range; current hash can be negative
+  - [x] Clamp decimalHash to [0,1] range; current hash can be negative
   - [ ] Prefer a stable hash util for deterministic scores across environments
 - [ ] src/core/scorer/post/followed_accounts_scorer.ts
   - [ ] Normalize webfingerURI casing before lookup to avoid misses

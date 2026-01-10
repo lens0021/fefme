@@ -46,6 +46,8 @@ export default class ChaosScorer extends PostScorer {
 			hash = s.charCodeAt(i) + ((hash << 5) - hash);
 		}
 
-		return (hash & hash) / Math.pow(2, 31);
+		// Convert to unsigned 32-bit integer and normalize to [0, 1]
+		// Using >>> 0 converts to unsigned, then divide by max unsigned 32-bit value
+		return (hash >>> 0) / 0xffffffff;
 	}
 }
