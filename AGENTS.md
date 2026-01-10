@@ -684,7 +684,7 @@ Review the following files, and add TODO items for it.
   - [ ] Avoid mutating serverUsers in place; clone state before setServerUsers to prevent stale renders
   - [ ] Parse stored server value in getServer() to stay consistent with JSON.stringify usage
 - [ ] src/hooks/useOnScreen.tsx
-  - [ ] Disconnect IntersectionObserver on cleanup to avoid leaks when ref changes
+  - [x] Disconnect IntersectionObserver on cleanup to avoid leaks when ref changes
 - [ ] src/hooks/useTheme.ts
   - [ ] Add fallback for browsers without matchMedia addEventListener (use addListener/removeListener)
 - [x] src/index.css

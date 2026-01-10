@@ -25,7 +25,11 @@ export default function useOnScreen(
 		const element = ref.current;
 		if (!element) return;
 		observer.observe(element);
-		return () => observer.unobserve(element);
+		return () => {
+			observer.unobserve(element);
+			// Disconnect observer when ref changes or component unmounts to prevent memory leaks
+			observer.disconnect();
+		};
 	}, [observer, ref]);
 
 	return isIntersecting;
