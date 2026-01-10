@@ -602,7 +602,7 @@ Review the following files, and add TODO items for it.
   - [ ] Fix filename typo (acccount_scorer.ts) to avoid import confusion
   - [ ] Guard against missing scoreData entries (sumArray of undefined)
 - [ ] src/core/scorer/post/already_shown_scorer.ts
-  - [ ] Default missing numTimesShown to 0 to avoid NaN in sumArray
+  - [x] Default missing numTimesShown to 0 to avoid NaN in sumArray
   - [ ] Consider capping the score to avoid overweighting heavy re-viewed posts
 - [ ] src/core/scorer/post/author_followers_scorer.ts
   - [ ] Handle undefined followersCount (fallback to 0) to avoid NaN

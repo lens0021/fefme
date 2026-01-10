@@ -21,6 +21,7 @@ export default class AlreadyShownScorer extends PostScorer {
 
 	// Sets the followedTags property on the Post object before returning the score
 	async _score(post: Post) {
-		return sumArray(post.withBoost.map((t) => t.numTimesShown));
+		// Default to 0 for posts without numTimesShown to prevent undefined in array
+		return sumArray(post.withBoost.map((t) => t.numTimesShown ?? 0));
 	}
 }
