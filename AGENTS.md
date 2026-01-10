@@ -640,7 +640,7 @@ Review the following files, and add TODO items for it.
 - [x] src/core/scorer/post/trending_tags_scorer.ts
 - [x] src/core/scorer/scorer_cache.ts
 - [ ] src/core/scorer/scorer.ts
-  - [ ] Cache weights once per scoring batch to avoid repeated Storage.getWeights calls
+  - [x] Cache weights once per scoring batch to avoid repeated Storage.getWeights calls
 - [ ] src/core/scorer/weight_presets.ts
   - [ ] Consider documenting preset intent (short description) for UI display
 - [ ] src/core/Storage.ts

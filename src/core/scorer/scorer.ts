@@ -145,10 +145,17 @@ export default abstract class Scorer {
 			}
 
 			try {
+				// Cache weights once for the entire batch to avoid repeated Storage calls
+				const userWeights = await Storage.getWeights();
+
 				// Score the posts asynchronously in batches
-				await batchMap(posts, (t) => this.decorateWithScoreInfo(t, scorers), {
-					logger: scoreLogger,
-				});
+				await batchMap(
+					posts,
+					(t) => this.decorateWithScoreInfo(t, scorers, userWeights),
+					{
+						logger: scoreLogger,
+					},
+				);
 			} finally {
 				releaseMutex?.();
 			}
@@ -209,14 +216,15 @@ export default abstract class Scorer {
 	 * @static
 	 * @param {Post} post - The post to decorate.
 	 * @param {Scorer[]} scorers - Array of scorer instances.
+	 * @param {Weights} userWeights - Pre-fetched user weights to avoid repeated Storage calls.
 	 * @returns {Promise<void>}
 	 */
 	private static async decorateWithScoreInfo(
 		post: Post,
 		scorers: Scorer[],
+		userWeights: Weights,
 	): Promise<void> {
 		const rawestScores = await Promise.all(scorers.map((s) => s.score(post)));
-		const userWeights = await Storage.getWeights();
 
 		const getWeight = (weightKey: WeightName) =>
 			userWeights[weightKey] ?? DEFAULT_WEIGHTS[weightKey];
