@@ -608,7 +608,7 @@ Review the following files, and add TODO items for it.
   - [x] Handle undefined followersCount (fallback to 0) to avoid NaN
   - [ ] Consider log-scaling with +1 to avoid log10(0) branches
 - [ ] src/core/scorer/post/boosts_in_feed_scorer.ts
-  - [ ] Guard against missing reblog.reblogsBy to avoid runtime errors
+  - [x] Guard against missing reblog.reblogsBy to avoid runtime errors
   - [ ] Consider weighting boosts by follower status rather than raw count
 - [ ] src/core/scorer/post/chaos_scorer.ts
   - [x] Clamp decimalHash to [0,1] range; current hash can be negative

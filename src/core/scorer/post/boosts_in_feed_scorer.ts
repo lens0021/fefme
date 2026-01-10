@@ -20,7 +20,9 @@ export default class BoostsInFeedScorer extends PostScorer {
 		// add 1 if both reblog & post are followed accounts
 		const reblog = post.reblog;
 		let boostCount = reblog.account.isFollowed ? 1 : 0;
-		const nonAuthorBoosts = reblog.reblogsBy.filter(
+		// Guard against missing reblogsBy (can be undefined for incomplete posts)
+		const reblogsBy = reblog.reblogsBy ?? [];
+		const nonAuthorBoosts = reblogsBy.filter(
 			(account) => account.webfingerURI != reblog.account.webfingerURI,
 		);
 		boostCount += nonAuthorBoosts.length;
