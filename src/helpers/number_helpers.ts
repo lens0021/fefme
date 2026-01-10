@@ -9,7 +9,8 @@ export function formatScores(scores: object | number): object | number {
 	if (typeof scores === "number") return formatScore(scores);
 
 	return Object.entries(scores).reduce((acc, [k, v]) => {
-		if (typeof v === "object" && v.raw === 0) {
+		// Guard against null before accessing properties (typeof null === "object")
+		if (typeof v === "object" && v !== null && v.raw === 0) {
 			return acc;
 		}
 

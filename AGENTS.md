@@ -659,7 +659,7 @@ Review the following files, and add TODO items for it.
   - [ ] Use a single source of truth for the list length (objList.length vs objList.objs.length) to avoid drift
 - [x] src/helpers/navigation.ts
 - [ ] src/helpers/number_helpers.ts
-  - [ ] Avoid assuming non-null objects in formatScores; guard null before accessing raw
+  - [x] Avoid assuming non-null objects in formatScores; guard null before accessing raw
 - [x] src/helpers/source_labels.ts
 - [ ] src/helpers/string_helpers.ts
   - [ ] isToday should compare full date (year/month/day) to avoid false positives across months
