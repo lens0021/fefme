@@ -689,8 +689,8 @@ Review the following files, and add TODO items for it.
   - [ ] Add fallback for browsers without matchMedia addEventListener (use addListener/removeListener)
 - [x] src/index.css
 - [x] src/index.tsx
-- [ ] src/pages/CallbackPage.tsx
-  - [ ] Handle non-OK token responses or missing access_token before continuing
+- [x] src/pages/CallbackPage.tsx
+  - [x] Handle non-OK token responses or missing access_token before continuing
 - [x] src/pages/Feed.tsx
 - [ ] src/pages/LoginPage.tsx
   - [ ] Type location.state instead of using any for redirect persistence

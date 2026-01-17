@@ -81,7 +81,29 @@ export default function CallbackPage() {
 			);
 			const oAuthResult = await fetch(oauthTokenURI, { method: "POST", body });
 			const json = await oAuthResult.json();
+
+			// Handle OAuth token request errors
+			if (!oAuthResult.ok) {
+				const errorDesc =
+					json.error_description || json.error || "Unknown error";
+				handleAuthError(
+					`OAuth token request failed (${oAuthResult.status})`,
+					`Server returned: ${errorDesc}. Try logging out and logging back in.`,
+					new Error(`OAuth token error: ${errorDesc}`),
+				);
+				return;
+			}
+
 			const accessToken = json.access_token;
+			if (!accessToken) {
+				handleAuthError(
+					"OAuth response missing access_token",
+					"The server did not return an access token. Try logging out and logging back in.",
+					new Error("Missing access_token in OAuth response"),
+				);
+				return;
+			}
+
 			const api = createRestAPIClient({
 				accessToken: accessToken,
 				url: server,
