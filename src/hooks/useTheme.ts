@@ -21,9 +21,20 @@ export function useTheme(): ThemeMode {
 			setTheme(e.matches ? "dark" : "light");
 		};
 
-		mediaQuery.addEventListener("change", handleChange);
+		// Use modern API with fallback for Safari < 14
+		if (mediaQuery.addEventListener) {
+			mediaQuery.addEventListener("change", handleChange);
+		} else {
+			mediaQuery.addListener(handleChange);
+		}
 
-		return () => mediaQuery.removeEventListener("change", handleChange);
+		return () => {
+			if (mediaQuery.removeEventListener) {
+				mediaQuery.removeEventListener("change", handleChange);
+			} else {
+				mediaQuery.removeListener(handleChange);
+			}
+		};
 	}, []);
 
 	// Apply theme to document root

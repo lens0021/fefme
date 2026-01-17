@@ -685,8 +685,8 @@ Review the following files, and add TODO items for it.
   - [x] Parse stored server value in getServer() to stay consistent with JSON.stringify usage
 - [ ] src/hooks/useOnScreen.tsx
   - [x] Disconnect IntersectionObserver on cleanup to avoid leaks when ref changes
-- [ ] src/hooks/useTheme.ts
-  - [ ] Add fallback for browsers without matchMedia addEventListener (use addListener/removeListener)
+- [x] src/hooks/useTheme.ts
+  - [x] Add fallback for browsers without matchMedia addEventListener (use addListener/removeListener)
 - [x] src/index.css
 - [x] src/index.tsx
 - [x] src/pages/CallbackPage.tsx
