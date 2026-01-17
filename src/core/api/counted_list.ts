@@ -116,11 +116,13 @@ export default class CountedList<T extends NamedTootCount> {
 	 * @returns {T} The object with the incremented numPosts.
 	 */
 	incrementCount(name: string, newObjDecorator?: (obj: T) => void): T {
-		let obj = this.nameDict[name];
+		// Normalize name to match getObj() and completeObjProperties() behavior
+		const normalizedName = name.trim().toLowerCase();
+		let obj = this.nameDict[normalizedName];
 
 		if (!obj) {
 			obj = this.completeObjProperties({ name, numPosts: 0 } as T);
-			this.nameDict[name] = obj;
+			this.nameDict[normalizedName] = obj;
 			this.objs.push(obj);
 			newObjDecorator?.(obj);
 		}

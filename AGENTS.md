@@ -448,7 +448,7 @@ Review the following files, and add TODO items for it.
   - [x] Avoid returning an empty array when apiMutex is locked for a foreground fetch; consider awaiting the mutex or returning cached rows to prevent accidental data loss.
   - [ ] Remove the cacheKey fallback hack in handleApiError() by guaranteeing cacheKey in params or throwing when missing.
 - [ ] src/core/api/counted_list.ts
-  - [ ] Normalize name input in incrementCount() (currently bypasses lowercasing used by getObj/completeObjProperties)
+  - [x] Normalize name input in incrementCount() (currently bypasses lowercasing used by getObj/completeObjProperties)
   - [ ] Avoid mutating the original object in completeObjProperties() or document the mutation side effect
 - [ ] src/core/api/errors.ts
   - [ ] Consider accepting unknown error shapes (Axios errors) and extracting status/message more robustly
