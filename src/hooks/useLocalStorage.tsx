@@ -125,15 +125,13 @@ function setServerProperties(
 ): void {
 	const server = getServer();
 	const [serverUsers, setServerUsers] = serverUserState;
-	serverUsers[server] ??= { app: app || null, user: user || null };
-
-	if (user !== undefined) {
-		serverUsers[server].user = user;
-	}
-
-	if (app !== undefined) {
-		serverUsers[server].app = app;
-	}
+	// Clone state to avoid mutation (React requires new references to detect changes)
+	const updatedServerUsers = { ...serverUsers };
+	const existingEntry = updatedServerUsers[server];
+	updatedServerUsers[server] = {
+		app: app !== undefined ? app : (existingEntry?.app ?? null),
+		user: user !== undefined ? user : (existingEntry?.user ?? null),
+	};
 
 	logger.trace(
 		`setServerProperties() for "${server}", app:`,
@@ -141,9 +139,9 @@ function setServerProperties(
 		"\nuser:",
 		user,
 		"\nserverUsers:",
-		serverUsers,
+		updatedServerUsers,
 	);
-	setServerUsers(serverUsers);
+	setServerUsers(updatedServerUsers);
 }
 
 function getValue<T>(storageKey: string): T {
@@ -169,5 +167,12 @@ function getServer(): string {
 		return config.app.defaultServer;
 	}
 
-	return server;
+	// Parse stored value to stay consistent with JSON.stringify usage
+	// Handle both JSON-encoded strings and legacy plain strings
+	try {
+		return JSON.parse(server);
+	} catch {
+		// Legacy format: plain string without JSON encoding
+		return server;
+	}
 }

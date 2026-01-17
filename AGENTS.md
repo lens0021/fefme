@@ -680,9 +680,9 @@ Review the following files, and add TODO items for it.
   - [ ] Background refresh useEffect (460-484): extract runBackgroundRefresh as separate function
   - [ ] Too many refs (7) - evaluate if some can be converted to state or removed
   - [ ] Consider extracting pending timeline promotion logic to a custom hook
-- [ ] src/hooks/useLocalStorage.tsx
-  - [ ] Avoid mutating serverUsers in place; clone state before setServerUsers to prevent stale renders
-  - [ ] Parse stored server value in getServer() to stay consistent with JSON.stringify usage
+- [x] src/hooks/useLocalStorage.tsx
+  - [x] Avoid mutating serverUsers in place; clone state before setServerUsers to prevent stale renders
+  - [x] Parse stored server value in getServer() to stay consistent with JSON.stringify usage
 - [ ] src/hooks/useOnScreen.tsx
   - [x] Disconnect IntersectionObserver on cleanup to avoid leaks when ref changes
 - [ ] src/hooks/useTheme.ts
