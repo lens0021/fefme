@@ -468,8 +468,8 @@ Review the following files, and add TODO items for it.
 - [ ] src/core/api/objects/tag.ts
   - [ ] Replace random tag IDs in buildTag() with deterministic IDs to improve caching and comparisons
   - [ ] Avoid mutating the input tag in repairTag() or clearly document the mutation
-- [ ] src/core/api/objects/trending_with_history.ts
-  - [ ] Avoid mutating incoming objects in decorateHistoryScores() (lowercases url in-place)
+- [x] src/core/api/objects/trending_with_history.ts
+  - [x] Avoid mutating incoming objects in decorateHistoryScores() (lowercases url in-place)
   - [x] Guard against NaN in history parsing when `uses`/`accounts` are missing or non-numeric
 - [ ] src/core/api/tag_list.ts
   - [ ] Cache or reuse followed tags/muted keywords when removing unwanted tags to avoid repeated API calls

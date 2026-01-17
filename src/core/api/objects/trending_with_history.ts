@@ -31,11 +31,11 @@ import type { TrendingLink, TrendingWithHistory } from "../../types";
  * Decorate a Mastodon {@linkcode https://docs.joinmastodon.org/entities/PreviewCard/#trends-link TrendLink}
  * with computed history data, adding {@linkcode numPosts} & {@linkcode numAccounts} properties.
  * @param {mastodon.v1.TrendLink} link - The TrendLink object to decorate.
- * @returns {TrendingLink} The decorated TrendingLink object.
+ * @returns {TrendingLink} A new decorated TrendingLink object (does not mutate input).
  */
 export function decorateLinkHistory(link: mastodon.v1.TrendLink): TrendingLink {
-	const newLink = link as TrendingLink;
-	newLink.regex = wordRegex(newLink.url);
+	// Clone to avoid mutating the input object
+	const newLink = { ...link, regex: wordRegex(link.url) } as TrendingLink;
 	return decorateHistoryScores(newLink);
 }
 
@@ -84,11 +84,13 @@ export function uniquifyTrendingObjs<T extends TrendingWithHistory>(
  * Add {@linkcode numPosts} & {@linkcode numAccounts} to the trending object by summing
  * {@linkcode config.trending.daysToCountTrendingData} of 'history'.
  * @template T
- * @param {T} obj - The trending object to decorate.
- * @returns {T} The decorated trending object.
+ * @param {T} inputObj - The trending object to decorate.
+ * @returns {T} A new decorated trending object (does not mutate input).
  */
-function decorateHistoryScores<T extends TrendingWithHistory>(obj: T): T {
-	obj.url = obj.url.toLowerCase().trim(); // TODO: not ideal for this to happen here
+function decorateHistoryScores<T extends TrendingWithHistory>(inputObj: T): T {
+	// Clone to avoid mutating the input object
+	const obj = { ...inputObj };
+	obj.url = obj.url.toLowerCase().trim();
 
 	if (!obj.history?.length) {
 		console.warn(`decorateHistoryScores() found no history for:`, obj);
