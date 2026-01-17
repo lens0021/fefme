@@ -42,8 +42,13 @@ export function isValidForSubstringSearch(tag: TagWithUsageCounts): boolean {
 	return tag.name.length > 1 && !config.posts.tagOnlyStrings.has(tag.name);
 }
 
-/** Lowercase the tag name, replace URL with one on homeserver. */
-export function repairTag(tag: TagWithUsageCounts): TagWithUsageCounts {
+/**
+ * Lowercase the tag name, replace URL with one on homeserver.
+ * Returns a new tag object (does not mutate input).
+ */
+export function repairTag(inputTag: TagWithUsageCounts): TagWithUsageCounts {
+	// Clone to avoid mutating the input object
+	const tag = { ...inputTag };
 	const language = detectForeignScriptLanguage(tag.name);
 	if (language) tag.language = language; // Don't set 'language' prop unnecessarily for space reasons
 
