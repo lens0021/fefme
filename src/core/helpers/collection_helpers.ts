@@ -5,13 +5,11 @@
 
 import {
 	chunk,
-	groupBy,
 	isFinite,
 	isNil,
 	keyBy,
 	map,
 	orderBy,
-	shuffle,
 	sum,
 	zipObject,
 } from "lodash";
@@ -55,37 +53,6 @@ type PromisesResults<T> = {
 };
 
 const BATCH_MAP = "batchMap()";
-
-/**
- * Groups an array by the result of {@linkcode makeKey()}.
- * @template T
- * @param {T[]} array - The array to group.
- * @param {(item: T) => string | number} makeKey - Function to get group key.
- * @returns {Record<string, T[]>} The grouped object.
- */
-export function groupByFxn<T>(
-	array: T[],
-	makeKey: (item: T) => string | number,
-): Record<string, T[]> {
-	return groupBy(array, makeKey) as Record<string, T[]>;
-}
-
-/**
- * Alias for groupByFxn for backward compatibility and clearer naming.
- */
-export const groupByAlias = groupByFxn;
-
-/**
- * Randomizes the order of an array.
- * @template T
- * @param {T[]} array - The array to shuffle.
- * @returns {T[]} The shuffled array.
- */
-export function shuffleArray<T extends string | number | object>(
-	array: T[],
-): T[] {
-	return shuffle(array);
-}
 
 /**
  * Adds up an arbitrary number of {@linkcode StringNumberDict}s, returning a new dict.
@@ -513,21 +480,15 @@ export async function resolvePromiseDict(
 	logger: Logger,
 	defaultValue: ((key: string) => unknown) | unknown = null,
 ): Promise<Record<string, any>> {
-	// Ensure order of keys and values // TODO: is this necessary?
-	const indexed = Object.entries(dict).reduce(
-		(keysAndValues, [k, v]) => {
-			keysAndValues[0].push(k);
-			keysAndValues[1].push(v);
-			return keysAndValues;
-		},
-		[[], []] as [string[], Promise<unknown>[]],
-	);
+	const entries = Object.entries(dict);
 
-	const resolved = (await Promise.allSettled(indexed[1])).map((r, i) => {
+	const resolved = (
+		await Promise.allSettled(entries.map(([, promise]) => promise))
+	).map((r, i) => {
 		if (r.status === "fulfilled") {
 			return r.value;
 		} else {
-			const failedKey = indexed[0][i];
+			const failedKey = entries[i][0];
 			logger.warn(
 				`resolvePromiseDict() - Promise for key "${failedKey}" failed with reason:`,
 				r.reason,
@@ -538,7 +499,10 @@ export async function resolvePromiseDict(
 		}
 	});
 
-	return zipArrays(indexed[0], resolved);
+	return zipArrays(
+		entries.map(([k]) => k),
+		resolved,
+	);
 }
 
 /**

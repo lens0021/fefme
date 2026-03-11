@@ -1,4 +1,4 @@
-import { mapValues, sum } from "lodash";
+import { flatMap, mapValues, sum, values } from "lodash";
 import type Post from "../api/objects/post";
 import type { StringNumberDict, TagWithUsageCounts } from "../types";
 import { sumValues } from "./collection_helpers";
@@ -51,13 +51,10 @@ class SuppressedHashtags {
 
 	/** Set of all {@linkcode Post} URIs that had a suppressed tag. */
 	private allTootURIs(): Set<string> {
-		const allUris = new Set<string>();
-		Object.values(this.languageTagURIs).forEach((tagTootURIs) => {
-			Object.values(tagTootURIs).forEach((set) => {
-				set.forEach((uri) => allUris.add(uri));
-			});
-		});
-		return allUris;
+		const allUris = flatMap(values(this.languageTagURIs), (tagTootURIs) =>
+			flatMap(values(tagTootURIs), (set) => [...set]),
+		);
+		return new Set(allUris);
 	}
 
 	/** Count of tag {@linkcode Post}s per language. */

@@ -37,6 +37,25 @@ export function addMimeExtensionsToServer(
 	}
 }
 
+/** Return file extensions for an audio MIME type. */
+function audioExtensions(mimeType: string): string[] {
+	return [mimeTypeExtension(mimeType)];
+}
+
+/** Return file extensions for an image MIME type (adds .jpg alias for jpeg). */
+function imageExtensions(mimeType: string, fileType: string): string[] {
+	const exts = [mimeTypeExtension(mimeType)];
+	if (fileType === "jpeg") exts.push(".jpg");
+	return exts;
+}
+
+/** Return file extensions for a video MIME type (adds .mov alias for quicktime). */
+function videoExtensions(mimeType: string): string[] {
+	return mimeType === "video/quicktime"
+		? [".mov"]
+		: [mimeTypeExtension(mimeType)];
+}
+
 // Build a map of MIME types to file extensions used for media uploads.
 function buildMimeExtensions(mimeTypes: string[]): MimeExtensions {
 	const mimeExtensions = mimeTypes.reduce((acc, mimeType) => {
@@ -45,22 +64,15 @@ function buildMimeExtensions(mimeTypes: string[]): MimeExtensions {
 
 		if (category === MediaCategory.AUDIO) {
 			acc[MIME_GROUPS[MediaCategory.AUDIO]] ||= [];
-			acc[MIME_GROUPS[MediaCategory.AUDIO]].push(mimeTypeExtension(mimeType));
+			acc[MIME_GROUPS[MediaCategory.AUDIO]].push(...audioExtensions(mimeType));
 		} else if (category === MediaCategory.IMAGE) {
 			acc[MIME_GROUPS[MediaCategory.IMAGE]] ||= [];
-			acc[MIME_GROUPS[MediaCategory.IMAGE]].push(mimeTypeExtension(mimeType));
-
-			if (fileType === "jpeg") {
-				acc[MIME_GROUPS[MediaCategory.IMAGE]].push(".jpg"); // Add .jpg extension support
-			}
+			acc[MIME_GROUPS[MediaCategory.IMAGE]].push(
+				...imageExtensions(mimeType, fileType),
+			);
 		} else if (category === MediaCategory.VIDEO) {
 			acc[MIME_GROUPS[MediaCategory.VIDEO]] ||= [];
-
-			if (mimeType === "video/quicktime") {
-				acc[MIME_GROUPS[MediaCategory.VIDEO]].push(".mov"); // Add .mov extension support
-			} else {
-				acc[MIME_GROUPS[MediaCategory.VIDEO]].push(mimeTypeExtension(mimeType));
-			}
+			acc[MIME_GROUPS[MediaCategory.VIDEO]].push(...videoExtensions(mimeType));
 		} else {
 			appLogger.warn(
 				`Unknown MIME type in home server's attachmentsConfig: ${mimeType}`,

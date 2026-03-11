@@ -5,7 +5,7 @@
  */
 import { capitalCase } from "change-case";
 import { Type } from "class-transformer";
-import { isEmpty, isFinite, sum } from "lodash";
+import { groupBy, isEmpty, isFinite, sum } from "lodash";
 import type { mastodon } from "masto";
 import type { QuoteApproval } from "masto/dist/esm/mastodon/entities/v1/quote-approval.js";
 
@@ -21,7 +21,6 @@ import {
 	asOptionalArray,
 	batchMap,
 	filterWithLog,
-	groupByFxn,
 	sortObjsByProps,
 	split,
 	uniquify,
@@ -1240,7 +1239,10 @@ export default class Post implements PostObj {
 	static dedupePosts(posts: Post[], inLogger?: Logger): Post[] {
 		inLogger ||= postLogger;
 		const logger = inLogger.tempLogger("dedupePosts()");
-		const postsByURI = groupByFxn<Post>(posts, (post) => post.realURI);
+		const postsByURI = groupBy<Post>(posts, (post) => post.realURI) as Record<
+			string,
+			Post[]
+		>;
 
 		// Collect the properties of a single Post from all the instances of the same URI (we can
 		// encounter the same Post both in the user's feed as well as in a Trending post list).

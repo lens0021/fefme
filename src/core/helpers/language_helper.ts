@@ -264,6 +264,16 @@ const IGNORE_LANGUAGES: StringSet = new Set([
 
 const LANG_DETECTOR_OVERCONFIDENT_LANGS: StringSet = new Set(["da", "fr"]);
 
+/** Returns true if the language should be completely ignored (e.g. Klingon, Esperanto). */
+function isIgnoredLanguage(lang: string): boolean {
+	return IGNORE_LANGUAGES.has(lang);
+}
+
+/** Returns true if the tinyld library tends to be overconfident about the given language. */
+function isOverconfidentLanguage(lang: string): boolean {
+	return LANG_DETECTOR_OVERCONFIDENT_LANGS.has(lang);
+}
+
 // Arrives ordered by accuracy
 type LanguageAccuracies = { accuracy: number; lang: string }[];
 
@@ -285,90 +295,113 @@ export const languageName = (code: string) =>
 	LANGUAGE_CODES[code] ? capitalCase(LANGUAGE_CODES[code]) : code;
 
 /**
+ * Suppress tinyld results for ignored or overconfident languages, mutating langInfoFromTinyLD in place.
+ * @param {DetectLangLibraryResult} tinyLD - The tinyld result to sanitize.
+ * @param {DetectLangLibraryResult} langDetector - The langdetect result for cross-checking overconfidence.
+ * @param {string} text - Original text (for warning messages).
+ */
+function sanitizeTinyLDResult(
+	tinyLD: DetectLangLibraryResult,
+	langDetector: DetectLangLibraryResult,
+	text: string,
+): void {
+	if (!tinyLD.chosenLang) return;
+
+	// Ignore Klingon, Esperanto, etc.
+	if (isIgnoredLanguage(tinyLD.chosenLang)) {
+		tinyLD.chosenLang = undefined;
+		tinyLD.accuracy = 0;
+		return;
+	}
+
+	// tinyld is overconfident about some languages (e.g. Danish, French)
+	if (
+		isOverconfidentLanguage(tinyLD.chosenLang) &&
+		langDetector.chosenLang != tinyLD.chosenLang &&
+		tinyLD.accuracy > VERY_HIGH_LANG_ACCURACY
+	) {
+		let msg = `"${tinyLD.chosenLang}" is overconfident (${tinyLD.accuracy}) for "${text}"!`;
+
+		// Use the 2nd language if available, otherwise set accuracy to 0.1
+		if (tinyLD.languageAccuracies.length > 1) {
+			const newLangInfo = tinyLD.languageAccuracies[1];
+			tinyLD.chosenLang = newLangInfo.lang;
+			tinyLD.accuracy = newLangInfo.accuracy;
+			msg += ` Replaced it with "${tinyLD.chosenLang}" (${tinyLD.accuracy})`;
+		} else {
+			tinyLD.accuracy = 0.1;
+		}
+
+		console.warn(msg, langDetector);
+	}
+}
+
+/**
+ * Pick the best language from two detector results. Returns undefined if neither detector
+ * is confident enough.
+ * @param {DetectLangLibraryResult} tinyLD - The sanitized tinyld result.
+ * @param {DetectLangLibraryResult} langDetector - The langdetect result.
+ * @returns {string | undefined} The chosen language code, or undefined.
+ */
+function pickBestLanguage(
+	tinyLD: DetectLangLibraryResult,
+	langDetector: DetectLangLibraryResult,
+): string | undefined {
+	const accuracies = [tinyLD.accuracy, langDetector.accuracy];
+
+	// tinyld is much better at detecting foreign scripts — trust it with high accuracy
+	if (
+		tinyLD.accuracy >= VERY_HIGH_LANG_ACCURACY &&
+		FOREIGN_SCRIPTS.has(tinyLD.chosenLang)
+	) {
+		return tinyLD.chosenLang;
+	}
+
+	// If both detectors agree on the language and one is MIN_LANG_ACCURACY or both are half MIN_LANG_ACCURACY use that
+	if (
+		tinyLD.chosenLang &&
+		tinyLD.chosenLang == langDetector.chosenLang &&
+		(accuracies.some((a) => a > MIN_LANG_DETECTOR_ACCURACY) || // TODO: use isaccurate?
+			accuracies.every((a) => a > MIN_TINYLD_ACCURACY / 2))
+	) {
+		return tinyLD.chosenLang;
+	}
+
+	// Detectors disagree — use the one that's accurate if the other is very uncertain
+	if (
+		tinyLD.chosenLang &&
+		langDetector.chosenLang &&
+		tinyLD.chosenLang != langDetector.chosenLang
+	) {
+		if (langDetector.isAccurate && tinyLD.accuracy < OVERRULE_LANG_ACCURACY) {
+			return langDetector.chosenLang;
+		} else if (
+			tinyLD.isAccurate &&
+			langDetector.accuracy < OVERRULE_LANG_ACCURACY
+		) {
+			return tinyLD.chosenLang;
+		}
+	}
+
+	return undefined;
+}
+
+/**
  * Use the two different language detectors to guess a language.
  * @param {string} text - The text to detect the language of.
  * @returns {LanguageDetectInfo} The detected language information.
  */
 export function detectLanguage(text: string): LanguageDetectInfo {
-	const langInfoFromLangDetector = detectLangWithLangDetector(text);
-	const langInfoFromTinyLD = detectLangWithTinyLD(text);
-	// We will set determinedLang to be a high confidence guess (if we find one)
-	let chosenLanguage: string | undefined;
+	const langDetector = detectLangWithLangDetector(text);
+	const tinyLD = detectLangWithTinyLD(text);
 
-	if (langInfoFromTinyLD.chosenLang) {
-		// Ignore Klingon etc.
-		if (IGNORE_LANGUAGES.has(langInfoFromTinyLD.chosenLang)) {
-			langInfoFromTinyLD.chosenLang = undefined;
-			langInfoFromTinyLD.accuracy = 0;
-		}
-
-		// tinyld is overconfident about some languages
-		if (
-			LANG_DETECTOR_OVERCONFIDENT_LANGS.has(langInfoFromTinyLD.chosenLang) &&
-			langInfoFromLangDetector.chosenLang != langInfoFromTinyLD.chosenLang &&
-			langInfoFromTinyLD.accuracy > VERY_HIGH_LANG_ACCURACY
-		) {
-			let msg = `"${langInfoFromTinyLD.chosenLang}" is overconfident (${langInfoFromTinyLD.accuracy}) for "${text}"!`;
-
-			// Use the 2nd language if available, otherwise set accuracy to 0.1
-			if (langInfoFromTinyLD.languageAccuracies.length > 1) {
-				const newLangInfo = langInfoFromTinyLD.languageAccuracies[1];
-				langInfoFromTinyLD.chosenLang = newLangInfo.lang;
-				langInfoFromTinyLD.accuracy = newLangInfo.accuracy;
-				msg += ` Replaced it with "${langInfoFromTinyLD.chosenLang}" (${langInfoFromTinyLD.accuracy})`;
-			} else {
-				langInfoFromTinyLD.accuracy = 0.1;
-			}
-
-			console.warn(msg, langInfoFromLangDetector);
-		}
-	}
-
-	const accuracies = [
-		langInfoFromTinyLD.accuracy,
-		langInfoFromLangDetector.accuracy,
-	];
-
-	// If both detectors agree on the language and one is MIN_LANG_ACCURACY or both are half MIN_LANG_ACCURACY use that
-	if (
-		langInfoFromTinyLD.chosenLang &&
-		langInfoFromTinyLD.chosenLang == langInfoFromLangDetector.chosenLang &&
-		(accuracies.some((a) => a > MIN_LANG_DETECTOR_ACCURACY) || // TODO: use isaccurate?
-			accuracies.every((a) => a > MIN_TINYLD_ACCURACY / 2))
-	) {
-		chosenLanguage = langInfoFromTinyLD.chosenLang;
-	} else if (
-		langInfoFromTinyLD.chosenLang &&
-		langInfoFromLangDetector.chosenLang &&
-		langInfoFromTinyLD.chosenLang != langInfoFromLangDetector.chosenLang
-	) {
-		// if firstLangFromLangDetector.accuracy is high enough and detectedLang is low enough
-		if (
-			langInfoFromLangDetector.isAccurate &&
-			langInfoFromTinyLD.accuracy < OVERRULE_LANG_ACCURACY
-		) {
-			chosenLanguage = langInfoFromLangDetector.chosenLang;
-		} else if (
-			langInfoFromTinyLD.isAccurate &&
-			langInfoFromLangDetector.accuracy < OVERRULE_LANG_ACCURACY
-		) {
-			chosenLanguage = langInfoFromTinyLD.chosenLang;
-		}
-	}
-
-	// tinyld is much better at detecting foreign scripts
-	if (
-		langInfoFromTinyLD.accuracy >= VERY_HIGH_LANG_ACCURACY &&
-		FOREIGN_SCRIPTS.has(langInfoFromTinyLD.chosenLang)
-	) {
-		// console.debug(`"${detectedLang}" is foreign script w/high accuracy, using it as determinedLang for "${text}"`);
-		chosenLanguage = langInfoFromTinyLD.chosenLang;
-	}
+	sanitizeTinyLDResult(tinyLD, langDetector, text);
+	const chosenLanguage = pickBestLanguage(tinyLD, langDetector);
 
 	return {
 		chosenLanguage,
-		langDetector: langInfoFromLangDetector,
-		tinyLD: langInfoFromTinyLD,
+		langDetector,
+		tinyLD,
 	};
 }
 
