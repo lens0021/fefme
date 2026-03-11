@@ -1,3 +1,4 @@
+import { findKey, mapValues } from "lodash";
 import { capitalCase } from "change-case";
 /**
  * @fileoverview Helpers to try to guess the language text is written in.
@@ -237,12 +238,9 @@ const LANGUAGE_CHAR_CLASSES: Record<string, string> = {
 } as const;
 
 // Matches if whole string is language + numbers OR if there's at least three characters in that language somewhere in the string
-const LANGUAGE_REGEXES = Object.entries(LANGUAGE_CHAR_CLASSES).reduce(
-	(regexes, [lang, chars]) => {
-		regexes[lang] = new RegExp(`^[${chars}\\d]+$|[${chars}]{3}`, "iv"); // 'v' flag is for unicode sets
-		return regexes;
-	},
-	{} as Record<string, RegExp>,
+const LANGUAGE_REGEXES = mapValues(
+	LANGUAGE_CHAR_CLASSES,
+	(chars) => new RegExp(`^[${chars}\\d]+$|[${chars}]{3}`, "iv"),
 );
 
 const LANG_DETECTOR = new LanguageDetect();
@@ -381,11 +379,8 @@ export function detectLanguage(text: string): LanguageDetectInfo {
  * @returns {string|undefined} The language code if detected, otherwise undefined.
  */
 export function detectForeignScriptLanguage(str: string): string | undefined {
-	for (const [language, regex] of Object.entries(LANGUAGE_REGEXES)) {
-		if (regex.test(str) && !isNumberOrNumberString(str)) {
-			return language;
-		}
-	}
+	if (isNumberOrNumberString(str)) return undefined;
+	return findKey(LANGUAGE_REGEXES, (regex) => regex.test(str));
 }
 
 function buildLangDetectResult(

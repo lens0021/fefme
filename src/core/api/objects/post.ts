@@ -5,7 +5,7 @@
  */
 import { capitalCase } from "change-case";
 import { Type } from "class-transformer";
-import { isEmpty, isFinite } from "lodash";
+import { isEmpty, isFinite, sum } from "lodash";
 import type { mastodon } from "masto";
 import type { QuoteApproval } from "masto/dist/esm/mastodon/entities/v1/quote-approval.js";
 
@@ -24,7 +24,6 @@ import {
 	groupByFxn,
 	sortObjsByProps,
 	split,
-	sumArray,
 	uniquify,
 	uniquifyByProp,
 } from "../../helpers/collection_helpers";
@@ -317,7 +316,7 @@ export default class Post implements PostObj {
 		return this.editedAt || this.createdAt;
 	}
 	get popularity() {
-		return sumArray([
+		return sum([
 			this.favouritesCount,
 			this.reblogsCount,
 			this.repliesCount,

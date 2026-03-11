@@ -1,3 +1,5 @@
+import { max, min } from "date-fns";
+import { sumBy } from "lodash";
 import { earliestTootedAt, mostRecentTootedAt } from "../api/objects/post";
 import { computeMinMax } from "../helpers/collection_helpers";
 import {
@@ -40,9 +42,8 @@ export function getDataStats(state: CoordinatorState): {
 	mostRecentCachedTime: Date | null;
 	sourceStats: Record<PostSource, SourceStats>;
 } {
-	const unseenTotal = state.feed.reduce(
-		(sum, post) => sum + ((post.numTimesShown ?? 0) > 0 ? 0 : 1),
-		0,
+	const unseenTotal = sumBy(state.feed, (post) =>
+		(post.numTimesShown ?? 0) > 0 ? 0 : 1,
 	);
 
 	let oldestCachedTime: Date | null = null;
@@ -50,12 +51,8 @@ export function getDataStats(state: CoordinatorState): {
 
 	if (state.feed.length > 0) {
 		const dates = state.feed.map((post) => new Date(post.createdAt));
-		mostRecentCachedTime = dates.reduce((latest, current) =>
-			current > latest ? current : latest,
-		);
-		oldestCachedTime = dates.reduce((earliest, current) =>
-			current < earliest ? current : earliest,
-		);
+		mostRecentCachedTime = max(dates);
+		oldestCachedTime = min(dates);
 	}
 
 	return {

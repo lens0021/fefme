@@ -204,21 +204,19 @@ export class Logger {
 		msg: string,
 		obj: Record<string, Date | OptionalString | boolean | number>,
 	) {
-		const propStrings: string[] = Object.entries(obj).reduce(
-			(propStrs, [k, v]) => {
-				if (typeof v === "string") {
-					v = quoted(v);
-				} else if (isNil(v)) {
-					v = isNull(v) ? "null" : "undefined";
-				} else if (v instanceof Date) {
-					v = quotedISOFmt(v);
-				}
-
-				propStrs.push(`${k}=${v}`);
-				return propStrs;
-			},
-			[] as string[],
-		);
+		const propStrings = Object.entries(obj).map(([k, v]) => {
+			let valStr: string;
+			if (typeof v === "string") {
+				valStr = quoted(v);
+			} else if (isNil(v)) {
+				valStr = isNull(v) ? "null" : "undefined";
+			} else if (v instanceof Date) {
+				valStr = quotedISOFmt(v);
+			} else {
+				valStr = String(v);
+			}
+			return `${k}=${valStr}`;
+		});
 
 		this.info(propStrings.length ? `${msg}: ${propStrings.join(", ")}` : msg);
 	}

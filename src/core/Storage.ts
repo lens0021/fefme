@@ -1,10 +1,10 @@
-import { instanceToPlain, plainToInstance } from "class-transformer";
 /*
  * Use localForage to store and retrieve data from the browser's IndexedDB storage.
  */
 import localForage from "localforage";
-import { isFinite } from "lodash";
+import { cloneDeep, defaults, isFinite, mapValues, pickBy } from "lodash";
 import type { mastodon } from "masto";
+import { instanceToPlain, plainToInstance } from "class-transformer";
 
 import MastoApi from "./api/api";
 import Account from "./api/objects/account";
@@ -165,7 +165,7 @@ export default class Storage {
 	/** Return the user's stored timeline weightings or the default weightings if none are found. */
 	static async getWeights(): Promise<Weights> {
 		const weights = (await this.get(CoordinatorStorageKey.WEIGHTS)) as Weights;
-		if (!weights) return JSON.parse(JSON.stringify(DEFAULT_WEIGHTS)) as Weights;
+		if (!weights) return cloneDeep(DEFAULT_WEIGHTS);
 		let shouldSave = false;
 
 		// Remove any keys that no longer map to a known weight name.
@@ -178,17 +178,24 @@ export default class Storage {
 		});
 
 		// If there are stored weights set any missing values to the default (possible in case of upgrades)
-		Object.entries(DEFAULT_WEIGHTS).forEach(([key, defaultValue]) => {
-			const value = weights[key as WeightName];
+		const originalWeights = { ...weights };
+		defaults(weights, DEFAULT_WEIGHTS);
 
-			if (!isFinite(value)) {
+		// If any values were non-finite (NaN or null) or missing, they've been filled with defaults
+		// We check for finite values manually as defaults() only fills missing/undefined
+		Object.entries(DEFAULT_WEIGHTS).forEach(([key, defaultValue]) => {
+			if (!isFinite(weights[key as WeightName])) {
 				logger.warn(
-					`Missing value for "${key}" in saved weights, setting to default: ${defaultValue}`,
+					`Non-finite value for "${key}" in saved weights, resetting to default: ${defaultValue}`,
 				);
 				weights[key as WeightName] = DEFAULT_WEIGHTS[key as WeightName];
 				shouldSave = true;
 			}
 		});
+
+		if (Object.keys(originalWeights).length !== Object.keys(weights).length) {
+			shouldSave = true;
+		}
 
 		// If any changes were made to the Storage weightings, save them back to storage
 		if (shouldSave) {
@@ -348,56 +355,50 @@ export default class Storage {
 		storedData[CoordinatorStorageKey.USER] = await this.getIdentity(); // Stored differently
 		let totalBytes = 0;
 
-		const detailedInfo = Object.entries(storedData).reduce(
-			(info, [key, obj]) => {
-				if (obj) {
-					const value =
-						key == CoordinatorStorageKey.USER
-							? obj
-							: (obj as StorableWithTimestamp).value;
-					const sizes = new BytesDict();
-					const sizeInBytes = sizeOf(value, sizes);
-					totalBytes += sizeInBytes;
+		const detailedInfo = mapValues(storedData, (obj, key) => {
+			if (!obj) return null;
+			const value =
+				key == CoordinatorStorageKey.USER
+					? obj
+					: (obj as StorableWithTimestamp).value;
+			const sizes = new BytesDict();
+			const sizeInBytes = sizeOf(value, sizes);
+			totalBytes += sizeInBytes;
 
-					info[key] = {
-						bytes: sizeInBytes,
-						bytesStr: byteString(sizeInBytes),
-						sizeOfByType: sizes.toBytesStringDict(), // kind of janky way to find out what % of storage is numbers, strings, etc.
-						sizeFromTextEncoder: sizeFromTextEncoder(value),
-					};
+			const info: any = {
+				bytes: sizeInBytes,
+				bytesStr: byteString(sizeInBytes),
+				sizeOfByType: sizes.toBytesStringDict(), // kind of janky way to find out what % of storage is numbers, strings, etc.
+				sizeFromTextEncoder: sizeFromTextEncoder(value),
+			};
 
-					if (Array.isArray(value)) {
-						info[key]!.numElements = value.length;
-						info[key]!.type = "array";
-					} else if (typeof value === "object") {
-						info[key]!.numKeys = Object.keys(value).length;
-						info[key]!.type = "object";
-					} else {
-						logger.warn(`Unknown type for key "${key}":`, value);
-					}
-				} else {
-					info[key] = null;
-				}
+			if (Array.isArray(value)) {
+				info.numElements = value.length;
+				info.type = "array";
+			} else if (typeof value === "object") {
+				info.numKeys = Object.keys(value).length;
+				info.type = "object";
+			} else {
+				logger.warn(`Unknown type for key "${key}":`, value);
+			}
 
-				return info;
-			},
-			{} as Record<string, any>,
-		);
+			return info;
+		});
 
 		detailedInfo.totalBytes = totalBytes;
 		detailedInfo.totalBytesStr = byteString(totalBytes);
 
 		// Compute summary stats that are easier to read
-		const summary = Object.entries(detailedInfo).reduce(
-			(summary, [key, value]) => {
-				if (key.startsWith(MastoApi.instance.user.id) && value?.numElements) {
-					summary[key.split("_")[1] + "NumRows"] = value.numElements;
-				}
-
-				return summary; // Only include storage for this user
-			},
-			{} as StringNumberDict,
-		);
+		const summary = Object.entries(
+			pickBy(
+				detailedInfo,
+				(value, key) =>
+					key.startsWith(MastoApi.instance.user.id) && value?.numElements,
+			),
+		).reduce((summary, [key, value]) => {
+			summary[key.split("_")[1] + "NumRows"] = (value as any).numElements;
+			return summary;
+		}, {} as StringNumberDict);
 
 		return { detailedInfo, lastUpdatedAt: this.lastUpdatedAt, summary };
 	}

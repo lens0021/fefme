@@ -1,3 +1,4 @@
+import { mapKeys } from "lodash";
 import {
 	CoordinatorStorageKey,
 	CacheKey,
@@ -25,12 +26,8 @@ const SOURCE_LABELS: Record<string, string> = {
 const normalizeSourceKey = (source: string): string =>
 	source.replace(/[^a-z0-9]/gi, "").toLowerCase();
 
-const NORMALIZED_SOURCE_LABELS = Object.entries(SOURCE_LABELS).reduce(
-	(labels, [key, label]) => {
-		labels[normalizeSourceKey(key)] = label;
-		return labels;
-	},
-	{} as Record<string, string>,
+const NORMALIZED_SOURCE_LABELS = mapKeys(SOURCE_LABELS, (_label, key) =>
+	normalizeSourceKey(key),
 );
 
 export const formatSourceLabel = (source: string): string => {

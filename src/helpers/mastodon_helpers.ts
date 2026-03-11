@@ -1,6 +1,7 @@
 /*
  * Functions for dealing with Mastodon API and data structures.
  */
+import { keyBy, mapValues } from "lodash";
 import type { mastodon } from "masto";
 import { MediaCategory } from "../core/index";
 
@@ -14,13 +15,7 @@ export interface MastodonServer extends mastodon.v2.Instance {
 // Map of server's allowed MIME types to file extensions
 type MimeExtensions = Record<string, string[]>;
 
-const MIME_GROUPS = Object.values(MediaCategory).reduce(
-	(acc, value) => {
-		acc[value] = `${value}/*`;
-		return acc;
-	},
-	{} as Record<MediaCategory, string>,
-);
+const MIME_GROUPS = mapValues(MediaCategory, (v) => `${v}/*`);
 
 // Populate our mimeExtensions field in the mastodon.v2.Instance object based on the server's configuration.
 export function addMimeExtensionsToServer(

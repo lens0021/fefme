@@ -1,8 +1,4 @@
-/**
- * Enums (and a few enum related helper methods and constants) used by Fefme.
- * @module enums
- */
-
+import { filter, fromPairs, map, values } from "lodash";
 import type { Optional } from "./types";
 
 /**
@@ -210,47 +206,40 @@ type UniqueIdProperties = Record<ApiCacheKey, ApiObjUniqueProperty>;
 ///////////////////////////
 
 export const ALL_ACTIONS = [
-	...Object.values(LoadAction),
-	...Object.values(LogAction),
+	...values(LoadAction),
+	...values(LogAction),
 ] as const;
 
 export const ALL_CACHE_KEYS = [
-	...Object.values(CacheKey),
-	...Object.values(FediverseCacheKey),
-	...Object.values(TagPostsCategory),
+	...values(CacheKey),
+	...values(FediverseCacheKey),
+	...values(TagPostsCategory),
 ] as const;
 
 // Objects fetched with these keys need to be built into proper Account objects.
-export const STORAGE_KEYS_WITH_ACCOUNTS: StorageKey[] = Object.entries(
-	CacheKey,
-).reduce((keys, [k, v]) => (k.endsWith("_ACCOUNTS") ? keys.concat(v) : keys), [
+export const STORAGE_KEYS_WITH_ACCOUNTS: StorageKey[] = [
+	...filter(values(CacheKey), (v) => v.includes("Accounts")),
 	CacheKey.FOLLOWERS,
-] as StorageKey[]);
+];
 
 // Objects fetched with these keys need to be built into proper Post objects.
-export const STORAGE_KEYS_WITH_POSTS = Object.entries(CacheKey)
-	.reduce((keys, [k, v]) => (k.endsWith("_POSTS") ? keys.concat(v) : keys), [
-		CoordinatorStorageKey.TIMELINE_POSTS,
-		CoordinatorStorageKey.VISIBLE_TIMELINE_POSTS,
-		CoordinatorStorageKey.NEXT_VISIBLE_TIMELINE_POSTS,
-		FediverseCacheKey.TRENDING_POSTS,
-	] as StorageKey[])
-	.concat(Object.values(TagPostsCategory));
+export const STORAGE_KEYS_WITH_POSTS: StorageKey[] = [
+	...filter(values(CacheKey), (v) => v.includes("Posts")),
+	CoordinatorStorageKey.TIMELINE_POSTS,
+	CoordinatorStorageKey.VISIBLE_TIMELINE_POSTS,
+	CoordinatorStorageKey.NEXT_VISIBLE_TIMELINE_POSTS,
+	FediverseCacheKey.TRENDING_POSTS,
+	...values(TagPostsCategory),
+];
 
 // The property that can be used to uniquely identify objects stored at that ApiCacheKey.
 export const UNIQUE_ID_PROPERTIES: UniqueIdProperties = {
-	...STORAGE_KEYS_WITH_POSTS.reduce((dict, key) => {
-		dict[key as ApiCacheKey] = "uri";
-		return dict;
-	}, {} as UniqueIdProperties),
-	...STORAGE_KEYS_WITH_ACCOUNTS.reduce((dict, key) => {
-		dict[key as ApiCacheKey] = "webfingerURI"; // Accounts have a 'webfingerURI' property
-		return dict;
-	}, {} as UniqueIdProperties),
+	...fromPairs(map(STORAGE_KEYS_WITH_POSTS, (key) => [key, "uri"])),
+	...fromPairs(map(STORAGE_KEYS_WITH_ACCOUNTS, (key) => [key, "webfingerURI"])),
 	[CacheKey.FOLLOWED_TAGS]: "name", // Followed tags have a 'name' property
 	[CacheKey.NOTIFICATIONS]: "id",
 	[CacheKey.SERVER_SIDE_FILTERS]: "id", // Filters have an 'id' property
-} as const;
+} as UniqueIdProperties;
 
 export const FEDERATED_TIMELINE_SOURCE = "FederatedTimeline";
 export const UNKNOWN_SOURCE = "Unknown";
@@ -323,7 +312,7 @@ export function buildCacheKeyDict<
 	initialDict?: Optional<Record<K, T>>,
 	keys?: ApiCacheKey[],
 ): CachedByKey<K, T, D> {
-	return (keys ?? ALL_CACHE_KEYS).reduce(
+	return (keys ?? (ALL_CACHE_KEYS as unknown as ApiCacheKey[])).reduce(
 		(dict, key) => {
 			dict[key] = fxn(key);
 			return dict;
@@ -346,7 +335,7 @@ export function simpleCacheKeyDict<T>(fxn: () => T, keys?: ApiCacheKey[]) {
 export function isValueInStringEnum<E extends string>(
 	strEnum: Record<string, E>,
 ): (str: string) => boolean {
-	const enumValues = new Set(Object.values(strEnum) as string[]);
+	const enumValues = new Set(values(strEnum) as string[]);
 	return (str: string): str is E => enumValues.has(str);
 }
 

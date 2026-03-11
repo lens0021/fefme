@@ -1,3 +1,4 @@
+import { mapValues, sum } from "lodash";
 import type Post from "../api/objects/post";
 import type { StringNumberDict, TagWithUsageCounts } from "../types";
 import { sumValues } from "./collection_helpers";
@@ -50,36 +51,26 @@ class SuppressedHashtags {
 
 	/** Set of all {@linkcode Post} URIs that had a suppressed tag. */
 	private allTootURIs(): Set<string> {
-		return Object.values(this.languageTagURIs).reduce(
-			(uris, tagTootURIs: TagPostUris) => {
-				Object.values(tagTootURIs).forEach(
-					(set) => (uris = new Set([...uris, ...set])),
-				);
-				return uris;
-			},
-			new Set<string>(),
-		);
+		const allUris = new Set<string>();
+		Object.values(this.languageTagURIs).forEach((tagTootURIs) => {
+			Object.values(tagTootURIs).forEach((set) => {
+				set.forEach((uri) => allUris.add(uri));
+			});
+		});
+		return allUris;
 	}
 
 	/** Count of tag {@linkcode Post}s per language. */
 	private languageCounts(): StringNumberDict {
-		return Object.entries(this.tagLanguageCounts()).reduce(
-			(counts, [language, tagCounts]) => {
-				counts[language] = sumValues(tagCounts);
-				return counts;
-			},
-			{} as StringNumberDict,
+		return mapValues(this.tagLanguageCounts(), (tagCounts) =>
+			sumValues(tagCounts),
 		);
 	}
 
 	/** Count of tag {@linkcode Post}s per language / tag. */
 	private tagLanguageCounts(): TagLanguageCounts {
-		return Object.entries(this.languageTagURIs).reduce(
-			(langTagCounts, [language, postURIs]) => {
-				langTagCounts[language] = this.uriCounts(postURIs);
-				return langTagCounts;
-			},
-			{} as TagLanguageCounts,
+		return mapValues(this.languageTagURIs, (postURIs) =>
+			this.uriCounts(postURIs),
 		);
 	}
 
@@ -91,10 +82,7 @@ class SuppressedHashtags {
 	 * @returns {StringNumberDict} Mapping of tag names to counts of Post URIs.
 	 */
 	private uriCounts(postURIs: TagPostUris): StringNumberDict {
-		return Object.entries(postURIs).reduce((acc, [tag, uris]) => {
-			acc[tag] = uris.size;
-			return acc;
-		}, {} as StringNumberDict);
+		return mapValues(postURIs, (uris) => uris.size);
 	}
 }
 

@@ -9,6 +9,8 @@ import {
 	isFinite,
 	isNil,
 	keyBy,
+	map,
+	orderBy,
 	shuffle,
 	sum,
 	zipObject,
@@ -586,43 +588,19 @@ export function sortObjsByProps<T extends object>(
 	ascending?: boolean | boolean[],
 	ignoreCase?: boolean,
 ): T[] {
-	ascending ||= false;
 	const props = Array.isArray(prop) ? prop : [prop];
 	const ascendings = Array.isArray(ascending) ? ascending : [ascending];
-	if (props.length > 2)
-		throw new Error(
-			"sortObjsByProps() only supports 2 properties for sorting for now",
-		);
+	const orders = map(ascendings, (asc) => (asc ? "asc" : "desc"));
 
-	return array.toSorted((a: T, b: T) => {
-		let aVal: T[keyof T] | string = a[props[0]];
-		let bVal: T[keyof T] | string = b[props[0]];
-		let ascending = ascendings[0];
+	if (ignoreCase) {
+		const iterators = map(props, (p) => (item: T) => {
+			const val = item[p];
+			return typeof val === "string" ? val.toLowerCase() : val;
+		});
+		return orderBy(array, iterators, orders);
+	}
 
-		if (ignoreCase && typeof aVal == "string" && typeof bVal == "string") {
-			aVal = aVal.toLowerCase();
-			bVal = bVal.toLowerCase();
-		}
-
-		if (aVal < bVal) return ascending ? -1 : 1;
-		if (aVal > bVal) return ascending ? 1 : -1;
-		if (props.length == 1) return 0;
-
-		// Compare second property
-		aVal = a[props[1]];
-		bVal = b[props[1]];
-		ascending = ascendings.length > 1 ? ascendings[1] : ascendings[0];
-
-		if (ignoreCase && typeof aVal == "string" && typeof bVal == "string") {
-			aVal = aVal.toLowerCase();
-			bVal = bVal.toLowerCase();
-		}
-
-		if (aVal < bVal) return ascending ? -1 : 1;
-		if (aVal > bVal) return ascending ? 1 : -1;
-
-		return 0;
-	});
+	return orderBy(array, props, orders);
 }
 
 /**

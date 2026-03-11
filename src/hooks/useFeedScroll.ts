@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { debounce } from "lodash";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 interface UseFeedScrollArgs {
 	defaultNumDisplayedPosts: number;
@@ -16,29 +17,39 @@ export default function useFeedScroll({
 		defaultNumDisplayedPosts,
 	);
 	const [scrollPercentage, setScrollPercentage] = useState(0);
-	const loadingMoreTimeoutRef = useRef<number | null>(null);
-	const loadingMoreApplyRef = useRef<number | null>(null);
+
+	const debouncedSetIsLoadingFalse = useMemo(
+		() => debounce(() => setIsLoadingMorePosts(false), 250),
+		[],
+	);
+
+	const debouncedShowMorePosts = useMemo(
+		() =>
+			debounce((visibleCount: number, currentNumDisplayedPosts: number) => {
+				if (currentNumDisplayedPosts < visibleCount) {
+					setNumDisplayedPosts((prev) => prev + numPostsToLoadOnScroll);
+					debouncedSetIsLoadingFalse();
+				} else {
+					setIsLoadingMorePosts(false);
+				}
+			}, 150),
+		[numPostsToLoadOnScroll, debouncedSetIsLoadingFalse],
+	);
+
+	const showMorePosts = useCallback(() => {
+		if (isLoadingMorePosts) return;
+		if (numDisplayedPosts < visibleCount) {
+			setIsLoadingMorePosts(true);
+			debouncedShowMorePosts(visibleCount, numDisplayedPosts);
+		}
+	}, [
+		isLoadingMorePosts,
+		numDisplayedPosts,
+		visibleCount,
+		debouncedShowMorePosts,
+	]);
 
 	useEffect(() => {
-		const showMorePosts = () => {
-			if (isLoadingMorePosts) return;
-			if (numDisplayedPosts < visibleCount) {
-				setIsLoadingMorePosts(true);
-				if (loadingMoreApplyRef.current) {
-					window.clearTimeout(loadingMoreApplyRef.current);
-				}
-				loadingMoreApplyRef.current = window.setTimeout(() => {
-					setNumDisplayedPosts((prev) => prev + numPostsToLoadOnScroll);
-					if (loadingMoreTimeoutRef.current) {
-						window.clearTimeout(loadingMoreTimeoutRef.current);
-					}
-					loadingMoreTimeoutRef.current = window.setTimeout(() => {
-						setIsLoadingMorePosts(false);
-					}, 250);
-				}, 150);
-			}
-		};
-
 		if (visibleCount && visibleCount < numDisplayedPosts) {
 			setNumDisplayedPosts(visibleCount);
 		}
@@ -74,22 +85,17 @@ export default function useFeedScroll({
 		return () => window.removeEventListener("scroll", handleScroll);
 	}, [
 		defaultNumDisplayedPosts,
-		isLoadingMorePosts,
 		numDisplayedPosts,
-		numPostsToLoadOnScroll,
 		visibleCount,
+		showMorePosts,
 	]);
 
 	useEffect(() => {
 		return () => {
-			if (loadingMoreTimeoutRef.current) {
-				window.clearTimeout(loadingMoreTimeoutRef.current);
-			}
-			if (loadingMoreApplyRef.current) {
-				window.clearTimeout(loadingMoreApplyRef.current);
-			}
+			debouncedShowMorePosts.cancel();
+			debouncedSetIsLoadingFalse.cancel();
 		};
-	}, []);
+	}, [debouncedShowMorePosts, debouncedSetIsLoadingFalse]);
 
 	return { isLoadingMorePosts, numDisplayedPosts, scrollPercentage };
 }

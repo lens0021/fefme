@@ -1,10 +1,6 @@
-/*
- * Math and numbers.
- */
-import { isFinite, isNil } from "lodash";
+import { isFinite, isNil, mapValues, sum } from "lodash";
 
 import type { OptionalNumber, StringNumberDict } from "../types";
-import { sumArray } from "./collection_helpers";
 import { byteString } from "./string_helpers";
 
 const NUMBER_REGEX = /^[\d.]+$/;
@@ -33,9 +29,7 @@ export class BytesDict {
 	}
 
 	toBytesStringDict(): Record<string, string> {
-		return Object.fromEntries(
-			Object.entries(this.toDict()).map(([k, v]) => [k, byteString(v)]),
-		);
+		return mapValues(this.toDict(), byteString);
 	}
 }
 
@@ -104,7 +98,7 @@ export function sizeOf(obj: unknown, sizes: BytesDict): number {
 			break;
 		case "object":
 			if (Array.isArray(obj)) {
-				const arrayBytes = sumArray(obj.map((item) => sizeOf(item, sizes)));
+				const arrayBytes = sum(obj.map((item) => sizeOf(item, sizes)));
 				bytes += arrayBytes;
 				sizes.arrays += arrayBytes;
 			} else {
