@@ -3,7 +3,16 @@
  * @module collection_helpers
  */
 
-import { chunk, isFinite, isNil } from "lodash";
+import {
+	chunk,
+	groupBy,
+	isFinite,
+	isNil,
+	keyBy,
+	shuffle,
+	sum,
+	zipObject,
+} from "lodash";
 
 import { isAccessTokenRevokedError } from "../api/errors";
 import { config } from "../config";
@@ -44,6 +53,37 @@ type PromisesResults<T> = {
 };
 
 const BATCH_MAP = "batchMap()";
+
+/**
+ * Groups an array by the result of {@linkcode makeKey()}.
+ * @template T
+ * @param {T[]} array - The array to group.
+ * @param {(item: T) => string | number} makeKey - Function to get group key.
+ * @returns {Record<string, T[]>} The grouped object.
+ */
+export function groupByFxn<T>(
+	array: T[],
+	makeKey: (item: T) => string | number,
+): Record<string, T[]> {
+	return groupBy(array, makeKey) as Record<string, T[]>;
+}
+
+/**
+ * Alias for groupByFxn for backward compatibility and clearer naming.
+ */
+export const groupByAlias = groupByFxn;
+
+/**
+ * Randomizes the order of an array.
+ * @template T
+ * @param {T[]} array - The array to shuffle.
+ * @returns {T[]} The shuffled array.
+ */
+export function shuffleArray<T extends string | number | object>(
+	array: T[],
+): T[] {
+	return shuffle(array);
+}
 
 /**
  * Adds up an arbitrary number of {@linkcode StringNumberDict}s, returning a new dict.
@@ -95,7 +135,7 @@ export function asOptionalArray<T>(value: T | undefined | null): [T] | [] {
 export function average(values: number[]): number {
 	values = values.filter(isFinite);
 	if (values.length == 0) return Number.NaN;
-	return values.reduce((a, b) => a + b, 0) / values.length;
+	return sum(values) / values.length;
 }
 
 /**
@@ -309,29 +349,6 @@ export async function getPromiseResults<T>(
 }
 
 /**
- * Groups an array by the result of {@linkcode makeKey()}.
- * TODO: Standard library Object.groupBy() requires some tsconfig setting that i don't understand
- * @template T
- * @param {T[]} array - The array to group.
- * @param {(item: T) => string} makeKey - Function to get group key.
- * @returns {Record<string, T[]>} The grouped object.
- */
-export function groupBy<T>(
-	array: T[],
-	makeKey: (item: T) => string | number,
-): Record<string, T[]> {
-	return array.reduce(
-		(grouped, item) => {
-			const group = makeKey(item);
-			grouped[group] ||= [];
-			grouped[group].push(item);
-			return grouped;
-		},
-		{} as Record<string, T[]>,
-	);
-}
-
-/**
  * Increments the count for a key in a dictionary by {@linkcode increment}.
  * @param {StringNumberDict} counts - The counts dictionary.
  * @param {CountKey | null} [k] - The key to increment.
@@ -395,13 +412,7 @@ export function keyByProperty<T>(
 	array: T[],
 	keyFxn: (value: T) => string,
 ): Record<string, T> {
-	return array.reduce(
-		(keyedDict, obj) => {
-			keyedDict[keyFxn(obj)] = obj;
-			return keyedDict;
-		},
-		{} as Record<string, T>,
-	);
+	return keyBy(array, keyFxn);
 }
 
 /**
@@ -526,17 +537,6 @@ export async function resolvePromiseDict(
 	});
 
 	return zipArrays(indexed[0], resolved);
-}
-
-/**
- * Randomizes the order of an array.
- * @template T
- * @param {T[]} array - The array to shuffle.
- * @returns {T[]} The shuffled array.
- */
-export function shuffle<T extends string | number | object>(array: T[]): T[] {
-	const sortRandom = (a: T, b: T) => hashObject(a).localeCompare(hashObject(b));
-	return array.toSorted(sortRandom);
 }
 
 /**
@@ -673,7 +673,7 @@ export function subtractConstant(
  * @returns {number} The sum (0 if empty)
  */
 export function sumArray(array: OptionalNumber[]): number {
-	return array.map((x) => x ?? 0).reduce((total, b) => total + b, 0);
+	return sum(array.map((x) => x ?? 0));
 }
 
 /**
@@ -832,7 +832,7 @@ export function uniquifyByProp<T>(
  * @example zipArrays([ 'a', 'b', 'c' ], [ 1, 2, 3 ]) -> { a: 1, b: 2, c: 3 }
  */
 export function zipArrays<T>(array1: string[], array2: T[]): Record<string, T> {
-	return Object.fromEntries(array1.map((e, i) => [e, array2[i]]));
+	return zipObject(array1, array2);
 }
 
 /**

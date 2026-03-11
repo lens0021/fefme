@@ -21,7 +21,7 @@ import {
 	asOptionalArray,
 	batchMap,
 	filterWithLog,
-	groupBy,
+	groupByFxn,
 	sortObjsByProps,
 	split,
 	sumArray,
@@ -1241,7 +1241,7 @@ export default class Post implements PostObj {
 	static dedupePosts(posts: Post[], inLogger?: Logger): Post[] {
 		inLogger ||= postLogger;
 		const logger = inLogger.tempLogger("dedupePosts()");
-		const postsByURI = groupBy<Post>(posts, (post) => post.realURI);
+		const postsByURI = groupByFxn<Post>(posts, (post) => post.realURI);
 
 		// Collect the properties of a single Post from all the instances of the same URI (we can
 		// encounter the same Post both in the user's feed as well as in a Trending post list).

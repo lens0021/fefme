@@ -3,6 +3,17 @@
  * @module time_helpers
  */
 
+import {
+	differenceInHours,
+	differenceInMilliseconds,
+	differenceInMinutes,
+	differenceInSeconds,
+	format,
+	formatISO,
+	max,
+	subSeconds,
+	toDate,
+} from "date-fns";
 import { isNil } from "lodash";
 
 import { config } from "../config";
@@ -11,8 +22,6 @@ import type { Optional, OptionalString } from "../types";
 import { NULL, quoted } from "./string_helpers";
 
 type DateArg = Date | OptionalString | number;
-
-const PARSEABLE_DATE_TYPES = new Set(["string", "number"]);
 
 /**
  * Helper class for computing age differences in various units.
@@ -31,8 +40,9 @@ export class AgeIn {
 			return 0;
 		}
 
-		endTime = coerceDate(endTime || new Date());
-		return endTime!.getTime() - coerceDate(startTime)!.getTime();
+		const end = coerceDate(endTime || new Date())!;
+		const start = coerceDate(startTime)!;
+		return differenceInMilliseconds(end, start);
 	}
 
 	/**
@@ -42,7 +52,9 @@ export class AgeIn {
 	 * @returns {number} The age in hours, or 0 if the start time is invalid.
 	 */
 	static hours(startTime: DateArg, endTime?: DateArg) {
-		return this.minutes(startTime, endTime) / 60.0;
+		const end = coerceDate(endTime || new Date())!;
+		const start = coerceDate(startTime)!;
+		return differenceInHours(end, start);
 	}
 
 	/**
@@ -52,7 +64,9 @@ export class AgeIn {
 	 * @returns {number} The age in minutes, or 0 if the start time is invalid.
 	 */
 	static minutes(startTime: DateArg, endTime?: DateArg) {
-		return this.seconds(startTime, endTime) / 60.0;
+		const end = coerceDate(endTime || new Date())!;
+		const start = coerceDate(startTime)!;
+		return differenceInMinutes(end, start);
 	}
 
 	/**
@@ -62,7 +76,9 @@ export class AgeIn {
 	 * @returns {number} The age in seconds, or 0 if the start time is invalid.
 	 */
 	static seconds(startTime: DateArg, endTime?: DateArg) {
-		return this.ms(startTime, endTime) / 1000.0;
+		const end = coerceDate(endTime || new Date())!;
+		const start = coerceDate(startTime)!;
+		return differenceInSeconds(end, start);
 	}
 }
 
@@ -85,9 +101,11 @@ export function ageString(date: DateArg): string {
  */
 export function coerceDate(date: DateArg): Optional<Date> {
 	if (!date) return null;
-	return (
-		PARSEABLE_DATE_TYPES.has(typeof date) ? new Date(date) : date
-	) as Date;
+	try {
+		return toDate(date);
+	} catch {
+		return null;
+	}
 }
 
 /**
@@ -96,18 +114,12 @@ export function coerceDate(date: DateArg): Optional<Date> {
  * @returns {Optional<Date>} The most recent date, or null if none are valid.
  */
 export function mostRecent(...args: DateArg[]): Optional<Date> {
-	let mostRecentDate: Optional<Date> = null;
 	const coercedArgs = args
-		.filter((a) => !isNil(a))
-		.map((arg) => coerceDate(arg)) as Date[];
+		.map((arg) => coerceDate(arg))
+		.filter((a): a is Date => !isNil(a));
 
-	for (const arg of coercedArgs) {
-		if (isNil(mostRecentDate) || arg > mostRecentDate) {
-			mostRecentDate = arg;
-		}
-	}
-
-	return mostRecentDate;
+	if (coercedArgs.length === 0) return null;
+	return max(coercedArgs);
 }
 
 /**
@@ -116,8 +128,7 @@ export function mostRecent(...args: DateArg[]): Optional<Date> {
  * @example "17/06/2025 17:59:58"
  */
 export function nowString(): string {
-	const now = new Date();
-	return `${now.toLocaleDateString()} ${now.toLocaleTimeString().split(".")[0]}`;
+	return format(new Date(), "P p");
 }
 
 /**
@@ -149,7 +160,7 @@ export async function sleep(milliseconds: number): Promise<void> {
  * @returns {Date} The new date with seconds subtracted.
  */
 export function subtractSeconds(date: Date, seconds: number): Date {
-	return new Date(date.getTime() - seconds * 1000);
+	return subSeconds(date, seconds);
 }
 
 /**
@@ -163,22 +174,22 @@ export const timeString = (_timestamp: DateArg, locale?: string): string => {
 	if (!_timestamp) return NULL;
 	locale ||= config.locale.locale;
 	const timestamp = coerceDate(_timestamp);
-	const isToday = timestamp!.getDate() == new Date().getDate();
+	if (!timestamp) return NULL;
+	const isToday = timestamp.getDate() == new Date().getDate();
 	const seconds = AgeIn.seconds(timestamp);
 	let str: string;
 
 	if (isToday) {
 		str = "today";
 	} else if (seconds < 0 && seconds > -1 * 7 * SECONDS_IN_DAY) {
-		str = `this coming ${DAY_NAMES[timestamp!.getDay()]}`; // TODO: use formatting functions, don't do date lookup manually
+		str = `this coming ${DAY_NAMES[timestamp.getDay()]}`; // TODO: use formatting functions, don't do date lookup manually
 	} else if (seconds < SECONDS_IN_DAY * 6) {
-		str = DAY_NAMES[timestamp!.getDay()]; // TODO: use formatting functions, don't do date lookup manually
+		str = DAY_NAMES[timestamp.getDay()]; // TODO: use formatting functions, don't do date lookup manually
 	} else {
-		str = timestamp!.toLocaleDateString(locale);
+		str = timestamp.toLocaleDateString(locale);
 	}
 
-	str += ` ${timestamp!.toLocaleTimeString(locale)}`;
-	// console.debug(`timeString() converted ${_timestamp} to ${str} w/locale "${locale}" (toLocaleString() gives "${timestamp.toLocaleString()}")`);
+	str += ` ${timestamp.toLocaleTimeString(locale)}`;
 	return str;
 };
 
@@ -199,8 +210,9 @@ export function timelineCutoffAt(): Date {
  */
 export function toISOFormat(date: DateArg, withMilliseconds?: boolean): string {
 	if (!date) return NULL;
-	const isoString = coerceDate(date)!.toISOString();
-	return withMilliseconds ? isoString : isoString.replace(/\.\d+/, "");
+	const d = coerceDate(date);
+	if (!d) return NULL;
+	return formatISO(d, { representation: "complete" }).replace(/\.\d+/, "");
 }
 
 /**

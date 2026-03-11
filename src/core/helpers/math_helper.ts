@@ -41,9 +41,11 @@ export class BytesDict {
 
 // Same as isNumber() but accepts a numerical string as well
 export const isNumberOrNumberString = (n: string | OptionalNumber) => {
-	return typeof n == "string" ? NUMBER_REGEX.test(n) : isFinite(n);
+	if (typeof n === "string") {
+		return NUMBER_REGEX.test(n) && isFinite(Number.parseFloat(n));
+	}
+	return isFinite(n);
 };
-
 // Use TextEncoder to get the byte length of an object
 export function sizeFromTextEncoder(obj: unknown): number {
 	try {

@@ -8,6 +8,7 @@ import { decode } from "html-entities";
 import { isEmpty, isNil } from "lodash";
 import type { mastodon } from "masto";
 import escape from "regexp.escape";
+import { parseURL } from "ufo";
 
 import { MediaCategory } from "../enums";
 import type { OptionalString } from "../types";
@@ -169,22 +170,16 @@ export function determineMediaCategory(
  * @example "localhost:3000" => "localhost"*
  */
 export function extractDomain(inUrl: string): string {
-	// Normalize URL first (lowercase and trim)
-	const normalized = inUrl.toLowerCase().trim();
-	// Add protocol if missing for URL parsing
-	const url = normalized.startsWith("http")
-		? normalized
-		: `http://${normalized}`;
-
 	try {
-		const { hostname } = new URL(url);
-		return hostname.startsWith("www.") ? hostname.substring(4) : hostname;
+		const normalized = inUrl.toLowerCase().trim();
+		const { host } = parseURL(normalized);
+		if (!host) return UNKNOWN_SERVER;
+		return host.startsWith("www.") ? host.substring(4) : host;
 	} catch {
 		console.error(`extractDomain() failed to extractDomain() from "${inUrl}"`);
 		return UNKNOWN_SERVER;
 	}
 }
-
 /**
  * Takes the MD5 hash of a JavaScript object, number, or string.
  * @param {object | number | string} obj - The object, number, or string to hash.
